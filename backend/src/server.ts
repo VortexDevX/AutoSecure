@@ -25,21 +25,31 @@ import emailRoutes from './routes/emailRoutes';
 // Load environment variables
 dotenv.config();
 
-const app = express();
-app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
 
-// Correct CORS for production
+const app = express();
+app.set('trust proxy', 1);
+
+// CORS first
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'https://autosecure.vercel.app',
+    origin: ['http://localhost:3000', 'https://autosecure.vercel.app'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
-app.use(helmet());
+// Helmet second (configured to not break CORS)
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: false,
+  })
+);
+
 app.use(cookieParser());
 
 // Conditional body parsing (skip multipart)

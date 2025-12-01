@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Environment files (keep examples)
+.env
+.env.local
+.env.production
+backend/.env
+frontend/.env.local
+!.env.example
+!.env.local.example
+!.env.production.example
+!backend/.env.example
+!frontend/.env.local.example
+
+# Storage (local development only)
+backend/storage/policies/
+backend/storage/backups/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing
+coverage/
+
+# Misc
+.vercel
+.railway

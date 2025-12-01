@@ -28,19 +28,35 @@ dotenv.config();
 const PORT = process.env.PORT || 5000;
 
 const app = express();
+
+// ✅ Trust proxy (important for Railway/Vercel)
 app.set('trust proxy', 1);
 
-// CORS first
+// ✅ CORS - use environment variable
+const allowedOrigins = ['http://localhost:3000', process.env.FRONTEND_URL].filter(
+  Boolean
+) as string[];
+
 app.use(
   cors({
-    origin: ['http://localhost:3000', 'https://autosecure.vercel.app'],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.some((allowed) => origin.startsWith(allowed.replace(/\/$/, '')))) {
+        return callback(null, true);
+      }
+
+      console.warn(`⚠️ CORS blocked origin: ${origin}`);
+      return callback(null, false);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
-// Helmet second (configured to not break CORS)
+// Helmet (configured to not break CORS)
 app.use(
   helmet({
     crossOriginResourcePolicy: false,
@@ -66,8 +82,17 @@ app.use((req, res, next) => {
   });
 });
 
-// Health checks
+// ✅ Health checks (NO rate limiting on these)
 app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'AutoSecure API running',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  });
+});
+
+app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     message: 'AutoSecure API running',
@@ -75,7 +100,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-app.get('/health/db', (req, res) => {
+app.get('/health/db', async (req, res) => {
   try {
     const state = mongoose.connection.readyState;
     const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
@@ -93,9 +118,11 @@ app.get('/health/db', (req, res) => {
   }
 });
 
-// Apply site kill-switch + rate limiter
-app.use('/api', checkSiteEnabled);
-app.use('/api', apiRateLimiter);
+// ✅ Apply site kill-switch BEFORE rate limiter
+app.use('/api/v1', checkSiteEnabled);
+
+// ✅ Apply rate limiter to API routes only (not health checks)
+app.use('/api/v1', apiRateLimiter);
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);
@@ -123,10 +150,9 @@ const startServer = async () => {
 
     app.listen(PORT, () => {
       const env = process.env.NODE_ENV || 'development';
-      const backendUrl = process.env.BACKEND_URL || `http://localhost:${PORT}`;
-
-      console.log(`🚀 AutoSecure backend running at: ${backendUrl}`);
+      console.log(`🚀 AutoSecure API running on port ${PORT}`);
       console.log(`🌍 Environment: ${env}`);
+      console.log(`🔗 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);

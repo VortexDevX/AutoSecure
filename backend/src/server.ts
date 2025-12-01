@@ -28,40 +28,38 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(helmet());
+// Correct CORS for production
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL || 'https://autosecure.vercel.app',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
+
+app.use(helmet());
 app.use(cookieParser());
 
-// Conditional body parsing - skip for multipart routes
+// Conditional body parsing (skip multipart)
 app.use((req, res, next) => {
   const contentType = req.headers['content-type'] || '';
 
-  // Skip body parsing for multipart/form-data (let multer handle it)
   if (contentType.includes('multipart/form-data')) {
-    console.log('⏭️  Skipping express.json() - multipart detected');
     return next();
   }
 
-  // Parse JSON and URL-encoded for other requests
   express.json({ limit: '50mb' })(req, res, (err) => {
     if (err) return next(err);
     express.urlencoded({ extended: true, limit: '50mb' })(req, res, next);
   });
 });
 
-// Health checks (bypass site check and rate limit)
+// Health checks
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
-    message: 'AutoSecure API is running',
+    message: 'AutoSecure API running',
     timestamp: new Date().toISOString(),
   });
 });
@@ -75,47 +73,17 @@ app.get('/health/db', (req, res) => {
       status: state === 1 ? 'ok' : 'error',
       database: states[state],
       readyState: state,
-      name: mongoose.connection.name || 'N/A',
-      host: mongoose.connection.host || 'N/A',
-      port: mongoose.connection.port || 'N/A',
     });
   } catch (error) {
-    console.error('❌ Database health check error:', error);
     res.status(500).json({
       status: 'error',
       message: 'Database check failed',
-      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
 
-app.get('/health/detailed', (req, res) => {
-  const uptime = process.uptime();
-  const memoryUsage = process.memoryUsage();
-
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: {
-      seconds: Math.floor(uptime),
-      formatted: `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m ${Math.floor(uptime % 60)}s`,
-    },
-    memory: {
-      rss: `${Math.round(memoryUsage.rss / 1024 / 1024)}MB`,
-      heapTotal: `${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`,
-      heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB`,
-      external: `${Math.round(memoryUsage.external / 1024 / 1024)}MB`,
-    },
-    nodejs: process.version,
-    platform: process.platform,
-    env: process.env.NODE_ENV || 'development',
-  });
-});
-
-// Apply site kill-switch check to all /api routes
+// Apply site kill-switch + rate limiter
 app.use('/api', checkSiteEnabled);
-
-// Apply general rate limiting to all /api routes
 app.use('/api', apiRateLimiter);
 
 // API Routes
@@ -134,34 +102,23 @@ app.use('/api/v1/analytics', analyticsRoutes);
 // 404 handler
 app.use(notFoundHandler);
 
-// Global error handler (must be last)
+// Global error handler
 app.use(errorHandler);
 
 // Start server
 const startServer = async () => {
   try {
-    console.log('\n🚀 Starting server...\n');
-
-    // Connect to MongoDB
     await connectDatabase();
 
-    // Start Express
     app.listen(PORT, () => {
-      console.log(`\n🚀 Backend server running on http://localhost:${PORT}`);
-      console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`\n📍 API Endpoints:`);
-      console.log(`   Auth:         /api/v1/auth/*`);
-      console.log(`   Users:        /api/v1/users/*`);
-      console.log(`   Audit Logs:   /api/v1/audit-logs/*`);
-      console.log(`   Settings:     /api/v1/settings/*`);
-      console.log(`   Meta:         /api/v1/meta/*`);
-      console.log(`   Policies:     /api/v1/policies/*`);
-      console.log(`   Exports:      /api/v1/exports/*`);
-      console.log(`   Files:        /api/v1/files/*`);
-      console.log(`\n`);
+      const env = process.env.NODE_ENV || 'development';
+      const backendUrl = process.env.BACKEND_URL || `http://localhost:${PORT}`;
+
+      console.log(`🚀 AutoSecure backend running at: ${backendUrl}`);
+      console.log(`🌍 Environment: ${env}`);
     });
   } catch (error) {
-    console.error('❌ Server startup failed:', error);
+    console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
 };

@@ -4,14 +4,22 @@ import { smtpService } from '../services/smtpService';
 async function testEmail() {
   try {
     await connectDatabase();
-    console.log('📧 Testing SMTP connection...\n');
+    console.log('📧 Testing Brevo HTTP API email...\n');
 
     const testRecipient = process.argv[2] || 'patelvaibhav020406@gmail.com';
 
-    await smtpService.sendTestEmail(testRecipient);
+    // Direct simple API test
+    await smtpService.sendEmail({
+      to: testRecipient,
+      subject: 'AutoSecure - Test Email (HTTP API)',
+      html: `
+        <h1>Test Email from AutoSecure</h1>
+        <p>This is a test email sent using the Brevo HTTP API.</p>
+        <p>If you received this, everything is working perfectly.</p>
+      `,
+    });
 
-    console.log('\n✅ Test email sent successfully!');
-    console.log(`   Check inbox: ${testRecipient}`);
+    console.log(`\n✅ Test email sent successfully to: ${testRecipient}`);
     process.exit(0);
   } catch (error) {
     console.error('❌ Test email failed:', error);

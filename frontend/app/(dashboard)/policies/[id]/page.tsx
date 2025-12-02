@@ -745,16 +745,26 @@ export default function PolicyDetailPage() {
                   {/* Aadhaar */}
                   {policy.adh_file && (
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        {' '}
+                        {/* Added min-w-0 flex-1 */}
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
                           <DocumentTextIcon className="w-5 h-5 text-blue-600" />
                         </div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">Aadhaar Card</p>
-                          <p className="text-xs text-gray-500">{policy.adh_id}</p>
+                        <div className="min-w-0 flex-1">
+                          {' '}
+                          {/* Added min-w-0 flex-1 */}
+                          <p className="font-medium text-gray-900 text-sm truncate">
+                            Aadhaar Card
+                          </p>{' '}
+                          {/* Added truncate */}
+                          <p className="text-xs text-gray-500 truncate">{policy.adh_id}</p>{' '}
+                          {/* Added truncate */}
                         </div>
                       </div>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 flex-shrink-0">
+                        {' '}
+                        {/* Added flex-shrink-0 */}
                         <button
                           onClick={() => handleViewFile(policy.adh_file!.file_name)}
                           disabled={loadingFile === policy.adh_file!.file_name}
@@ -780,7 +790,6 @@ export default function PolicyDetailPage() {
                         >
                           <DocumentArrowDownIcon className="w-4 h-4 text-gray-600" />
                         </button>
-                        {/* Delete button - Only for admin/owner */}
                         {canDeleteDocuments && (
                           <button
                             onClick={() => handleDeleteFileClick('adh_file', 'Aadhaar Card')}
@@ -797,16 +806,26 @@ export default function PolicyDetailPage() {
                   {/* PAN */}
                   {policy.pan_file && (
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        {' '}
+                        {/* Added min-w-0 flex-1 */}
+                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
                           <DocumentTextIcon className="w-5 h-5 text-green-600" />
                         </div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">PAN Card</p>
-                          <p className="text-xs text-gray-500">{policy.pan_no}</p>
+                        <div className="min-w-0 flex-1">
+                          {' '}
+                          {/* Added min-w-0 flex-1 */}
+                          <p className="font-medium text-gray-900 text-sm truncate">
+                            PAN Card
+                          </p>{' '}
+                          {/* Added truncate */}
+                          <p className="text-xs text-gray-500 truncate">{policy.pan_no}</p>{' '}
+                          {/* Added truncate */}
                         </div>
                       </div>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 flex-shrink-0">
+                        {' '}
+                        {/* Added flex-shrink-0 */}
                         <button
                           onClick={() => handleViewFile(policy.pan_file!.file_name)}
                           disabled={loadingFile === policy.pan_file!.file_name}
@@ -829,7 +848,6 @@ export default function PolicyDetailPage() {
                         >
                           <DocumentArrowDownIcon className="w-4 h-4 text-gray-600" />
                         </button>
-                        {/* Delete button - Only for admin/owner */}
                         {canDeleteDocuments && (
                           <button
                             onClick={() => handleDeleteFileClick('pan_file', 'PAN Card')}
@@ -850,16 +868,26 @@ export default function PolicyDetailPage() {
                         key={index}
                         className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          {' '}
+                          {/* Added min-w-0 flex-1 */}
+                          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
                             <DocumentTextIcon className="w-5 h-5 text-purple-600" />
                           </div>
-                          <div>
-                            <p className="font-medium text-gray-900 text-sm">{doc.label}</p>
-                            <p className="text-xs text-gray-500">{doc.file_name}</p>
+                          <div className="min-w-0 flex-1">
+                            {' '}
+                            {/* Added min-w-0 flex-1 */}
+                            <p className="font-medium text-gray-900 text-sm truncate">
+                              {doc.label}
+                            </p>{' '}
+                            {/* Added truncate */}
+                            <p className="text-xs text-gray-500 truncate">{doc.file_name}</p>{' '}
+                            {/* Added truncate */}
                           </div>
                         </div>
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 flex-shrink-0">
+                          {' '}
+                          {/* Added flex-shrink-0 */}
                           <button
                             onClick={() => handleViewFile(doc.file_name)}
                             disabled={loadingFile === doc.file_name}
@@ -880,7 +908,6 @@ export default function PolicyDetailPage() {
                           >
                             <DocumentArrowDownIcon className="w-4 h-4 text-gray-600" />
                           </button>
-                          {/* Delete button - Only for admin/owner */}
                           {canDeleteDocuments && (
                             <button
                               onClick={() =>

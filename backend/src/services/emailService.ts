@@ -58,14 +58,14 @@ export const emailService = {
     const now = new Date();
     const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
-    // ✅ Policy limit: 10 emails per hour per policy (increased from 3)
+    // Policy limit: from 10 -> 50 per hour
     const policyEmailCount = await EmailLog.countDocuments({
       policy_id: policyId,
       sent_at: { $gte: oneHourAgo },
       status: 'sent',
     });
 
-    if (policyEmailCount >= 10) {
+    if (policyEmailCount >= 50) {
       const oldestEmail = await EmailLog.findOne({
         policy_id: policyId,
         sent_at: { $gte: oneHourAgo },
@@ -78,19 +78,19 @@ export const emailService = {
 
       return {
         allowed: false,
-        message: `Rate limit exceeded for this policy. Maximum 10 emails per hour.`,
+        message: `Rate limit exceeded for this policy. Maximum 50 emails per hour.`,
         waitMinutes: waitTime,
       };
     }
 
-    // ✅ User limit: 100 emails per hour per user (increased from 20)
+    // User limit: from 100 -> 300 per hour
     const userEmailCount = await EmailLog.countDocuments({
       sent_by: userId,
       sent_at: { $gte: oneHourAgo },
       status: 'sent',
     });
 
-    if (userEmailCount >= 100) {
+    if (userEmailCount >= 300) {
       const oldestEmail = await EmailLog.findOne({
         sent_by: userId,
         sent_at: { $gte: oneHourAgo },
@@ -103,7 +103,7 @@ export const emailService = {
 
       return {
         allowed: false,
-        message: `Rate limit exceeded. Maximum 100 emails per hour per user.`,
+        message: `Rate limit exceeded. Maximum 300 emails per hour per user.`,
         waitMinutes: waitTime,
       };
     }

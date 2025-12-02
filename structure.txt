@@ -1,0 +1,220 @@
+📁 autosecure/
+├── 📁 backend/
+│   ├── 📁 src/
+│   │   ├── 📁 config/
+│   │   │   └── 📄 database.ts
+│   │   ├── 📁 controllers/
+│   │   │   ├── 📄 analyticsController.ts
+│   │   │   ├── 📄 auditLogController.ts
+│   │   │   ├── 📄 authController.ts
+│   │   │   ├── 📄 emailController.ts
+│   │   │   ├── 📄 emailTemplateController.ts
+│   │   │   ├── 📄 exportController.ts
+│   │   │   ├── 📄 fileController.ts
+│   │   │   ├── 📄 metaController.ts
+│   │   │   ├── 📄 policyController.ts
+│   │   │   ├── 📄 siteSettingsController.ts
+│   │   │   └── 📄 userController.ts
+│   │   ├── 📁 middleware/
+│   │   │   ├── 📄 authMiddleware.ts
+│   │   │   ├── 📄 errorMiddleware.ts
+│   │   │   ├── 📄 rateLimitMiddleware.ts
+│   │   │   ├── 📄 siteMiddleware.ts
+│   │   │   └── 📄 uploadMiddleware.ts
+│   │   ├── 📁 models/
+│   │   │   ├── 📄 AuditLog.ts
+│   │   │   ├── 📄 EmailLog.ts
+│   │   │   ├── 📄 EmailTemplate.ts
+│   │   │   ├── 📄 Meta.ts
+│   │   │   ├── 📄 Policy.ts
+│   │   │   ├── 📄 SiteSettings.ts
+│   │   │   ├── 📄 User.ts
+│   │   │   └── 📄 index.ts
+│   │   ├── 📁 routes/
+│   │   │   ├── 📄 analyticsRoutes.ts
+│   │   │   ├── 📄 auditLogRoutes.ts
+│   │   │   ├── 📄 authRoutes.ts
+│   │   │   ├── 📄 emailRoutes.ts
+│   │   │   ├── 📄 emailTemplateRoutes.ts
+│   │   │   ├── 📄 exportRoutes.ts
+│   │   │   ├── 📄 fileRoutes.ts
+│   │   │   ├── 📄 metaRoutes.ts
+│   │   │   ├── 📄 policyRoutes.ts
+│   │   │   ├── 📄 siteSettingsRoutes.ts
+│   │   │   └── 📄 userRoutes.ts
+│   │   ├── 📁 scripts/
+│   │   │   ├── 📄 initDb.ts
+│   │   │   ├── 📄 migratePolicyFields.ts
+│   │   │   ├── 📄 seedEmailTemplate.ts
+│   │   │   ├── 📄 seedMeta.ts
+│   │   │   └── 📄 testEmail.ts
+│   │   ├── 📁 services/
+│   │   │   ├── 📄 auditService.ts
+│   │   │   ├── 📄 emailService.ts
+│   │   │   ├── 📄 fileStorageService.ts
+│   │   │   ├── 📄 jwtService.ts
+│   │   │   ├── 📄 passwordService.ts
+│   │   │   ├── 📄 smtpService.ts
+│   │   │   └── 📄 totpService.ts
+│   │   ├── 📁 types/
+│   │   │   └── 📄 express.d.ts
+│   │   ├── 📁 utils/
+│   │   │   ├── 📄 asyncHandler.ts
+│   │   │   ├── 📄 errors.ts
+│   │   │   └── 📄 validators.ts
+│   │   ├── 📄 server.ts
+│   │   └── 📄 test-services.ts
+│   ├── 📄 .env.example
+│   ├── 📄 .env.production.example
+│   ├── 📄 nodemon.json
+│   ├── 📄 package.json
+│   ├── 📄 test-auth.http
+│   ├── 📄 tsconfig.json
+│   └── 📄 tsconfig.tsbuildinfo
+├── 📁 frontend/
+│   ├── 📁 app/
+│   │   ├── 📁 (auth)/
+│   │   │   ├── 📁 login/
+│   │   │   │   └── 📄 page.tsx
+│   │   │   ├── 📁 verify-totp/
+│   │   │   │   └── 📄 page.tsx
+│   │   │   └── 📄 layout.tsx
+│   │   ├── 📁 (dashboard)/
+│   │   │   ├── 📁 admin/
+│   │   │   │   ├── 📁 audit-logs/
+│   │   │   │   │   └── 📄 page.tsx
+│   │   │   │   ├── 📁 email-templates/
+│   │   │   │   │   └── 📄 page.tsx
+│   │   │   │   ├── 📁 meta/
+│   │   │   │   │   └── 📄 page.tsx
+│   │   │   │   ├── 📁 settings/
+│   │   │   │   │   └── 📄 page.tsx
+│   │   │   │   └── 📁 users/
+│   │   │   │       └── 📄 page.tsx
+│   │   │   ├── 📁 dashboard/
+│   │   │   │   ├── 📄 loading.tsx
+│   │   │   │   └── 📄 page.tsx
+│   │   │   ├── 📁 exports/
+│   │   │   │   └── 📄 page.tsx
+│   │   │   ├── 📁 policies/
+│   │   │   │   ├── 📁 [id]/
+│   │   │   │   │   ├── 📁 edit/
+│   │   │   │   │   │   └── 📄 page.tsx
+│   │   │   │   │   └── 📄 page.tsx
+│   │   │   │   ├── 📁 new/
+│   │   │   │   │   └── 📄 page.tsx
+│   │   │   │   ├── 📄 loading.tsx
+│   │   │   │   └── 📄 page.tsx
+│   │   │   ├── 📄 error.tsx
+│   │   │   ├── 📄 layout.tsx
+│   │   │   └── 📄 loading.tsx
+│   │   ├── 📄 favicon.ico
+│   │   ├── 📄 global-error.tsx
+│   │   ├── 📄 globals.css
+│   │   ├── 📄 layout.tsx
+│   │   ├── 📄 not-found.tsx
+│   │   └── 📄 page.tsx
+│   ├── 📁 components/
+│   │   ├── 📁 admin/
+│   │   │   ├── 📄 AccessDenied.tsx
+│   │   │   ├── 📄 CreateMetaModal.tsx
+│   │   │   ├── 📄 CreateUserModal.tsx
+│   │   │   ├── 📄 MetaOptionsTable.tsx
+│   │   │   └── 📄 UserTable.tsx
+│   │   ├── 📁 audit/
+│   │   ├── 📁 auth/
+│   │   ├── 📁 charts/
+│   │   ├── 📁 dashboard/
+│   │   │   ├── 📄 MetricCard.tsx
+│   │   │   ├── 📄 MonthlyTrendChart.tsx
+│   │   │   ├── 📄 PoliciesByStatusChart.tsx
+│   │   │   ├── 📄 PoliciesByTypeChart.tsx
+│   │   │   ├── 📄 QuickActions.tsx
+│   │   │   └── 📄 RecentActivity.tsx
+│   │   ├── 📁 exports/
+│   │   ├── 📁 layout/
+│   │   │   ├── 📄 Sidebar.tsx
+│   │   │   ├── 📄 SiteStatusBanner.tsx
+│   │   │   └── 📄 Topbar.tsx
+│   │   ├── 📁 policies/
+│   │   │   ├── 📁 steps/
+│   │   │   │   ├── 📄 Step1PolicyDetails.tsx
+│   │   │   │   ├── 📄 Step2CustomerDetails.tsx
+│   │   │   │   ├── 📄 Step3VehicleDetails.tsx
+│   │   │   │   ├── 📄 Step4PremiumDetails.tsx
+│   │   │   │   ├── 📄 Step5PaymentDetails.tsx
+│   │   │   │   └── 📄 Step6ReviewSubmit.tsx
+│   │   │   ├── 📄 PolicyFilters.tsx
+│   │   │   ├── 📄 PolicyTable.tsx
+│   │   │   ├── 📄 PolicyWizard.tsx
+│   │   │   └── 📄 SendEmailModal.tsx
+│   │   └── 📁 ui/
+│   │       ├── 📄 Badge.tsx
+│   │       ├── 📄 Button.tsx
+│   │       ├── 📄 Card.tsx
+│   │       ├── 📄 Checkbox.tsx
+│   │       ├── 📄 DatePicker.tsx
+│   │       ├── 📄 FileUpload.tsx
+│   │       ├── 📄 Input.tsx
+│   │       ├── 📄 LoadingBar.tsx
+│   │       ├── 📄 Modal.tsx
+│   │       ├── 📄 PageLoader.tsx
+│   │       ├── 📄 PageTransition.tsx
+│   │       ├── 📄 Pagination.tsx
+│   │       ├── 📄 Select.tsx
+│   │       ├── 📄 Skeleton.tsx
+│   │       ├── 📄 Spinner.tsx
+│   │       └── 📄 Table.tsx
+│   ├── 📁 lib/
+│   │   ├── 📁 api/
+│   │   │   ├── 📄 analytics.ts
+│   │   │   ├── 📄 auditLogs.ts
+│   │   │   ├── 📄 auth.ts
+│   │   │   ├── 📄 client.ts
+│   │   │   ├── 📄 emailTemplates.ts
+│   │   │   ├── 📄 emails.ts
+│   │   │   ├── 📄 exports.ts
+│   │   │   ├── 📄 meta.ts
+│   │   │   ├── 📄 policies.ts
+│   │   │   ├── 📄 settings.ts
+│   │   │   └── 📄 users.ts
+│   │   ├── 📁 context/
+│   │   │   ├── 📄 AuthContext.tsx
+│   │   │   └── 📄 PolicyFormContext.tsx
+│   │   ├── 📁 hooks/
+│   │   │   ├── 📄 useAnalytics.ts
+│   │   │   ├── 📄 useAuth.ts
+│   │   │   ├── 📄 useMeta.ts
+│   │   │   ├── 📄 usePolicies.ts
+│   │   │   ├── 📄 useRequireRole.ts
+│   │   │   └── 📄 useToast.ts
+│   │   ├── 📁 types/
+│   │   │   ├── 📄 api.ts
+│   │   │   ├── 📄 auditLog.ts
+│   │   │   ├── 📄 emailTemplate.ts
+│   │   │   ├── 📄 meta.ts
+│   │   │   ├── 📄 policy.ts
+│   │   │   └── 📄 user.ts
+│   │   └── 📁 utils/
+│   │       ├── 📄 constants.ts
+│   │       ├── 📄 exportFields.ts
+│   │       ├── 📄 formatters.ts
+│   │       └── 📄 validators.ts
+│   ├── 📁 public/
+│   │   ├── 📄 logo-1024.png
+│   │   └── 📄 logo.png
+│   ├── 📄 .gitignore
+│   ├── 📄 eslint.config.mjs
+│   ├── 📄 next-env.d.ts
+│   ├── 📄 next.config.js
+│   ├── 📄 package.json
+│   ├── 📄 postcss.config.js
+│   ├── 📄 postcss.config.mjs
+│   ├── 📄 tailwind.config.ts
+│   └── 📄 tsconfig.json
+├── 📄 .eslintrc.js
+├── 📄 .gitignore
+├── 📄 .hintrc
+├── 📄 .prettierrc
+├── 📄 structure.txt
+└── 📄 tsconfig.base.json

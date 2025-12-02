@@ -1,171 +1,112 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { Request } from 'express';
 
-// ✅ Detect environment
+// Detect environment
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 /**
- * Generate a unique key for rate limiting
- * Uses IP + User ID (if authenticated) for better accuracy
+ * Safe key generator using IPv6-aware helper
+ * Adds userId when available
  */
-const getKey = (req: Request): string => {
+const getSafeKey = (req: Request): string => {
   const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const base = ipKeyGenerator(ip); // IPv6 normalized
   const userId = (req as any).user?.userId;
-
-  if (userId) {
-    return `${ip}-${userId}`;
-  }
-  return ip;
+  return userId ? `${base}-${userId}` : base;
 };
 
 /**
- * Auth rate limiter - Prevents brute force attacks
- * Only counts FAILED login attempts
+ * Auth rate limiter
  */
 export const authRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: isDevelopment ? 50 : 10, // Dev: 50, Prod: 10 failed attempts per 15 min
+  windowMs: 15 * 60 * 1000,
+  max: isDevelopment ? 200 : 50, // Increased significantly
   message: {
     status: 'error',
-    message: 'Too many login attempts. Please try again in 15 minutes.',
+    message: 'Too many login attempts. Try again later.',
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: true, // ✅ Only count failed attempts
-  skipFailedRequests: false,
-  keyGenerator: getKey,
-  handler: (req, res) => {
-    const resetTime = req.rateLimit?.resetTime;
-    const retryAfter = resetTime ? Math.ceil((resetTime.getTime() - Date.now()) / 1000 / 60) : 15;
-
-    res.status(429).json({
-      status: 'error',
-      message: `Too many login attempts. Please try again in ${retryAfter} minute(s).`,
-      retryAfter: retryAfter,
-    });
-  },
+  skipSuccessfulRequests: true,
+  keyGenerator: getSafeKey,
 });
 
 /**
- * TOTP verification rate limiter
- * Stricter to prevent code guessing
+ * TOTP rate limiter
  */
 export const totpRateLimiter = rateLimit({
-  windowMs: 5 * 60 * 1000, // 5 minutes
-  max: isDevelopment ? 20 : 10, // Dev: 20, Prod: 10 attempts per 5 min
+  windowMs: 5 * 60 * 1000,
+  max: isDevelopment ? 100 : 40, // Increased
   message: {
     status: 'error',
-    message: 'Too many TOTP verification attempts. Please try again in 5 minutes.',
+    message: 'Too many TOTP attempts. Try again soon.',
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: true, // ✅ Only count failed attempts
-  skipFailedRequests: false,
-  keyGenerator: getKey,
-  handler: (req, res) => {
-    const resetTime = req.rateLimit?.resetTime;
-    const retryAfter = resetTime ? Math.ceil((resetTime.getTime() - Date.now()) / 1000 / 60) : 5;
-
-    res.status(429).json({
-      status: 'error',
-      message: `Too many TOTP attempts. Please try again in ${retryAfter} minute(s).`,
-      retryAfter: retryAfter,
-    });
-  },
+  skipSuccessfulRequests: true,
+  keyGenerator: getSafeKey,
 });
 
 /**
- * General API rate limiter
- * Applied to all routes globally - VERY GENEROUS limits
+ * Global API limiter
  */
 export const apiRateLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute window (shorter window = faster reset)
-  max: isDevelopment ? 1000 : 300, // Dev: 1000, Prod: 300 requests per minute
-  message: {
-    status: 'error',
-    message: 'Too many requests. Please slow down.',
-  },
+  windowMs: 60 * 1000,
+  max: isDevelopment ? 5000 : 1500, // Massive increase
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: getKey,
+  keyGenerator: getSafeKey,
   skip: (req) => {
-    // Skip rate limiting for health checks
-    const path = req.path.toLowerCase();
-    return path === '/health' || path === '/api/health' || path.includes('/health');
+    const p = req.path.toLowerCase();
+    return p.includes('/health');
   },
 });
 
 /**
- * File upload rate limiter
- * Prevents rapid file uploads
+ * Upload limiter
  */
 export const uploadRateLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: isDevelopment ? 100 : 30, // Dev: 100, Prod: 30 uploads per minute
-  message: {
-    status: 'error',
-    message: 'Too many file uploads. Please slow down.',
-  },
+  windowMs: 60 * 1000,
+  max: isDevelopment ? 300 : 120, // Increased
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: getKey,
+  keyGenerator: getSafeKey,
 });
 
 /**
- * Export rate limiter
- * Prevents excessive export requests
+ * Export limiter
  */
 export const exportRateLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: isDevelopment ? 50 : 20, // Dev: 50, Prod: 20 exports per minute
-  message: {
-    status: 'error',
-    message: 'Too many export requests. Please wait before exporting again.',
-  },
+  windowMs: 60 * 1000,
+  max: isDevelopment ? 200 : 80, // Increased
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: getKey,
+  keyGenerator: getSafeKey,
 });
 
 /**
- * Email sending rate limiter
- * More generous for business use
+ * Email limiter
  */
 export const emailRateLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: isDevelopment ? 100 : 50, // Dev: 100, Prod: 50 emails per hour per user
-  message: {
-    status: 'error',
-    message: 'Email rate limit exceeded. Please try again later.',
-  },
+  windowMs: 60 * 60 * 1000,
+  max: isDevelopment ? 500 : 200, // Increased heavily
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: getKey,
-  handler: (req, res) => {
-    const resetTime = req.rateLimit?.resetTime;
-    const retryAfter = resetTime ? Math.ceil((resetTime.getTime() - Date.now()) / 1000 / 60) : 60;
-
-    res.status(429).json({
-      status: 'error',
-      message: `Email rate limit exceeded. Please try again in ${retryAfter} minute(s).`,
-      retryAfter: retryAfter,
-    });
-  },
+  keyGenerator: getSafeKey,
 });
 
 /**
- * Create custom rate limiter with specific settings
+ * Custom limiter generator
  */
-export const createRateLimiter = (options: { windowMs: number; max: number; message?: string }) => {
-  return rateLimit({
+export const createRateLimiter = (options: { windowMs: number; max: number; message?: string }) =>
+  rateLimit({
     windowMs: options.windowMs,
-    max: isDevelopment ? options.max * 5 : options.max,
+    max: isDevelopment ? options.max * 5 : options.max * 2,
     message: {
       status: 'error',
-      message: options.message || 'Too many requests. Please try again later.',
+      message: options.message || 'Too many requests.',
     },
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: getKey,
+    keyGenerator: getSafeKey,
   });
-};

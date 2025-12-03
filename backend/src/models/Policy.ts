@@ -23,7 +23,6 @@ export interface IPolicy extends Document {
   issue_date: Date;
   ins_type: string;
   start_date: Date;
-  tenure?: number;
   end_date: Date;
   ins_status: string;
   ins_co_id: string;
@@ -155,7 +154,6 @@ const PolicySchema = new Schema<IPolicy>(
     issue_date: { type: Date, required: true },
     ins_type: { type: String, required: true },
     start_date: { type: Date, required: true },
-    tenure: { type: Number, min: 1, max: 10 },
     end_date: { type: Date, required: true },
     ins_status: { type: String, required: true },
     ins_co_id: { type: String, required: true },

@@ -30,7 +30,6 @@ export interface Policy {
   issue_date: string;
   ins_type: string;
   start_date: string;
-  tenure?: number;
   end_date: string;
   ins_status: string;
   ins_co_id: string;
@@ -121,7 +120,6 @@ export interface PolicyFormData {
   issue_date: string;
   ins_type: string;
   start_date: string;
-  tenure?: number;
   end_date: string;
   ins_status: string;
   ins_co_id: string;

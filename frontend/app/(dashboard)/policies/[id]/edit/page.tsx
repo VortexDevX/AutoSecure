@@ -52,7 +52,6 @@ function EditPolicyFormContent({ policyId }: { policyId: string }) {
         issue_date: formatDate(policy.issue_date),
         ins_type: policy.ins_type,
         start_date: formatDate(policy.start_date),
-        tenure: policy.tenure,
         end_date: formatDate(policy.end_date),
         ins_status: policy.ins_status,
         ins_co_id: policy.ins_co_id,

@@ -250,7 +250,7 @@ export function PolicyTable({ policies, onDelete, onSendEmail }: PolicyTableProp
               <th className="px-6 py-3 whitespace-nowrap">Status</th>
               <th className="px-6 py-3 whitespace-nowrap">Payment</th>
               <th className="px-6 py-3 whitespace-nowrap">Premium</th>
-              <th className="px-6 py-3 whitespace-nowrap">Created</th>
+              <th className="px-6 py-3 whitespace-nowrap">Expiry Date</th>
               <th className="px-6 py-3 text-right whitespace-nowrap">Actions</th>
             </tr>
           </thead>
@@ -296,7 +296,7 @@ export function PolicyTable({ policies, onDelete, onSendEmail }: PolicyTableProp
                   {formatCurrency(policy.premium_amount)}
                 </td>
                 <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
-                  {formatDate(policy.created_at)}
+                  {formatDate(policy.end_date)}
                 </td>
                 <td className="px-6 py-4 text-right whitespace-nowrap">
                   <ActionsMenu

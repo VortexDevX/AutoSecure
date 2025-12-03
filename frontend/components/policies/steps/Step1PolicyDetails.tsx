@@ -19,12 +19,22 @@ export function Step1PolicyDetails() {
       endDate.setDate(endDate.getDate() - 1);
       updateFormData({
         end_date: endDate.toISOString().split('T')[0],
-        // ✅ REMOVED: saod_end_date auto-sync
       });
     }
   }, [formData.start_date]);
 
-  // ✅ REMOVED: Auto-sync SAOD start date with policy start date
+  // Auto-sync SAOD start date with policy start date
+  useEffect(() => {
+    if (formData.saod_start_date) {
+      const saodStartDate = new Date(formData.saod_start_date);
+      const saodEndDate = new Date(saodStartDate);
+      saodEndDate.setFullYear(saodEndDate.getFullYear() + 1);
+      saodEndDate.setDate(saodEndDate.getDate() - 1);
+      updateFormData({
+        saod_end_date: saodEndDate.toISOString().split('T')[0],
+      });
+    }
+  }, [formData.saod_start_date]);
 
   return (
     <div className="space-y-6">

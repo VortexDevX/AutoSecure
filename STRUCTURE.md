@@ -1,3 +1,4 @@
+```
 📁 autosecure/
 ├── 📁 backend/
 │   ├── 📁 src/
@@ -216,5 +217,9 @@
 ├── 📄 .gitignore
 ├── 📄 .hintrc
 ├── 📄 .prettierrc
-├── 📄 structure.txt
+├── 📄 FRONTEND.md
+├── 📄 Overview.md
+├── 📄 STRUCTURE.md
+├── 📄 SUMMARY.md
 └── 📄 tsconfig.base.json
+```

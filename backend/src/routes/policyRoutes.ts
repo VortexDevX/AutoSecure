@@ -5,6 +5,7 @@ import {
   createPolicy,
   updatePolicy,
   deletePolicy,
+  getPolicies,
 } from '../controllers/policyController';
 import { requireAuth } from '../middleware/authMiddleware';
 import { uploadPolicyFiles } from '../middleware/uploadMiddleware';
@@ -16,7 +17,7 @@ const router = Router();
 // All routes require authentication
 router.use(requireAuth);
 
-router.get('/', listPolicies);
+router.get('/', getPolicies);
 router.get('/:id', getPolicy);
 router.post('/', uploadRateLimiter, uploadPolicyFiles, createPolicy);
 router.patch('/:id', uploadRateLimiter, uploadPolicyFiles, updatePolicy);

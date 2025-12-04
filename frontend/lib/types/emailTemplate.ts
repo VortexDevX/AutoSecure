@@ -5,18 +5,8 @@ export interface EmailTemplate {
   subject: string;
   body_html: string;
   active: boolean;
-  created_by:
-    | {
-        _id: string;
-        email: string;
-      }
-    | string;
-  updated_by:
-    | {
-        _id: string;
-        email: string;
-      }
-    | string;
+  created_by: { email: string } | string;
+  updated_by: { email: string } | string;
   createdAt: string;
   updatedAt: string;
 }
@@ -30,7 +20,6 @@ export interface EmailTemplateListResponse {
 export interface EmailTemplateResponse {
   success: boolean;
   data: EmailTemplate;
-  message?: string;
 }
 
 export interface EmailTemplateUpdatePayload {
@@ -40,112 +29,243 @@ export interface EmailTemplateUpdatePayload {
   active?: boolean;
 }
 
-// Available variables for template substitution
 export interface TemplateVariable {
   key: string;
   label: string;
-  section: 'policy' | 'customer' | 'vehicle' | 'company';
   example: string;
+  section: string;
 }
 
-export const TEMPLATE_VARIABLES: TemplateVariable[] = [
+// Policy Template Variables
+export const POLICY_TEMPLATE_VARIABLES: TemplateVariable[] = [
   // Policy Details
-  { key: '{{policy_no}}', label: 'Policy Number', section: 'policy', example: 'POL-2025-001' },
-  { key: '{{serial_no}}', label: 'Serial Number', section: 'policy', example: 'SN-001' },
-  { key: '{{issue_date}}', label: 'Issue Date', section: 'policy', example: '15 Jan 2025' },
-  { key: '{{ins_type}}', label: 'Insurance Type', section: 'policy', example: 'Comprehensive' },
-  { key: '{{ins_co_id}}', label: 'Insurance Company', section: 'policy', example: 'ICICI Lombard' },
-  { key: '{{start_date}}', label: 'Start Date', section: 'policy', example: '15 Jan 2025' },
-  { key: '{{end_date}}', label: 'End Date', section: 'policy', example: '14 Jan 2026' },
-  { key: '{{ins_status}}', label: 'Policy Status', section: 'policy', example: 'Active' },
-  { key: '{{inspection}}', label: 'Inspection Required', section: 'policy', example: 'Yes' },
+  { key: '{{policy_no}}', label: 'Policy Number', example: 'POL-2024-001234', section: 'policy' },
+  { key: '{{serial_no}}', label: 'Serial Number', example: 'SN-001', section: 'policy' },
+  { key: '{{issue_date}}', label: 'Issue Date', example: '15 Jan 2024', section: 'policy' },
+  { key: '{{ins_type}}', label: 'Insurance Type', example: 'Comprehensive', section: 'policy' },
+  { key: '{{ins_co_id}}', label: 'Insurance Company', example: 'HDFC ERGO', section: 'policy' },
+  { key: '{{start_date}}', label: 'Start Date', example: '15 Jan 2024', section: 'policy' },
+  { key: '{{end_date}}', label: 'End Date', example: '14 Jan 2025', section: 'policy' },
+  { key: '{{ins_status}}', label: 'Insurance Status', example: 'Active', section: 'policy' },
+  { key: '{{inspection}}', label: 'Inspection Required', example: 'No', section: 'policy' },
 
   // Customer Details
-  { key: '{{customer}}', label: 'Customer Name', section: 'customer', example: 'John Doe' },
-  { key: '{{mobile_no}}', label: 'Mobile Number', section: 'customer', example: '9876543210' },
-  { key: '{{email}}', label: 'Email Address', section: 'customer', example: 'john@example.com' },
-  {
-    key: '{{address_1}}',
-    label: 'Address',
-    section: 'customer',
-    example: '123 Main Street, Mumbai',
-  },
-  { key: '{{city_id}}', label: 'City', section: 'customer', example: 'Mumbai' },
-  { key: '{{branch_id}}', label: 'Branch', section: 'customer', example: 'Mumbai Central' },
+  { key: '{{customer}}', label: 'Customer Name', example: 'John Doe', section: 'customer' },
+  { key: '{{mobile_no}}', label: 'Mobile Number', example: '9876543210', section: 'customer' },
+  { key: '{{email}}', label: 'Email Address', example: 'john@example.com', section: 'customer' },
+  { key: '{{address_1}}', label: 'Address', example: '123 Main Street', section: 'customer' },
+  { key: '{{city_id}}', label: 'City', example: 'Mumbai', section: 'customer' },
+  { key: '{{branch_id}}', label: 'Branch', example: 'Mumbai Central', section: 'customer' },
   {
     key: '{{exicutive_name}}',
     label: 'Executive Name',
+    example: 'Jane Smith',
     section: 'customer',
-    example: 'Rahul Sharma',
   },
-  { key: '{{nominee_name}}', label: 'Nominee Name', section: 'customer', example: 'Jane Doe' },
+  { key: '{{nominee_name}}', label: 'Nominee Name', example: 'Mary Doe', section: 'customer' },
   {
     key: '{{nominee_relation}}',
     label: 'Nominee Relation',
-    section: 'customer',
     example: 'Spouse',
+    section: 'customer',
   },
 
   // Vehicle Details
-  { key: '{{product}}', label: 'Product Type', section: 'vehicle', example: 'Private Car' },
-  { key: '{{manufacturer}}', label: 'Manufacturer', section: 'vehicle', example: 'Maruti Suzuki' },
-  { key: '{{model_name}}', label: 'Model Name', section: 'vehicle', example: 'Swift VXI' },
-  { key: '{{fuel_type}}', label: 'Fuel Type', section: 'vehicle', example: 'Petrol' },
+  { key: '{{product}}', label: 'Product Type', example: 'Private Car', section: 'vehicle' },
+  { key: '{{manufacturer}}', label: 'Manufacturer', example: 'Maruti Suzuki', section: 'vehicle' },
+  { key: '{{model_name}}', label: 'Model Name', example: 'Swift VXI', section: 'vehicle' },
+  { key: '{{fuel_type}}', label: 'Fuel Type', example: 'Petrol', section: 'vehicle' },
   {
     key: '{{registration_number}}',
     label: 'Registration Number',
-    section: 'vehicle',
     example: 'MH01AB1234',
+    section: 'vehicle',
   },
   {
     key: '{{registration_date}}',
     label: 'Registration Date',
-    section: 'vehicle',
     example: '10 Mar 2020',
+    section: 'vehicle',
   },
-  { key: '{{engine_no}}', label: 'Engine Number', section: 'vehicle', example: 'K12MN1234567' },
+  { key: '{{engine_no}}', label: 'Engine Number', example: 'K12M1234567', section: 'vehicle' },
   {
     key: '{{chassis_no}}',
     label: 'Chassis Number',
-    section: 'vehicle',
     example: 'MA3FJEB1S00123456',
+    section: 'vehicle',
   },
-  { key: '{{mfg_date}}', label: 'Manufacturing Date', section: 'vehicle', example: 'Feb 2020' },
-  { key: '{{hypothecation}}', label: 'Hypothecation', section: 'vehicle', example: 'HDFC Bank' },
+  { key: '{{mfg_date}}', label: 'Manufacturing Date', example: 'Feb 2020', section: 'vehicle' },
+  { key: '{{hypothecation}}', label: 'Hypothecation', example: 'HDFC Bank', section: 'vehicle' },
 
-  // Company Info (editable in template)
+  // Company Details
   {
     key: '{{company_name}}',
     label: 'Company Name',
-    section: 'company',
     example: 'AutoSecure Insurance',
+    section: 'company',
   },
   {
     key: '{{company_email}}',
     label: 'Company Email',
+    example: 'support@autosecure.com',
     section: 'company',
-    example: 'hareshpatel13790@gmail.com',
   },
   {
     key: '{{company_phone}}',
     label: 'Company Phone',
+    example: '+91 98765 43210',
     section: 'company',
-    example: '+91 99240 74840',
   },
   {
     key: '{{company_address}}',
     label: 'Company Address',
+    example: 'Mumbai, Maharashtra',
     section: 'company',
-    example: 'Ahmedabad',
   },
   {
-    key: '{{company_tagline}}',
-    label: 'Company Tagline',
+    key: '{{current_date}}',
+    label: 'Current Date',
+    example: '15 Jan 2024, 10:30 AM',
     section: 'company',
-    example: 'Your Trusted Insurance Partner',
+  },
+  { key: '{{current_year}}', label: 'Current Year', example: '2024', section: 'company' },
+];
+
+// License Template Variables
+export const LICENSE_TEMPLATE_VARIABLES: TemplateVariable[] = [
+  // License Details
+  { key: '{{lic_no}}', label: 'License Number', example: 'DL-2024-001234', section: 'license' },
+  {
+    key: '{{application_no}}',
+    label: 'Application Number',
+    example: 'APP-2024-5678',
+    section: 'license',
+  },
+  { key: '{{expiry_date}}', label: 'Expiry Date', example: '15 Jan 2025', section: 'license' },
+  { key: '{{work_process}}', label: 'Work Process', example: 'RENEWAL', section: 'license' },
+  { key: '{{faceless_type}}', label: 'Type', example: 'Faceless', section: 'license' },
+  { key: '{{approved}}', label: 'Approval Status', example: 'Yes', section: 'license' },
+
+  // Customer Details
+  {
+    key: '{{customer_name}}',
+    label: 'Customer Name',
+    example: 'John Doe',
+    section: 'license_customer',
+  },
+  { key: '{{dob}}', label: 'Date of Birth', example: '15 Aug 1990', section: 'license_customer' },
+  {
+    key: '{{mobile_no}}',
+    label: 'Mobile Number',
+    example: '9876543210',
+    section: 'license_customer',
+  },
+  {
+    key: '{{aadhar_no}}',
+    label: 'Aadhar Number',
+    example: '1234 5678 9012',
+    section: 'license_customer',
+  },
+  {
+    key: '{{customer_address}}',
+    label: 'Customer Address',
+    example: '123 Main Street, Mumbai',
+    section: 'license_customer',
   },
 
-  // System
-  { key: '{{current_date}}', label: 'Current Date', section: 'policy', example: '15 Jan 2025' },
-  { key: '{{current_year}}', label: 'Current Year', section: 'policy', example: '2025' },
+  // Reference Details
+  {
+    key: '{{reference}}',
+    label: 'Reference Name',
+    example: 'Jane Smith',
+    section: 'license_reference',
+  },
+  {
+    key: '{{reference_mobile_no}}',
+    label: 'Reference Mobile',
+    example: '9876543211',
+    section: 'license_reference',
+  },
+
+  // Financial Details
+  { key: '{{fee}}', label: 'Fee', example: '500', section: 'license_financial' },
+  { key: '{{agent_fee}}', label: 'Agent Fee', example: '100', section: 'license_financial' },
+  {
+    key: '{{customer_payment}}',
+    label: 'Customer Payment',
+    example: '500',
+    section: 'license_financial',
+  },
+  { key: '{{profit}}', label: 'Profit', example: '400', section: 'license_financial' },
+
+  // Company Details
+  {
+    key: '{{company_name}}',
+    label: 'Company Name',
+    example: 'AutoSecure Insurance',
+    section: 'company',
+  },
+  {
+    key: '{{company_email}}',
+    label: 'Company Email',
+    example: 'support@autosecure.com',
+    section: 'company',
+  },
+  {
+    key: '{{company_phone}}',
+    label: 'Company Phone',
+    example: '+91 98765 43210',
+    section: 'company',
+  },
+  {
+    key: '{{company_address}}',
+    label: 'Company Address',
+    example: 'Mumbai, Maharashtra',
+    section: 'company',
+  },
+  {
+    key: '{{current_date}}',
+    label: 'Current Date',
+    example: '15 Jan 2024, 10:30 AM',
+    section: 'company',
+  },
+  { key: '{{current_year}}', label: 'Current Year', example: '2024', section: 'company' },
 ];
+
+// Combined for backward compatibility - used to determine which variables to show based on template_id
+export const TEMPLATE_VARIABLES = POLICY_TEMPLATE_VARIABLES;
+
+// Helper to get variables for a specific template
+export const getVariablesForTemplate = (templateId: string): TemplateVariable[] => {
+  if (templateId === 'license_details') {
+    return LICENSE_TEMPLATE_VARIABLES;
+  }
+  return POLICY_TEMPLATE_VARIABLES;
+};
+
+// Section labels for Policy templates
+export const POLICY_SECTION_LABELS: Record<string, { label: string; icon: string }> = {
+  policy: { label: 'Policy Details', icon: '📋' },
+  customer: { label: 'Customer Details', icon: '👤' },
+  vehicle: { label: 'Vehicle Details', icon: '🚗' },
+  company: { label: 'Company Info', icon: '🏢' },
+};
+
+// Section labels for License templates
+export const LICENSE_SECTION_LABELS: Record<string, { label: string; icon: string }> = {
+  license: { label: 'License Details', icon: '📋' },
+  license_customer: { label: 'Customer Details', icon: '👤' },
+  license_reference: { label: 'Reference Details', icon: '📞' },
+  license_financial: { label: 'Financial Details', icon: '💰' },
+  company: { label: 'Company Info', icon: '🏢' },
+};
+
+// Helper to get section labels for a specific template
+export const getSectionLabelsForTemplate = (
+  templateId: string
+): Record<string, { label: string; icon: string }> => {
+  if (templateId === 'license_details') {
+    return LICENSE_SECTION_LABELS;
+  }
+  return POLICY_SECTION_LABELS;
+};

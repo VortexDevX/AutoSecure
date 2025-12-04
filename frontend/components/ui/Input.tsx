@@ -7,12 +7,25 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, helpText, required, className = '', ...restProps }, ref) => {
+  (
+    { label, error, helpText, required, className = '', onChange, type = 'text', ...restProps },
+    ref
+  ) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      // Auto-uppercase for text inputs
+      if (type === 'text' && e.target.value) {
+        e.target.value = e.target.value.toUpperCase();
+      }
+      onChange?.(e);
+    };
+
     return (
       <div className="w-full">
         {label && <label className={`label ${required ? 'label-required' : ''}`}>{label}</label>}
         <input
           ref={ref}
+          type={type}
+          onChange={handleChange}
           required={required}
           className={`input ${error ? 'input-error' : ''} ${className}`}
           suppressHydrationWarning

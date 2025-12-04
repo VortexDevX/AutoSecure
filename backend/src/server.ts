@@ -11,11 +11,12 @@ import { apiRateLimiter } from './middleware/rateLimitMiddleware';
 
 // Routes
 import authRoutes from './routes/authRoutes';
+import policyRoutes from './routes/policyRoutes';
 import userRoutes from './routes/userRoutes';
 import auditLogRoutes from './routes/auditLogRoutes';
 import siteSettingsRoutes from './routes/siteSettingsRoutes';
 import metaRoutes from './routes/metaRoutes';
-import policyRoutes from './routes/policyRoutes';
+import licenseRoutes from './routes/licenseRoutes';
 import exportRoutes from './routes/exportRoutes';
 import fileRoutes from './routes/fileRoutes';
 import emailTemplateRoutes from './routes/emailTemplateRoutes';
@@ -126,11 +127,12 @@ app.use('/api/v1', apiRateLimiter);
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/policies', policyRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/audit-logs', auditLogRoutes);
 app.use('/api/v1/settings', siteSettingsRoutes);
 app.use('/api/v1/meta', metaRoutes);
-app.use('/api/v1/policies', policyRoutes);
+app.use('/api/v1/licenses', licenseRoutes);
 app.use('/api/v1/exports', exportRoutes);
 app.use('/api/v1/files', fileRoutes);
 app.use('/api/v1/email-templates', emailTemplateRoutes);

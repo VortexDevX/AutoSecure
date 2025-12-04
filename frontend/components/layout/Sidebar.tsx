@@ -28,6 +28,7 @@ const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'Policies', href: '/policies', icon: DocumentTextIcon },
   { name: 'New Policy', href: '/policies/new', icon: PlusCircleIcon },
+  { name: 'Licenses', href: '/licenses', icon: DocumentTextIcon },
   { name: 'Exports', href: '/exports', icon: ArrowDownTrayIcon },
   // ✅ Admin section - moved audit-logs here
   {

@@ -11,7 +11,7 @@ export interface PolicyResponse {
 export interface PoliciesResponse {
   status: string;
   data: {
-    policies: Policy[];
+    policies: Policy[]; // This should be the full Policy type, not PolicyListItem
     pagination: {
       total: number;
       page: number;

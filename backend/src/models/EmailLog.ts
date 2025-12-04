@@ -2,13 +2,14 @@ import mongoose, { Schema, Document, Types } from 'mongoose';
 
 export interface IEmailLog extends Document {
   _id: Types.ObjectId;
-  policy_id: Types.ObjectId;
+  policy_id?: Types.ObjectId;
+  license_id?: Types.ObjectId;
   template_id: string;
   sent_to: string;
   subject: string;
   status: 'sent' | 'failed' | 'pending';
   error_message?: string;
-  resend_id?: string; // Resend API response ID
+  resend_id?: string;
   sent_by: Types.ObjectId;
   ip_address?: string;
   user_agent?: string;
@@ -19,12 +20,8 @@ export interface IEmailLog extends Document {
 
 const EmailLogSchema = new Schema<IEmailLog>(
   {
-    policy_id: {
-      type: Schema.Types.ObjectId,
-      ref: 'Policy',
-      required: true,
-      index: true,
-    },
+    policy_id: { type: Schema.Types.ObjectId, ref: 'Policy' },
+    license_id: { type: Schema.Types.ObjectId, ref: 'LicenseRecord' },
     template_id: {
       type: String,
       required: true,
@@ -74,6 +71,7 @@ const EmailLogSchema = new Schema<IEmailLog>(
 
 // Compound index for rate limiting checks
 EmailLogSchema.index({ policy_id: 1, sent_at: -1 });
+EmailLogSchema.index({ license_id: 1, sent_at: -1 });
 EmailLogSchema.index({ sent_by: 1, sent_at: -1 });
 
 export const EmailLog = mongoose.model<IEmailLog>('EmailLog', EmailLogSchema);

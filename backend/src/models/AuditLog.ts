@@ -11,9 +11,9 @@ export interface IAuditLog extends Document {
     | 'export'
     | 'site_toggle'
     | 'role_change';
-  resource_type?: 'policy' | 'meta' | 'user' | 'site_settings';
+  resource_type?: 'policy' | 'meta' | 'user' | 'site_settings' | 'license'; // Changed from 'LicenseRecord' to 'license'
   resource_id?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   ip_address?: string;
   user_agent?: string;
   createdAt: Date;
@@ -44,7 +44,7 @@ const AuditLogSchema = new Schema<IAuditLog>(
     },
     resource_type: {
       type: String,
-      enum: ['policy', 'meta', 'user', 'site_settings'],
+      enum: ['policy', 'meta', 'user', 'site_settings', 'license'], // Matches interface now
       index: true,
     },
     resource_id: {

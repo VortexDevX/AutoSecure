@@ -10,7 +10,12 @@ import { useAuth } from '@/lib/context/AuthContext';
 import { useRequireOwner } from '@/lib/hooks/useRequireRole';
 import { AccessDenied } from '@/components/admin/AccessDenied';
 import { getEmailTemplates, updateEmailTemplate } from '@/lib/api/emailTemplates';
-import { EmailTemplate, TEMPLATE_VARIABLES, TemplateVariable } from '@/lib/types/emailTemplate';
+import {
+  EmailTemplate,
+  TemplateVariable,
+  getVariablesForTemplate,
+  getSectionLabelsForTemplate,
+} from '@/lib/types/emailTemplate';
 import {
   EnvelopeIcon,
   DocumentTextIcon,
@@ -43,13 +48,16 @@ export default function EmailTemplatesPage() {
 
   // UI state
   const [showPreview, setShowPreview] = useState(true);
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    policy: true,
-    customer: true,
-    vehicle: true,
-    company: true,
-  });
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [copiedVariable, setCopiedVariable] = useState<string | null>(null);
+
+  // Get template-specific variables and section labels
+  const templateVariables = selectedTemplate
+    ? getVariablesForTemplate(selectedTemplate.template_id)
+    : [];
+  const sectionLabels = selectedTemplate
+    ? getSectionLabelsForTemplate(selectedTemplate.template_id)
+    : {};
 
   // Check if user is owner
   useEffect(() => {
@@ -63,6 +71,18 @@ export default function EmailTemplatesPage() {
   useEffect(() => {
     fetchTemplates();
   }, []);
+
+  // Initialize expanded sections when template changes
+  useEffect(() => {
+    if (selectedTemplate) {
+      const sections = getSectionLabelsForTemplate(selectedTemplate.template_id);
+      const initialExpanded: Record<string, boolean> = {};
+      Object.keys(sections).forEach((section) => {
+        initialExpanded[section] = true;
+      });
+      setExpandedSections(initialExpanded);
+    }
+  }, [selectedTemplate?.template_id]);
 
   // Track changes
   useEffect(() => {
@@ -91,6 +111,13 @@ export default function EmailTemplatesPage() {
   };
 
   const selectTemplate = (template: EmailTemplate) => {
+    // Warn about unsaved changes
+    if (hasChanges) {
+      if (!confirm('You have unsaved changes. Are you sure you want to switch templates?')) {
+        return;
+      }
+    }
+
     setSelectedTemplate(template);
     setEditSubject(template.subject);
     setEditBodyHtml(template.body_html);
@@ -164,16 +191,26 @@ export default function EmailTemplatesPage() {
     let preview = editBodyHtml;
 
     // Replace all variables with sample data
-    TEMPLATE_VARIABLES.forEach((variable) => {
+    templateVariables.forEach((variable) => {
       const regex = new RegExp(variable.key.replace(/[{}]/g, '\\$&'), 'g');
       preview = preview.replace(regex, variable.example);
     });
 
     return preview;
-  }, [editBodyHtml]);
+  }, [editBodyHtml, templateVariables]);
+
+  // Generate subject preview
+  const generateSubjectPreview = useCallback(() => {
+    let preview = editSubject;
+    templateVariables.forEach((variable) => {
+      const regex = new RegExp(variable.key.replace(/[{}]/g, '\\$&'), 'g');
+      preview = preview.replace(regex, variable.example);
+    });
+    return preview;
+  }, [editSubject, templateVariables]);
 
   // Group variables by section
-  const groupedVariables = TEMPLATE_VARIABLES.reduce(
+  const groupedVariables = templateVariables.reduce(
     (acc, variable) => {
       if (!acc[variable.section]) {
         acc[variable.section] = [];
@@ -184,11 +221,28 @@ export default function EmailTemplatesPage() {
     {} as Record<string, TemplateVariable[]>
   );
 
-  const sectionLabels: Record<string, { label: string; icon: string }> = {
-    policy: { label: 'Policy Details', icon: '📋' },
-    customer: { label: 'Customer Details', icon: '👤' },
-    vehicle: { label: 'Vehicle Details', icon: '🚗' },
-    company: { label: 'Company Info', icon: '🏢' },
+  // Get template type label
+  const getTemplateTypeLabel = (templateId: string): string => {
+    switch (templateId) {
+      case 'premium_details':
+        return 'Policy';
+      case 'license_details':
+        return 'License';
+      default:
+        return 'Custom';
+    }
+  };
+
+  // Get template type badge color
+  const getTemplateTypeBadge = (templateId: string): 'primary' | 'success' | 'warning' => {
+    switch (templateId) {
+      case 'premium_details':
+        return 'primary';
+      case 'license_details':
+        return 'success';
+      default:
+        return 'warning';
+    }
   };
 
   if (isCheckingAuth || isLoading) {
@@ -216,7 +270,7 @@ export default function EmailTemplatesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Email Templates</h1>
-          <p className="text-gray-600 mt-1">Customize the email template sent to customers</p>
+          <p className="text-gray-600 mt-1">Customize email templates for policies and licenses</p>
         </div>
         <div className="flex items-center gap-3">
           {hasChanges && (
@@ -237,22 +291,28 @@ export default function EmailTemplatesPage() {
         </div>
       </div>
 
-      {/* Template Selector (if multiple templates in future) */}
-      {templates.length > 1 && (
-        <div className="flex gap-2">
+      {/* Template Selector */}
+      {templates.length > 0 && (
+        <div className="flex flex-wrap gap-2">
           {templates.map((template) => (
             <button
               key={template._id}
               onClick={() => selectTemplate(template)}
               className={`
-                px-4 py-2 rounded-lg text-sm font-medium transition-colors
+                flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
                 ${
                   selectedTemplate?._id === template._id
-                    ? 'bg-primary text-white'
+                    ? 'bg-primary text-white shadow-md'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }
               `}
             >
+              <Badge
+                variant={getTemplateTypeBadge(template.template_id)}
+                className={`text-xs ${selectedTemplate?._id === template._id ? 'bg-white/20 text-white' : ''}`}
+              >
+                {getTemplateTypeLabel(template.template_id)}
+              </Badge>
               {template.name}
             </button>
           ))}
@@ -271,7 +331,7 @@ export default function EmailTemplatesPage() {
                   value={editSubject}
                   onChange={(e) => setEditSubject(e.target.value)}
                   placeholder="Enter email subject..."
-                  helpText="Use variables like {{policy_no}}, {{customer}} in the subject"
+                  helpText={`Use variables like ${templateVariables[0]?.key || '{{variable}}'} in the subject`}
                 />
               </CardBody>
             </Card>
@@ -316,16 +376,7 @@ export default function EmailTemplatesPage() {
                   <div className="border-t border-gray-200">
                     <div className="bg-gray-100 px-4 py-2 text-sm">
                       <span className="text-gray-500">Subject: </span>
-                      <span className="text-gray-900 font-medium">
-                        {TEMPLATE_VARIABLES.reduce(
-                          (subj, v) =>
-                            subj.replace(
-                              new RegExp(v.key.replace(/[{}]/g, '\\$&'), 'g'),
-                              v.example
-                            ),
-                          editSubject
-                        )}
-                      </span>
+                      <span className="text-gray-900 font-medium">{generateSubjectPreview()}</span>
                     </div>
                     <iframe
                       srcDoc={generatePreview()}
@@ -350,15 +401,15 @@ export default function EmailTemplatesPage() {
                 <CardDescription>Click to copy, double-click to insert at cursor</CardDescription>
               </CardHeader>
               <CardBody className="p-0">
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-gray-100 max-h-[500px] overflow-y-auto">
                   {Object.entries(groupedVariables).map(([section, variables]) => (
                     <div key={section}>
                       <button
                         onClick={() => toggleSection(section)}
-                        className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
+                        className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors sticky top-0 bg-white z-10"
                       >
                         <span className="flex items-center gap-2 font-medium text-gray-900">
-                          <span>{sectionLabels[section]?.icon}</span>
+                          <span>{sectionLabels[section]?.icon || '📄'}</span>
                           {sectionLabels[section]?.label || section}
                           <Badge variant="secondary" className="ml-2">
                             {variables.length}
@@ -438,6 +489,12 @@ export default function EmailTemplatesPage() {
                     <code className="text-gray-900">{selectedTemplate.template_id}</code>
                   </div>
                   <div className="flex justify-between">
+                    <span className="text-gray-500">Type</span>
+                    <Badge variant={getTemplateTypeBadge(selectedTemplate.template_id)}>
+                      {getTemplateTypeLabel(selectedTemplate.template_id)}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between">
                     <span className="text-gray-500">Status</span>
                     <Badge variant={selectedTemplate.active ? 'success' : 'danger'}>
                       {selectedTemplate.active ? 'Active' : 'Inactive'}
@@ -466,10 +523,15 @@ export default function EmailTemplatesPage() {
           <CardBody className="text-center py-12">
             <EnvelopeIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No Templates Found</h3>
-            <p className="text-gray-600 mb-4">
-              Run the seed script to create the default email template.
-            </p>
-            <code className="bg-gray-100 px-3 py-1 rounded text-sm">npm run db:seed-email</code>
+            <p className="text-gray-600 mb-4">Run the seed scripts to create email templates.</p>
+            <div className="space-y-2">
+              <code className="bg-gray-100 px-3 py-1 rounded text-sm block">
+                npm run db:seed-email
+              </code>
+              <code className="bg-gray-100 px-3 py-1 rounded text-sm block">
+                npm run db:seed-license-email
+              </code>
+            </div>
           </CardBody>
         </Card>
       )}

@@ -1,3 +1,4 @@
+// frontend/components/policies/PolicyTable.tsx
 'use client';
 
 import Link from 'next/link';
@@ -249,7 +250,7 @@ export function PolicyTable({ policies, onDelete, onSendEmail }: PolicyTableProp
               <th className="px-6 py-3 whitespace-nowrap">Vehicle</th>
               <th className="px-6 py-3 whitespace-nowrap">Status</th>
               <th className="px-6 py-3 whitespace-nowrap">Payment</th>
-              <th className="px-6 py-3 whitespace-nowrap">Premium</th>
+              <th className="px-6 py-3 whitespace-nowrap">Net Premium</th>
               <th className="px-6 py-3 whitespace-nowrap">Expiry Date</th>
               <th className="px-6 py-3 text-right whitespace-nowrap">Actions</th>
             </tr>
@@ -293,10 +294,11 @@ export function PolicyTable({ policies, onDelete, onSendEmail }: PolicyTableProp
                   </span>
                 </td>
                 <td className="px-6 py-4 font-semibold whitespace-nowrap">
-                  {formatCurrency(policy.premium_amount)}
+                  {formatCurrency(policy.net_premium ?? policy.premium_amount)}
                 </td>
                 <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
-                  {formatDate(policy.end_date)}
+                  {/* FIX: Show saod_end_date if available, otherwise end_date */}
+                  {formatDate(policy.saod_end_date || policy.end_date)}
                 </td>
                 <td className="px-6 py-4 text-right whitespace-nowrap">
                   <ActionsMenu

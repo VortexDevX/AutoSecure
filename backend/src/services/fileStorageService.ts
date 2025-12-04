@@ -345,6 +345,165 @@ export class FileStorageService {
   }
 
   /**
+   * Upload a license file to R2 (stored in licenses/ folder, not policies/)
+   */
+  static async uploadLicenseFile(
+    fileBuffer: Buffer,
+    fileName: string,
+    mimeType: string,
+    folderName: string
+  ): Promise<UploadedFile> {
+    // Store in licenses/[FOLDER_NAME]/ NOT policies/
+    const key = `licenses/${folderName}/${fileName}`;
+
+    try {
+      const command = new PutObjectCommand({
+        Bucket: R2_BUCKET_NAME,
+        Key: key,
+        Body: fileBuffer,
+        ContentType: mimeType,
+      });
+
+      await s3Client.send(command);
+      console.log(`✅ License file uploaded to R2: ${key}`);
+
+      return {
+        file_id: key, // Full path as file_id
+        file_name: fileName,
+        mime_type: mimeType,
+        web_view_link: `/api/v1/licenses/files/${folderName}/${fileName}`,
+        file_path: key,
+      };
+    } catch (error: any) {
+      console.error('R2 license upload error:', error);
+      throw new AppError(`Failed to upload license file to R2: ${error.message}`, 500);
+    }
+  }
+
+  /**
+   * Delete a license file from R2
+   */
+  static async deleteLicenseFile(fileId: string): Promise<void> {
+    // fileId is the full path for license files (licenses/FOLDER/filename)
+    try {
+      const command = new DeleteObjectCommand({
+        Bucket: R2_BUCKET_NAME,
+        Key: fileId,
+      });
+
+      await s3Client.send(command);
+      console.log(`🗑️  License file deleted from R2: ${fileId}`);
+    } catch (error: any) {
+      console.error('R2 license delete error:', error);
+      throw new AppError(`Failed to delete license file from R2: ${error.message}`, 500);
+    }
+  }
+
+  /**
+   * Check if a license file exists in R2
+   */
+  static async licenseFileExists(fileId: string): Promise<boolean> {
+    // fileId is already the full path like "licenses/FOLDER/filename"
+    try {
+      const command = new HeadObjectCommand({
+        Bucket: R2_BUCKET_NAME,
+        Key: fileId,
+      });
+
+      await s3Client.send(command);
+      return true;
+    } catch (error: any) {
+      if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
+        return false;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Get license file metadata
+   */
+  static async getLicenseFileMetadata(
+    fileId: string
+  ): Promise<{ size: number; contentType: string; lastModified: Date }> {
+    try {
+      const command = new HeadObjectCommand({
+        Bucket: R2_BUCKET_NAME,
+        Key: fileId,
+      });
+
+      const response = await s3Client.send(command);
+
+      return {
+        size: response.ContentLength || 0,
+        contentType: response.ContentType || 'application/octet-stream',
+        lastModified: response.LastModified || new Date(),
+      };
+    } catch (error: any) {
+      if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
+        throw new AppError('File not found', 404);
+      }
+      throw new AppError(`Failed to get file metadata: ${error.message}`, 500);
+    }
+  }
+
+  /**
+   * Get a signed download URL for license file (with Content-Disposition: attachment)
+   */
+  static async getLicenseDownloadUrl(
+    fileId: string,
+    fileName: string,
+    expiresIn: number = 3600
+  ): Promise<string> {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: R2_BUCKET_NAME,
+        Key: fileId,
+        ResponseContentDisposition: `attachment; filename="${fileName}"`,
+      });
+
+      const signedUrl = await getSignedUrl(s3Client, command, { expiresIn });
+      return signedUrl;
+    } catch (error: any) {
+      console.error('R2 license download URL error:', error);
+      throw new AppError(`Failed to generate download URL: ${error.message}`, 500);
+    }
+  }
+
+  /**
+   * Download a license file from R2
+   */
+  static async downloadLicenseFile(fileId: string): Promise<Buffer> {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: R2_BUCKET_NAME,
+        Key: fileId,
+      });
+
+      const response = await s3Client.send(command);
+
+      if (!response.Body) {
+        throw new AppError('File not found in R2', 404);
+      }
+
+      const stream = response.Body as Readable;
+      const chunks: Buffer[] = [];
+
+      for await (const chunk of stream) {
+        chunks.push(Buffer.from(chunk));
+      }
+
+      return Buffer.concat(chunks);
+    } catch (error: any) {
+      console.error('R2 license download error:', error);
+      if (error.name === 'NoSuchKey') {
+        throw new AppError('File not found', 404);
+      }
+      throw new AppError(`Failed to download license file from R2: ${error.message}`, 500);
+    }
+  }
+
+  /**
    * Get file metadata (size, content type, etc.)
    */
   static async getFileMetadata(

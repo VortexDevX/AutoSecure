@@ -1,5 +1,11 @@
 import { Router } from 'express';
-import { sendBackupEmail, getEmailLogs, getRecipientEmail } from '../controllers/emailController';
+import {
+  sendBackupEmail,
+  sendLicenseBackupEmail,
+  getEmailLogs,
+  getLicenseEmailLogs,
+  getRecipientEmail,
+} from '../controllers/emailController';
 import { requireAuth } from '../middleware/authMiddleware';
 import { emailRateLimiter } from '../middleware/rateLimitMiddleware';
 import multer from 'multer';
@@ -13,10 +19,17 @@ router.use(requireAuth);
 // Get recipient email (for frontend display)
 router.get('/recipient', getRecipientEmail);
 
-// Send backup email with attachments
+// Policy email routes
 router.post('/send-backup', emailRateLimiter, upload.array('attachments', 5), sendBackupEmail);
-
-// Get email logs for a policy
 router.get('/logs/:policyId', getEmailLogs);
+
+// License email routes
+router.post(
+  '/send-license-backup',
+  emailRateLimiter,
+  upload.array('attachments', 5),
+  sendLicenseBackupEmail
+);
+router.get('/license-logs/:licenseId', getLicenseEmailLogs);
 
 export default router;

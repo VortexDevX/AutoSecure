@@ -1,3 +1,5 @@
+// frontend/app/(dashboard)/policies/page.tsx
+
 'use client';
 
 import { useState } from 'react';
@@ -21,6 +23,7 @@ import {
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import apiClient from '@/lib/api/client';
+import { formatDate } from '@/lib/utils/formatters';
 
 export default function PoliciesPage() {
   const [page, setPage] = useState(1);
@@ -30,6 +33,7 @@ export default function PoliciesPage() {
     ins_status?: string;
     customer_payment_status?: string;
     branch_id?: string;
+    expiring_soon?: boolean;
   }>({});
 
   // Email modal state
@@ -51,14 +55,23 @@ export default function PoliciesPage() {
     pending: number;
     paymentPending: number;
     totalPremium: number;
+    expiringSoon: number;
   }
 
   const stats: Stats = {
     total: pagination?.total || 0,
-    completed: policies.filter((p: Policy) => p.ins_status === 'policy_done').length,
-    pending: policies.filter((p: Policy) => p.ins_status === 'policy_pending').length,
-    paymentPending: policies.filter((p: Policy) => p.customer_payment_status === 'pending').length,
-    totalPremium: policies.reduce((sum: number, p: Policy) => sum + (p.premium_amount || 0), 0),
+    completed: policies.filter((p) => p.ins_status === 'policy_done').length,
+    pending: policies.filter((p) => p.ins_status === 'policy_pending').length,
+    paymentPending: policies.filter((p) => p.customer_payment_status === 'pending').length,
+    totalPremium: policies.reduce((sum: number, p) => sum + (p.premium_amount || 0), 0),
+    expiringSoon: policies.filter((p) => {
+      const saodDate = p.saod_end_date ? new Date(p.saod_end_date) : null;
+      const endDate = new Date(p.end_date);
+      const expiryDate = saodDate || endDate;
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+      return expiryDate >= new Date() && expiryDate <= thirtyDaysFromNow;
+    }).length,
   };
 
   const handleSearch = (searchValue: string) => {
@@ -152,7 +165,7 @@ export default function PoliciesPage() {
       </div>
 
       {/* Quick Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
         {/* Total Policies */}
         <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center gap-3">
@@ -205,8 +218,21 @@ export default function PoliciesPage() {
           </div>
         </div>
 
+        {/* Expiring Soon */}
+        <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <ClockIcon className="w-5 h-5 text-yellow-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{stats.expiringSoon}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Expiring Soon</p>
+            </div>
+          </div>
+        </div>
+
         {/* Total Premium (This Page) */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow col-span-2 lg:col-span-1">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow lg:col-span-1">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
               <CurrencyRupeeIcon className="w-5 h-5 text-purple-600" />
@@ -232,9 +258,9 @@ export default function PoliciesPage() {
         />
       </div>
 
-      {/* Results Info */}
+      {/* Results Info - REMOVED duplicate "Clear all filters" button */}
       {!isLoading && pagination && (
-        <div className="flex items-center justify-between text-sm text-gray-600">
+        <div className="text-sm text-gray-600">
           <p>
             Showing <span className="font-medium">{policies.length}</span> of{' '}
             <span className="font-medium">{pagination.total}</span> policies
@@ -244,14 +270,6 @@ export default function PoliciesPage() {
               </span>
             )}
           </p>
-          {(search || Object.keys(filters).some((k) => filters[k as keyof typeof filters])) && (
-            <button
-              onClick={handleClear}
-              className="text-primary hover:text-primary-600 font-medium"
-            >
-              Clear all filters
-            </button>
-          )}
         </div>
       )}
 

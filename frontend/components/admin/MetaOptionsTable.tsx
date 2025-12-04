@@ -13,6 +13,7 @@ import {
   CheckIcon,
   XMarkIcon,
   Bars3Icon,
+  ArrowDownIcon,
 } from '@heroicons/react/24/outline';
 
 interface MetaOptionsTableProps {
@@ -124,8 +125,36 @@ export function MetaOptionsTable({ category, options, onUpdate }: MetaOptionsTab
     }
   };
 
+  // A-Z Sort handler
+  const handleSortAZ = async () => {
+    const sorted = [...localOptions].sort((a, b) => a.value.localeCompare(b.value));
+    setLocalOptions(sorted);
+
+    const reorderedData = sorted.map((option, index) => ({
+      id: option.id,
+      sort_order: index + 1,
+    }));
+
+    try {
+      await reorderMetaOptions(category, reorderedData);
+      toast.success('Sorted A-Z successfully');
+      onUpdate();
+    } catch (error: any) {
+      toast.error('Failed to sort');
+      setLocalOptions(options);
+    }
+  };
+
   return (
     <>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold">Meta Options for "{category}"</h2>
+        <Button onClick={handleSortAZ} variant="secondary" size="sm">
+          <ArrowDownIcon className="w-4 h-4 mr-1" />
+          Sort A-Z
+        </Button>
+      </div>
+
       <div className="overflow-x-auto -mx-6">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">

@@ -1,46 +1,12 @@
 import apiClient from './client';
 
-export interface SendEmailResponse {
-  success: boolean;
-  message: string;
-}
-
-export interface RecipientEmailResponse {
-  success: boolean;
-  data: {
-    email: string;
-  };
-}
-
-export interface EmailLog {
-  _id: string;
-  policy_id: string;
-  template_id: string;
-  sent_to: string;
-  subject: string;
-  status: 'pending' | 'sent' | 'failed';
-  sent_by: {
-    _id: string;
-    email: string;
-    role: string;
-  };
-  sent_at?: string;
-  error_message?: string;
-  ip_address?: string;
-  user_agent?: string;
-}
-
-export interface EmailLogsResponse {
-  success: boolean;
-  count: number;
-  data: EmailLog[];
-}
-
 /**
- * Get hardcoded recipient email
+ * Get recipient email address
  */
 export const getRecipientEmail = async (): Promise<string> => {
-  const response = await apiClient.get<RecipientEmailResponse>('/api/v1/emails/recipient');
+  const response = await apiClient.get<{ success: boolean; data: { email: string } }>(
+    '/api/v1/emails/recipient'
+  );
   return response.data.data.email;
 };
 
@@ -50,36 +16,64 @@ export const getRecipientEmail = async (): Promise<string> => {
 export const sendBackupEmail = async (
   policyId: string,
   selectedAttachments: string[],
-  newAttachments?: File[]
+  newFiles: File[]
 ): Promise<void> => {
   const formData = new FormData();
   formData.append('policy_id', policyId);
   formData.append('selected_attachments', JSON.stringify(selectedAttachments));
 
-  // Add new uploaded files
-  if (newAttachments && newAttachments.length > 0) {
-    newAttachments.forEach((file) => {
-      formData.append('attachments', file);
-    });
-  }
+  newFiles.forEach((file) => {
+    formData.append('attachments', file);
+  });
 
-  const response = await apiClient.post<SendEmailResponse>('/api/v1/emails/send-backup', formData, {
+  await apiClient.post('/api/v1/emails/send-backup', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   });
+};
 
-  if (!response.data.success) {
-    throw new Error(response.data.message || 'Failed to send email');
-  }
+/**
+ * Send license backup email with attachments
+ */
+export const sendLicenseBackupEmail = async (
+  licenseId: string,
+  selectedAttachments: string[],
+  newFiles: File[]
+): Promise<void> => {
+  const formData = new FormData();
+  formData.append('license_id', licenseId);
+  formData.append('selected_attachments', JSON.stringify(selectedAttachments));
+
+  newFiles.forEach((file) => {
+    formData.append('attachments', file);
+  });
+
+  await apiClient.post('/api/v1/emails/send-license-backup', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
 };
 
 /**
  * Get email logs for a policy
  */
-export const getEmailLogs = async (policyId: string, limit = 10): Promise<EmailLog[]> => {
-  const response = await apiClient.get<EmailLogsResponse>(
-    `/api/v1/emails/logs/${policyId}?limit=${limit}`
+export const getEmailLogs = async (policyId: string, limit = 10): Promise<any[]> => {
+  const response = await apiClient.get<{ success: boolean; data: any[] }>(
+    `/api/v1/emails/logs/${policyId}`,
+    { params: { limit } }
+  );
+  return response.data.data;
+};
+
+/**
+ * Get email logs for a license
+ */
+export const getLicenseEmailLogs = async (licenseId: string, limit = 10): Promise<any[]> => {
+  const response = await apiClient.get<{ success: boolean; data: any[] }>(
+    `/api/v1/emails/license-logs/${licenseId}`,
+    { params: { limit } }
   );
   return response.data.data;
 };

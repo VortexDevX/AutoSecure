@@ -224,8 +224,10 @@ export interface PolicyListItem {
   ins_status: string;
   customer_payment_status: string;
   premium_amount: number;
+  net_premium: number;
   start_date: string;
   end_date: string;
+  saod_end_date?: string; // ENSURE THIS IS PRESENT
   created_by?: { email: string; full_name?: string };
   created_at: string;
 }

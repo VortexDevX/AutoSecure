@@ -145,3 +145,34 @@ export const formatAadhaar = (aadhaar: string): string => {
   }
   return aadhaar;
 };
+
+/**
+ * Format label for display (human-readable)
+ */
+export const formatLabel = (key: string | undefined): string => {
+  if (!key) return '-';
+
+  // Special cases for known values
+  const specialCases: Record<string, string> = {
+    dealer_policy: 'Dealer Policy',
+    direct_policy: 'Direct Policy',
+    policy_done: 'Policy Done',
+    policy_pending: 'Policy Pending',
+    faceless: 'Faceless',
+    'non-faceless': 'Non-Faceless',
+    pending: 'Pending',
+    done: 'Done',
+    yes: 'Yes',
+    no: 'No',
+  };
+
+  if (specialCases[key.toLowerCase()]) {
+    return specialCases[key.toLowerCase()];
+  }
+
+  // Convert snake_case to Title Case
+  return key
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};

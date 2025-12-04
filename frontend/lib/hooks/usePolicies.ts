@@ -1,7 +1,5 @@
-import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import apiClient from '../api/client';
-import { PaginatedResponse } from '../types/api';
 import { PolicyListItem } from '../types/policy';
 
 interface UsePoliciesParams {
@@ -11,6 +9,7 @@ interface UsePoliciesParams {
   branch_id?: string;
   ins_status?: string;
   customer_payment_status?: string;
+  expiring_soon?: boolean;
 }
 
 export function usePolicies(params: UsePoliciesParams = {}) {
@@ -24,22 +23,20 @@ export function usePolicies(params: UsePoliciesParams = {}) {
   if (params.customer_payment_status)
     queryParams.append('customer_payment_status', params.customer_payment_status);
 
-  const { data, error, isLoading, mutate } = useSWR(
-    `/api/v1/policies?${queryParams.toString()}`,
-    async (url: string) => {
-      const response = await apiClient.get(url);
+  // FIX: Check for boolean specifically
+  if (typeof params.expiring_soon === 'boolean') {
+    queryParams.append('expiring_soon', params.expiring_soon.toString());
+  }
 
-      console.log('Policies API response:', response.data); // Debug log
+  const url = `/api/v1/policies?${queryParams.toString()}`;
 
-      // Backend returns: { status: 'success', data: { policies: [...], pagination: {...} } }
-      return response.data.data;
-    }
-  );
-
-  console.log('Parsed policies data:', data); // Debug log
+  const { data, error, isLoading, mutate } = useSWR(url, async (url: string) => {
+    const response = await apiClient.get(url);
+    return response.data.data;
+  });
 
   return {
-    policies: data?.policies || [], // ✅ Fixed: was data?.data
+    policies: (data?.policies || []) as PolicyListItem[],
     pagination: data?.pagination,
     isLoading,
     error: error?.message,

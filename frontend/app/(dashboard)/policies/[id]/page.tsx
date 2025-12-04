@@ -38,13 +38,18 @@ import {
   UserGroupIcon,
   BuildingOfficeIcon,
 } from '@heroicons/react/24/outline';
-import { formatCurrency, formatDate } from '@/lib/utils/formatters';
+import { formatCurrency, formatDate, formatLabel } from '@/lib/utils/formatters';
 
 export default function PolicyDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
   const policyId = params.id as string;
+
+  const renderValue = (value: any, fallback = '-') => {
+    if (value === null || value === undefined || value === '') return fallback;
+    return value;
+  };
 
   // Role-based permissions
   const canEdit = user?.role === 'owner' || user?.role === 'admin';
@@ -212,7 +217,7 @@ export default function PolicyDetailPage() {
                 </Badge>
               </div>
               <p className="text-gray-500 mt-1">
-                Serial: {policy.serial_no} • Created {formatDate(policy.createdAt)}
+                Serial: {policy.serial_no} • Created {renderValue(policy.createdAt)}
               </p>
             </div>
           </div>
@@ -249,8 +254,8 @@ export default function PolicyDetailPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Customer</p>
-              <p className="font-semibold text-gray-900 truncate max-w-[150px]">
-                {policy.customer}
+              <p className="text-sm font-semibold text-gray-900 truncate max-w-[150px] text-wrap">
+                {renderValue(policy.customer)}
               </p>
             </div>
           </div>
@@ -260,7 +265,9 @@ export default function PolicyDetailPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Vehicle</p>
-              <p className="font-semibold text-gray-900">{policy.registration_number}</p>
+              <p className="font-semibold text-gray-900">
+                {renderValue(policy.registration_number)}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -310,7 +317,9 @@ export default function PolicyDetailPage() {
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-500">Insurance Type</span>
-                  <span className="font-medium text-gray-900">{policy.ins_type}</span>
+                  <span className="font-medium text-gray-900">
+                    {formatLabel(renderValue(policy.ins_type))}
+                  </span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-500">Start Date</span>
@@ -322,12 +331,16 @@ export default function PolicyDetailPage() {
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-500">Insurance Company</span>
-                  <span className="font-medium text-gray-900">{policy.ins_co_id}</span>
+                  <span className="font-medium text-gray-900">
+                    {formatLabel(renderValue(policy.ins_co_id))}
+                  </span>
                 </div>
                 {policy.insurance_dealer && (
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-gray-500">Insurance Dealer</span>
-                    <span className="font-medium text-gray-900">{policy.insurance_dealer}</span>
+                    <span className="font-medium text-gray-900">
+                      {formatLabel(renderValue(policy.insurance_dealer))}
+                    </span>
                   </div>
                 )}
                 <div className="flex justify-between py-2 border-b border-gray-100">
@@ -338,7 +351,9 @@ export default function PolicyDetailPage() {
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-500">Branch</span>
-                  <span className="font-medium text-gray-900">{policy.branch_id}</span>
+                  <span className="font-medium text-gray-900">
+                    {formatLabel(renderValue(policy.branch_id))}
+                  </span>
                 </div>
                 {(policy.saod_start_date || policy.saod_end_date) && (
                   <>
@@ -370,19 +385,27 @@ export default function PolicyDetailPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-500">Product</span>
-                  <span className="font-medium text-gray-900">{policy.product}</span>
+                  <span className="font-medium text-gray-900">
+                    {formatLabel(renderValue(policy.product))}
+                  </span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-500">Manufacturer</span>
-                  <span className="font-medium text-gray-900">{policy.manufacturer || '-'}</span>
+                  <span className="font-medium text-gray-900">
+                    {formatLabel(renderValue(policy.manufacturer || '-'))}
+                  </span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-500">Model</span>
-                  <span className="font-medium text-gray-900">{policy.model_name || '-'}</span>
+                  <span className="font-medium text-gray-900">
+                    {formatLabel(renderValue(policy.model_name || '-'))}
+                  </span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-500">Fuel Type</span>
-                  <span className="font-medium text-gray-900">{policy.fuel_type || '-'}</span>
+                  <span className="font-medium text-gray-900">
+                    {formatLabel(renderValue(policy.fuel_type || '-'))}
+                  </span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-500">Registration No.</span>
@@ -396,13 +419,13 @@ export default function PolicyDetailPage() {
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-500">Engine Number</span>
-                  <span className="font-medium text-gray-900 font-mono text-sm">
+                  <span className="font-medium text-gray-900 font-mono">
                     {policy.engine_no || '-'}
                   </span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-500">Chassis Number</span>
-                  <span className="font-medium text-gray-900 font-mono text-sm">
+                  <span className="font-medium text-gray-900 font-mono">
                     {policy.chassis_no || '-'}
                   </span>
                 </div>

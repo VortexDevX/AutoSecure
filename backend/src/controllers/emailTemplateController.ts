@@ -109,8 +109,9 @@ export const deleteTemplate = asyncHandler(async (req: Request, res: Response) =
   }
 
   // Prevent deleting system templates
-  if (template.template_id === 'premium_details') {
-    throw new AppError('Cannot delete system template "premium_details"', 400);
+  const systemTemplates = ['premium_details', 'license_details'];
+  if (systemTemplates.includes(template.template_id)) {
+    throw new AppError(`Cannot delete system template "${template.template_id}"`, 400);
   }
 
   await template.deleteOne();

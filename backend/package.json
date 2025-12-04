@@ -11,7 +11,8 @@
     "db:init": "tsx src/scripts/initDb.ts",
     "db:seed": "tsx src/scripts/seedMeta.ts",
     "db:migrate-policy": "tsx src/scripts/migratePolicyFields.ts",
-    "db:seed-email": "tsx src/scripts/seedEmailTemplate.ts",
+    "db:seed-policy-email": "tsx src/scripts/seedEmailTemplate.ts",
+    "db:seed-license-email": "npx tsx src/scripts/seedLicenseEmailTemplate.ts",
     "test:email": "tsx src/scripts/testEmail.ts"
   },
   "dependencies": {

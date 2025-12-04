@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { Policy } from '../models';
+import { LicenseRecord } from '../models/LicenseRecord';
 import { asyncHandler } from '../utils/asyncHandler';
-import { AppError } from '../utils/errors';
 
 /**
  * Get overview analytics
@@ -9,7 +9,7 @@ import { AppError } from '../utils/errors';
  */
 export const getOverview = asyncHandler(async (req: Request, res: Response) => {
   const now = new Date();
-  const startOfToday = new Date(now.setHours(0, 0, 0, 0));
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfYear = new Date(now.getFullYear(), 0, 1);
 
@@ -84,10 +84,36 @@ export const getOverview = asyncHandler(async (req: Request, res: Response) => {
   thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
   const expiringSoon = await Policy.countDocuments({
-    end_date: {
-      $gte: now,
-      $lte: thirtyDaysFromNow,
-    },
+    $or: [
+      { saod_end_date: { $gte: now, $lte: thirtyDaysFromNow } },
+      { end_date: { $gte: now, $lte: thirtyDaysFromNow }, saod_end_date: { $exists: false } },
+    ],
+  });
+
+  // Get expiring policies (use saod_end_date if available, else end_date)
+  const expiringPolicies = await Policy.find({
+    $or: [
+      { saod_end_date: { $gte: now, $lte: thirtyDaysFromNow } },
+      { end_date: { $gte: now, $lte: thirtyDaysFromNow }, saod_end_date: { $exists: false } },
+    ],
+  })
+    .select('policy_no customer end_date saod_end_date registration_number')
+    .sort({ saod_end_date: 1, end_date: 1 })
+    .limit(10);
+
+  // Licenses expiring in next 90 days (3 months)
+  const ninetyDaysFromNow = new Date();
+  ninetyDaysFromNow.setDate(ninetyDaysFromNow.getDate() + 90);
+
+  const expiringLicenses = await LicenseRecord.find({
+    expiry_date: { $gte: now, $lte: ninetyDaysFromNow },
+  })
+    .select('lic_no customer_name expiry_date')
+    .sort({ expiry_date: 1 })
+    .limit(10);
+
+  const expiringLicensesCount = await LicenseRecord.countDocuments({
+    expiry_date: { $gte: now, $lte: ninetyDaysFromNow },
   });
 
   res.json({
@@ -107,6 +133,13 @@ export const getOverview = asyncHandler(async (req: Request, res: Response) => {
         total_commission: totalCommission,
         month_premium: monthPremium,
         month_commission: monthCommission,
+      },
+      expiring_items: {
+        policies: expiringPolicies,
+        licenses: expiringLicenses,
+        policies_count: expiringPolicies.length,
+        licenses_count: expiringLicensesCount,
+        total_count: expiringPolicies.length + expiringLicenses.length,
       },
     },
   });
@@ -171,15 +204,24 @@ export const getPolicyAnalytics = asyncHandler(async (req: Request, res: Respons
   ninetyDaysFromNow.setDate(ninetyDaysFromNow.getDate() + 90);
 
   const expiring7d = await Policy.countDocuments({
-    end_date: { $gte: now, $lte: sevenDaysFromNow },
+    $or: [
+      { saod_end_date: { $gte: now, $lte: sevenDaysFromNow } },
+      { end_date: { $gte: now, $lte: sevenDaysFromNow }, saod_end_date: { $exists: false } },
+    ],
   });
 
   const expiring30d = await Policy.countDocuments({
-    end_date: { $gte: now, $lte: thirtyDaysFromNow },
+    $or: [
+      { saod_end_date: { $gte: now, $lte: thirtyDaysFromNow } },
+      { end_date: { $gte: now, $lte: thirtyDaysFromNow }, saod_end_date: { $exists: false } },
+    ],
   });
 
   const expiring90d = await Policy.countDocuments({
-    end_date: { $gte: now, $lte: ninetyDaysFromNow },
+    $or: [
+      { saod_end_date: { $gte: now, $lte: ninetyDaysFromNow } },
+      { end_date: { $gte: now, $lte: ninetyDaysFromNow }, saod_end_date: { $exists: false } },
+    ],
   });
 
   res.json({
@@ -258,12 +300,12 @@ export const getFinancialAnalytics = asyncHandler(async (req: Request, res: Resp
     },
   ]);
 
-  // Krunal payment vs Customer payment
+  // Company payment vs Customer payment
   const paymentReconciliation = await Policy.aggregate([
     {
       $group: {
         _id: null,
-        total_krunal_amount: { $sum: '$krunal_amount' },
+        total_company_amount: { $sum: '$company_amount' },
         total_customer_amount: { $sum: '$premium_amount' },
         total_extra_amount: { $sum: '$extra_amount' },
       },
@@ -283,7 +325,7 @@ export const getFinancialAnalytics = asyncHandler(async (req: Request, res: Resp
       },
       premium_ranges: premiumRanges,
       payment_reconciliation: paymentReconciliation[0] || {
-        total_krunal_amount: 0,
+        total_company_amount: 0,
         total_customer_amount: 0,
         total_extra_amount: 0,
       },
@@ -483,7 +525,7 @@ export const getVehicleAnalytics = asyncHandler(async (req: Request, res: Respon
 export const getTrends = asyncHandler(async (req: Request, res: Response) => {
   const { period = 'monthly', months = 12 } = req.query;
 
-  let groupByFormat: any;
+  let groupByFormat: Record<string, unknown>;
   let dateRange: Date;
 
   switch (period) {
@@ -554,12 +596,12 @@ export const getCustomAnalytics = asyncHandler(async (req: Request, res: Respons
   const { start_date, end_date, branch_id, ins_status, ins_type } = req.body;
 
   // Build match query
-  const matchQuery: any = {};
+  const matchQuery: Record<string, unknown> = {};
 
   if (start_date || end_date) {
     matchQuery.createdAt = {};
-    if (start_date) matchQuery.createdAt.$gte = new Date(start_date);
-    if (end_date) matchQuery.createdAt.$lte = new Date(end_date);
+    if (start_date) (matchQuery.createdAt as Record<string, unknown>).$gte = new Date(start_date);
+    if (end_date) (matchQuery.createdAt as Record<string, unknown>).$lte = new Date(end_date);
   }
 
   if (branch_id) matchQuery.branch_id = branch_id;

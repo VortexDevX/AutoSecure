@@ -13,6 +13,7 @@ import {
   subYears,
   getYear,
   getMonth,
+  parseISO,
 } from 'date-fns';
 import {
   CalendarIcon,
@@ -55,7 +56,7 @@ const MONTHS = [
 // Single Date Picker (for forms)
 // ============================================
 interface SingleDatePickerProps {
-  value?: Date | null;
+  value?: Date | string | null;
   onChange: (date: Date | null) => void;
   placeholder?: string;
   disabled?: boolean;
@@ -85,8 +86,40 @@ export function SingleDatePicker({
 }: SingleDatePickerProps) {
   const years = generateYears(minYear, maxYear);
 
+  // Convert string to Date if needed
+  const getDateValue = (): Date | null => {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+    if (typeof value === 'string') {
+      // Parse ISO string and create date at noon to avoid timezone issues
+      const parsed = parseISO(value);
+      return isNaN(parsed.getTime()) ? null : parsed;
+    }
+    return null;
+  };
+
+  const dateValue = getDateValue();
+
+  // FIX: Handle date selection properly to avoid timezone shift
+  const handleDateChange = (date: Date | null) => {
+    if (!date) {
+      onChange(null);
+      return;
+    }
+
+    // Create a new date at noon local time to avoid timezone boundary issues
+    // This ensures the date doesn't shift when converted to/from ISO string
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+
+    // Set to noon to avoid any timezone edge cases
+    const normalizedDate = new Date(year, month, day, 12, 0, 0, 0);
+    onChange(normalizedDate);
+  };
+
   const CustomInput = forwardRef<HTMLButtonElement, { value?: string; onClick?: () => void }>(
-    ({ value, onClick }, ref) => (
+    ({ value: displayValue, onClick }, ref) => (
       <button
         type="button"
         ref={ref}
@@ -102,10 +135,12 @@ export function SingleDatePicker({
       >
         <div className="flex items-center gap-2">
           <CalendarIcon className="w-4 h-4 text-gray-400" />
-          <span className={value ? 'text-gray-900' : 'text-gray-400'}>{value || placeholder}</span>
+          <span className={displayValue ? 'text-gray-900' : 'text-gray-400'}>
+            {displayValue || placeholder}
+          </span>
         </div>
         <div className="flex items-center gap-1">
-          {value && isClearable && !disabled && (
+          {displayValue && isClearable && !disabled && (
             <XMarkIcon
               className="w-4 h-4 text-gray-400 hover:text-gray-600"
               onClick={(e) => {
@@ -124,8 +159,8 @@ export function SingleDatePicker({
     <div className={`relative ${className}`}>
       {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
       <ReactDatePicker
-        selected={value}
-        onChange={onChange}
+        selected={dateValue}
+        onChange={handleDateChange}
         customInput={<CustomInput />}
         dateFormat="dd MMM yyyy"
         minDate={minDate}

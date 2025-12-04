@@ -12,6 +12,8 @@
 │   │   │   ├── 📄 emailTemplateController.ts
 │   │   │   ├── 📄 exportController.ts
 │   │   │   ├── 📄 fileController.ts
+│   │   │   ├── 📄 licenseController.ts
+│   │   │   ├── 📄 licenseFileController.ts
 │   │   │   ├── 📄 metaController.ts
 │   │   │   ├── 📄 policyController.ts
 │   │   │   ├── 📄 siteSettingsController.ts
@@ -26,6 +28,7 @@
 │   │   │   ├── 📄 AuditLog.ts
 │   │   │   ├── 📄 EmailLog.ts
 │   │   │   ├── 📄 EmailTemplate.ts
+│   │   │   ├── 📄 LicenseRecord.ts
 │   │   │   ├── 📄 Meta.ts
 │   │   │   ├── 📄 Policy.ts
 │   │   │   ├── 📄 SiteSettings.ts
@@ -39,14 +42,17 @@
 │   │   │   ├── 📄 emailTemplateRoutes.ts
 │   │   │   ├── 📄 exportRoutes.ts
 │   │   │   ├── 📄 fileRoutes.ts
+│   │   │   ├── 📄 licenseRoutes.ts
 │   │   │   ├── 📄 metaRoutes.ts
 │   │   │   ├── 📄 policyRoutes.ts
 │   │   │   ├── 📄 siteSettingsRoutes.ts
 │   │   │   └── 📄 userRoutes.ts
 │   │   ├── 📁 scripts/
 │   │   │   ├── 📄 initDb.ts
+│   │   │   ├── 📄 migrateLicenseUrls.ts
 │   │   │   ├── 📄 migratePolicyFields.ts
 │   │   │   ├── 📄 seedEmailTemplate.ts
+│   │   │   ├── 📄 seedLicenseEmailTemplate.ts
 │   │   │   ├── 📄 seedMeta.ts
 │   │   │   └── 📄 testEmail.ts
 │   │   ├── 📁 services/
@@ -54,6 +60,7 @@
 │   │   │   ├── 📄 emailService.ts
 │   │   │   ├── 📄 fileStorageService.ts
 │   │   │   ├── 📄 jwtService.ts
+│   │   │   ├── 📄 licenseStorageService.ts
 │   │   │   ├── 📄 passwordService.ts
 │   │   │   ├── 📄 smtpService.ts
 │   │   │   └── 📄 totpService.ts
@@ -65,8 +72,6 @@
 │   │   │   └── 📄 validators.ts
 │   │   ├── 📄 server.ts
 │   │   └── 📄 test-services.ts
-│   ├── 📄 .env.example
-│   ├── 📄 .env.production.example
 │   ├── 📄 nodemon.json
 │   ├── 📄 package.json
 │   ├── 📄 test-auth.http
@@ -96,6 +101,15 @@
 │   │   │   │   ├── 📄 loading.tsx
 │   │   │   │   └── 📄 page.tsx
 │   │   │   ├── 📁 exports/
+│   │   │   │   └── 📄 page.tsx
+│   │   │   ├── 📁 licenses/
+│   │   │   │   ├── 📁 [id]/
+│   │   │   │   │   ├── 📁 edit/
+│   │   │   │   │   │   └── 📄 page.tsx
+│   │   │   │   │   └── 📄 page.tsx
+│   │   │   │   ├── 📁 new/
+│   │   │   │   │   └── 📄 page.tsx
+│   │   │   │   ├── 📄 loading.tsx
 │   │   │   │   └── 📄 page.tsx
 │   │   │   ├── 📁 policies/
 │   │   │   │   ├── 📁 [id]/
@@ -137,6 +151,11 @@
 │   │   │   ├── 📄 Sidebar.tsx
 │   │   │   ├── 📄 SiteStatusBanner.tsx
 │   │   │   └── 📄 Topbar.tsx
+│   │   ├── 📁 licenses/
+│   │   │   ├── 📄 LicenseFilters.tsx
+│   │   │   ├── 📄 LicenseForm.tsx
+│   │   │   ├── 📄 LicenseTable.tsx
+│   │   │   └── 📄 SendLicenseEmailModal.tsx
 │   │   ├── 📁 policies/
 │   │   │   ├── 📁 steps/
 │   │   │   │   ├── 📄 Step1PolicyDetails.tsx
@@ -175,6 +194,7 @@
 │   │   │   ├── 📄 emailTemplates.ts
 │   │   │   ├── 📄 emails.ts
 │   │   │   ├── 📄 exports.ts
+│   │   │   ├── 📄 licenses.ts
 │   │   │   ├── 📄 meta.ts
 │   │   │   ├── 📄 policies.ts
 │   │   │   ├── 📄 settings.ts
@@ -193,6 +213,7 @@
 │   │   │   ├── 📄 api.ts
 │   │   │   ├── 📄 auditLog.ts
 │   │   │   ├── 📄 emailTemplate.ts
+│   │   │   ├── 📄 license.ts
 │   │   │   ├── 📄 meta.ts
 │   │   │   ├── 📄 policy.ts
 │   │   │   └── 📄 user.ts
@@ -221,5 +242,6 @@
 ├── 📄 Overview.md
 ├── 📄 STRUCTURE.md
 ├── 📄 SUMMARY.md
+├── 📄 nextprompt.md
 └── 📄 tsconfig.base.json
 ```

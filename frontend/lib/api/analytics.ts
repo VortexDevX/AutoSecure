@@ -1,6 +1,30 @@
 import apiClient, { getErrorMessage } from './client';
 import { ApiResponse } from '../types/api';
 
+export interface ExpiringItem {
+  _id: string;
+  policy_no: string;
+  customer: string;
+  saod_end_date?: string;
+  end_date: string;
+  registration_number: string;
+}
+
+export interface ExpiringLicense {
+  _id: string;
+  lic_no: string;
+  customer_name: string;
+  expiry_date: string;
+}
+
+export interface ExpiringItems {
+  policies: ExpiringItem[];
+  licenses: ExpiringLicense[];
+  policies_count: number;
+  licenses_count: number;
+  total_count: number;
+}
+
 export interface OverviewAnalytics {
   policies: {
     total: number;
@@ -17,6 +41,7 @@ export interface OverviewAnalytics {
     month_premium: number;
     month_commission: number;
   };
+  expiring_items: ExpiringItems;
 }
 
 export interface PolicyAnalytics {

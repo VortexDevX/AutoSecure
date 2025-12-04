@@ -101,6 +101,7 @@ export const listPolicies = asyncHandler(async (req: Request, res: Response) => 
         premium_amount: policy.premium_amount,
         start_date: policy.start_date,
         end_date: policy.end_date,
+        saod_end_date: policy.saod_end_date,
         created_by: policy.created_by,
         created_at: policy.createdAt,
       })),
@@ -183,8 +184,6 @@ async function processOtherDocuments(
       const ext = file.mimetype.split('/')[1] || 'pdf';
       const fileName = `${label.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.${ext}`;
 
-      console.log(`📤 Uploading other doc [${i}]: ${label}`);
-
       const uploadedFile = await FileStorageService.uploadFile(
         file.buffer,
         fileName,
@@ -200,8 +199,6 @@ async function processOtherDocuments(
         web_view_link: uploadedFile.web_view_link,
         uploaded_at: new Date(),
       });
-
-      console.log(`✅ Other doc uploaded: ${label}`);
     }
   }
 
@@ -209,12 +206,108 @@ async function processOtherDocuments(
 }
 
 /**
+ * Get all policies (with pagination, search, filters)
+ * GET /api/v1/policies
+ */
+export const getPolicies = asyncHandler(async (req: Request, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const skip = (page - 1) * limit;
+
+  const search = req.query.search as string;
+  const ins_status = req.query.ins_status as string;
+  const branch_id = req.query.branch_id as string;
+  const customer_payment_status = req.query.customer_payment_status as string;
+  const expiringSoon = req.query.expiring_soon as string;
+
+  // Build query
+  const query: any = {};
+
+  if (search) {
+    query.$or = [
+      { policy_no: { $regex: search, $options: 'i' } },
+      { customer: { $regex: search, $options: 'i' } },
+      { registration_number: { $regex: search, $options: 'i' } },
+      { email: { $regex: search, $options: 'i' } },
+      { serial_no: { $regex: search, $options: 'i' } },
+    ];
+  }
+
+  if (ins_status) query.ins_status = ins_status;
+  if (branch_id) query.branch_id = branch_id;
+  if (customer_payment_status) query.customer_payment_status = customer_payment_status;
+
+  // Expiring soon filter (next 30 days)
+  if (expiringSoon === 'true') {
+    const now = new Date();
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+    // Use $and to combine with existing query conditions
+    query.$and = query.$and || [];
+    query.$and.push({
+      $or: [
+        { saod_end_date: { $gte: now, $lte: thirtyDaysFromNow } },
+        {
+          end_date: { $gte: now, $lte: thirtyDaysFromNow },
+          saod_end_date: { $exists: false },
+        },
+        {
+          end_date: { $gte: now, $lte: thirtyDaysFromNow },
+          saod_end_date: null,
+        },
+      ],
+    });
+  }
+
+  const [policies, total] = await Promise.all([
+    Policy.find(query)
+      .populate('created_by', 'email full_name')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .select(
+        'serial_no policy_no customer email mobile_no registration_number ins_status customer_payment_status premium_amount net_premium start_date end_date saod_end_date created_by createdAt'
+      ),
+    Policy.countDocuments(query),
+  ]);
+
+  res.json({
+    success: true,
+    data: {
+      policies: policies.map((policy: any) => ({
+        id: policy._id.toString(),
+        serial_no: policy.serial_no || '',
+        policy_no: policy.policy_no,
+        customer: policy.customer,
+        email: policy.email,
+        mobile_no: policy.mobile_no,
+        registration_number: policy.registration_number,
+        ins_status: policy.ins_status,
+        customer_payment_status: policy.customer_payment_status,
+        premium_amount: policy.premium_amount,
+        net_premium: policy.net_premium,
+        start_date: policy.start_date,
+        end_date: policy.end_date,
+        saod_end_date: policy.saod_end_date,
+        created_by: policy.created_by,
+        created_at: policy.createdAt,
+      })),
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    },
+  });
+});
+
+/**
  * POST /api/v1/policies
  * Create new policy with file uploads
  */
 export const createPolicy = asyncHandler(async (req: Request, res: Response) => {
-  console.log('\n========== CREATE POLICY ==========');
-
   const policyData = { ...req.body };
   const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
 
@@ -222,7 +315,6 @@ export const createPolicy = asyncHandler(async (req: Request, res: Response) => 
   delete policyData.other_documents;
 
   const serialNumber = await generateSerialNumber();
-  console.log(`🔢 Generated Serial Number: ${serialNumber}`);
 
   const requiredFields = [
     'policy_no',
@@ -246,14 +338,12 @@ export const createPolicy = asyncHandler(async (req: Request, res: Response) => 
     throw new ValidationError(`Missing required fields: ${missingFields.join(', ')}`);
   }
 
-  console.log('📁 Creating policy folder:', policyData.policy_no);
   const folderId = await FileStorageService.createPolicyFolder(policyData.policy_no);
 
   // Upload Aadhaar file if provided
   let adhFile;
   if (files && files.adh_file && files.adh_file[0]) {
     const file = files.adh_file[0];
-    console.log('📤 Uploading Aadhaar:', file.originalname);
 
     adhFile = await FileStorageService.uploadFile(
       file.buffer,
@@ -267,7 +357,6 @@ export const createPolicy = asyncHandler(async (req: Request, res: Response) => 
   let panFile;
   if (files && files.pan_file && files.pan_file[0]) {
     const file = files.pan_file[0];
-    console.log('📤 Uploading PAN:', file.originalname);
 
     panFile = await FileStorageService.uploadFile(
       file.buffer,
@@ -309,8 +398,6 @@ export const createPolicy = asyncHandler(async (req: Request, res: Response) => 
     }
   }
 
-  console.log('💾 Creating policy in database...');
-
   const policy = (await Policy.create({
     ...policyData,
     serial_no: serialNumber,
@@ -336,8 +423,6 @@ export const createPolicy = asyncHandler(async (req: Request, res: Response) => 
       : undefined,
     other_documents: otherDocs.length > 0 ? otherDocs : undefined,
   })) as IPolicy;
-
-  console.log(`✅ Policy created: ${policy._id.toString()} (Serial: ${serialNumber})`);
 
   await AuditService.logCreate(req.user!.userId, 'policy', policy._id.toString(), {
     policy_no: policy.policy_no,
@@ -373,9 +458,6 @@ export const updatePolicy = asyncHandler(async (req: Request, res: Response) => 
   const updateData = { ...req.body };
   const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
 
-  console.log('\n========== UPDATE POLICY ==========');
-  console.log('📝 Policy ID:', id);
-
   const policy = (await Policy.findById(id)) as IPolicy | null;
 
   if (!policy) {
@@ -388,7 +470,6 @@ export const updatePolicy = asyncHandler(async (req: Request, res: Response) => 
   // Update Aadhaar file if new one provided
   if (files && files.adh_file && files.adh_file[0]) {
     const file = files.adh_file[0];
-    console.log('📤 Replacing Aadhaar file');
 
     if (policy.adh_file?.file_id) {
       try {
@@ -417,7 +498,6 @@ export const updatePolicy = asyncHandler(async (req: Request, res: Response) => 
   // Update PAN file if new one provided
   if (files && files.pan_file && files.pan_file[0]) {
     const file = files.pan_file[0];
-    console.log('📤 Replacing PAN file');
 
     if (policy.pan_file?.file_id) {
       try {
@@ -473,8 +553,6 @@ export const updatePolicy = asyncHandler(async (req: Request, res: Response) => 
     // Append new docs to existing ones (or replace if you prefer)
     const existingDocs = policy.other_documents || [];
     policy.other_documents = [...existingDocs, ...newOtherDocs] as any;
-
-    console.log(`📄 Added ${newOtherDocs.length} new other documents`);
   }
 
   // Parse JSON fields if needed
@@ -500,8 +578,6 @@ export const updatePolicy = asyncHandler(async (req: Request, res: Response) => 
 
   Object.assign(policy, fieldsToUpdate);
   await policy.save();
-
-  console.log('✅ Policy updated');
 
   await AuditService.logUpdate(req.user!.userId, 'policy', policy._id.toString(), {
     policy_no: policy.policy_no,
@@ -532,16 +608,11 @@ export const deletePolicy = asyncHandler(async (req: Request, res: Response) => 
     throw new NotFoundError('Policy not found');
   }
 
-  console.log('\n========== DELETE POLICY ==========');
-  console.log('🗑️ Policy:', policy.policy_no);
-
   try {
-    console.log('💾 Creating backup...');
     const backupPath = await FileStorageService.backupPolicyFolder(
       policy.policy_no,
       policy.drive_folder_id
     );
-    console.log(`✅ Policy backed up to: ${backupPath}`);
   } catch (error) {
     console.error('❌ Backup failed:', error);
     throw new ValidationError(
@@ -556,7 +627,6 @@ export const deletePolicy = asyncHandler(async (req: Request, res: Response) => 
   });
 
   await policy.deleteOne();
-  console.log('✅ Policy deleted from database');
 
   await FileStorageService.deletePolicyFolder(policy.drive_folder_id);
 

@@ -1,10 +1,12 @@
+// frontend/components/policies/steps/Step6ReviewSubmit.tsx (UPDATED with formatLabel)
+
 'use client';
 
 import { SingleDatePicker } from '@/components/ui/DatePicker';
 import { Input } from '@/components/ui/Input';
 import { usePolicyForm } from '@/lib/context/PolicyFormContext';
 import { usePolicyFormMeta } from '@/lib/hooks/useMeta';
-import { formatCurrency, formatDate } from '@/lib/utils/formatters';
+import { formatCurrency, formatDate, formatLabel } from '@/lib/utils/formatters';
 import {
   DocumentTextIcon,
   UserIcon,
@@ -20,24 +22,19 @@ export function Step6ReviewSubmit() {
   const { formData, updateFormData } = usePolicyForm();
   const { companyPaymentModes, companyBankNames, isLoading } = usePolicyFormMeta();
 
-  // Helper to render field value or placeholder
   const renderValue = (value: any, fallback = '-') => {
     if (value === null || value === undefined || value === '') return fallback;
     return value;
   };
 
-  // Helper to render currency
   const renderCurrency = (value: any) => {
     if (value === null || value === undefined || value === '') return '-';
     return formatCurrency(value);
   };
 
-  // Helper to render status badge
   const renderStatus = (value: string | undefined, type: 'payment' | 'policy' = 'payment') => {
     if (!value) return <span className="text-gray-400">-</span>;
-
     const isPositive = type === 'payment' ? value === 'done' : value === 'policy_done';
-
     return (
       <span
         className={`
@@ -50,7 +47,7 @@ export function Step6ReviewSubmit() {
         ) : (
           <XCircleIcon className="w-3.5 h-3.5" />
         )}
-        {value}
+        {formatLabel(value)}
       </span>
     );
   };
@@ -108,7 +105,6 @@ export function Step6ReviewSubmit() {
             }
           />
 
-          {/* ✅ RENAMED: Cheque Number / UTR / Transaction Number */}
           <Input
             label="Cheque Number / UTR / Transaction Number"
             type="text"
@@ -128,7 +124,7 @@ export function Step6ReviewSubmit() {
         </div>
       </div>
 
-      {/* ✅ REMADE: Review Summary */}
+      {/* Review Summary */}
       <div className="border-t border-gray-200 pt-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-6">Review Summary</h3>
 
@@ -151,13 +147,13 @@ export function Step6ReviewSubmit() {
                 <div className="flex justify-between items-center py-2 border-b border-blue-200/50">
                   <span className="text-sm text-blue-700">Insurance Type</span>
                   <span className="font-medium text-blue-900">
-                    {renderValue(formData.ins_type)}
+                    {formatLabel(renderValue(formData.ins_type))}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-blue-200/50">
                   <span className="text-sm text-blue-700">Company</span>
                   <span className="font-medium text-blue-900">
-                    {renderValue(formData.ins_co_id)}
+                    {formatLabel(renderValue(formData.ins_co_id))}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-blue-200/50">
@@ -177,7 +173,7 @@ export function Step6ReviewSubmit() {
                   <span
                     className={`font-medium ${formData.inspection === 'yes' ? 'text-amber-600' : 'text-green-600'}`}
                   >
-                    {formData.inspection ? formData.inspection.toUpperCase() : '-'}
+                    {formatLabel(renderValue(formData.inspection))}
                   </span>
                 </div>
               </div>
@@ -217,7 +213,7 @@ export function Step6ReviewSubmit() {
                 <div className="flex justify-between items-center py-2 border-b border-green-200/50">
                   <span className="text-sm text-green-700">Branch</span>
                   <span className="font-medium text-green-900">
-                    {renderValue(formData.branch_id)}
+                    {formatLabel(renderValue(formData.branch_id))}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2">
@@ -250,7 +246,7 @@ export function Step6ReviewSubmit() {
                 <div className="flex justify-between items-center py-2 border-b border-purple-200/50">
                   <span className="text-sm text-purple-700">Product Type</span>
                   <span className="font-medium text-purple-900">
-                    {renderValue(formData.product)}
+                    {formatLabel(renderValue(formData.product))}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-purple-200/50">
@@ -262,7 +258,7 @@ export function Step6ReviewSubmit() {
                 <div className="flex justify-between items-center py-2 border-b border-purple-200/50">
                   <span className="text-sm text-purple-700">Fuel Type</span>
                   <span className="font-medium text-purple-900">
-                    {renderValue(formData.fuel_type)}
+                    {formatLabel(renderValue(formData.fuel_type))}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-purple-200/50">

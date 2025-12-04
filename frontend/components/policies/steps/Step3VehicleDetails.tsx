@@ -6,15 +6,29 @@ import { usePolicyForm } from '@/lib/context/PolicyFormContext';
 import { usePolicyFormMeta } from '@/lib/hooks/useMeta';
 import { useMemo } from 'react';
 
+// Add formatter for MM/YYYY
+const formatManufacturingDate = (value: string) => {
+  // Remove non-digits
+  const digits = value.replace(/\D/g, '');
+  if (digits.length <= 2) return digits;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 6)}`;
+};
+
 export function Step3VehicleDetails() {
   const { formData, updateFormData } = usePolicyForm();
   const { vehicleProducts, manufacturers, fuelTypes, isLoading } = usePolicyFormMeta();
 
-  // ✅ Filter manufacturers based on selected product
+  // Filter manufacturers based on selected product
   const filteredManufacturers = useMemo(() => {
     if (!formData.product) return [];
     return manufacturers.filter((m) => m.parent_value === formData.product);
   }, [formData.product, manufacturers]);
+
+  // Handle manufacturing date input
+  const handleMfgDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatManufacturingDate(e.target.value);
+    updateFormData({ mfg_date: formatted });
+  };
 
   return (
     <div className="space-y-6">
@@ -27,7 +41,7 @@ export function Step3VehicleDetails() {
             onChange={(e) => {
               updateFormData({
                 product: e.target.value,
-                manufacturer: '', // ✅ Reset manufacturer when product changes
+                manufacturer: '', // Reset manufacturer when product changes
               });
             }}
             className="input"
@@ -42,7 +56,7 @@ export function Step3VehicleDetails() {
           </select>
         </div>
 
-        {/* ✅ Manufacturer Dropdown (Filtered by Product) */}
+        {/* Manufacturer Dropdown (Filtered by Product) */}
         <div>
           <label className="label">Manufacturer</label>
           <select
@@ -71,7 +85,7 @@ export function Step3VehicleDetails() {
           )}
         </div>
 
-        {/* ✅ Model Name (Manual Text Input) */}
+        {/* Model Name (Manual Text Input) */}
         <Input
           label="Model Name"
           type="text"
@@ -80,7 +94,7 @@ export function Step3VehicleDetails() {
           onChange={(e) => updateFormData({ model_name: e.target.value })}
         />
 
-        {/* ✅ NEW: Fuel Type Dropdown */}
+        {/* Fuel Type Dropdown */}
         <div>
           <label className="label">Fuel Type</label>
           <select
@@ -107,14 +121,14 @@ export function Step3VehicleDetails() {
           onChange={(e) => updateFormData({ hypothecation: e.target.value })}
         />
 
-        {/* Manufacturing Date */}
-        <SingleDatePicker
+        {/* Manufacturing Date - CHANGED TO TEXT INPUT */}
+        <Input
           label="Manufacturing Date"
-          value={formData.mfg_date ? new Date(formData.mfg_date) : null}
-          onChange={(date) =>
-            updateFormData({ mfg_date: date ? date.toISOString().split('T')[0] : '' })
-          }
-          placeholder="Manufacturing Date"
+          type="text"
+          placeholder="MM/YYYY (e.g., 01/2024)"
+          value={formData.mfg_date || ''}
+          onChange={handleMfgDateChange}
+          maxLength={7} // MM/YYYY
         />
 
         {/* Engine Number */}

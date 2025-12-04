@@ -59,18 +59,7 @@ export default function LicenseDetailPage() {
   const [isDeletingDoc, setIsDeletingDoc] = useState(false);
 
   // Use state for permissions to avoid hydration mismatch
-  const [permissions, setPermissions] = useState({ canEdit: false, canDelete: false });
-
-  // Calculate permissions after mount (client-side only)
-  useEffect(() => {
-    if (user) {
-      const isOwnerOrAdmin = user.role === 'owner' || user.role === 'admin';
-      setPermissions({
-        canEdit: isOwnerOrAdmin,
-        canDelete: isOwnerOrAdmin,
-      });
-    }
-  }, [user]);
+  const [permissions] = useState({ canEdit: true, canDelete: true });
 
   // Fetch license details
   const {
@@ -200,24 +189,18 @@ export default function LicenseDetailPage() {
             <EnvelopeIcon className="w-4 h-4 mr-2" />
             Send Email
           </Button>
-
           {/* Edit Button - Only for admin/owner */}
-          {permissions.canEdit && (
-            <Link href={`/licenses/${license._id}/edit`}>
-              <Button variant="secondary">
-                <PencilIcon className="w-4 h-4 mr-2" />
-                Edit
-              </Button>
-            </Link>
-          )}
-
-          {/* Delete Button - Only for admin/owner */}
-          {permissions.canDelete && (
-            <Button variant="danger" onClick={() => setShowDeleteModal(true)}>
-              <TrashIcon className="w-4 h-4 mr-2" />
-              Delete
+          <Link href={`/licenses/${license._id}/edit`}>
+            <Button variant="secondary">
+              <PencilIcon className="w-4 h-4 mr-2" />
+              Edit
             </Button>
-          )}
+          </Link>
+          {/* Delete Button - Only for admin/owner */}
+          <Button variant="danger" onClick={() => setShowDeleteModal(true)}>
+            <TrashIcon className="w-4 h-4 mr-2" />
+            Delete
+          </Button>
         </div>
       </div>
 

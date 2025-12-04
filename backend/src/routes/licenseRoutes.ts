@@ -13,7 +13,7 @@ import {
   getLicenseFileUrl,
   downloadLicenseFile,
 } from '../controllers/licenseFileController';
-import { requireAuth, requireAdmin } from '../middleware/authMiddleware';
+import { requireAuth } from '../middleware/authMiddleware';
 import multer from 'multer';
 
 const router = Router();
@@ -46,16 +46,11 @@ router.get('/expiring-soon', getExpiringLicenses);
 // CRUD routes
 router.get('/', getLicenses);
 router.get('/:id', getLicenseById);
-router.post('/', requireAdmin, upload.fields([{ name: 'documents', maxCount: 3 }]), createLicense);
-router.patch(
-  '/:id',
-  requireAdmin,
-  upload.fields([{ name: 'documents', maxCount: 3 }]),
-  updateLicense
-);
-router.delete('/:id', requireAdmin, deleteLicense);
+router.post('/', upload.fields([{ name: 'documents', maxCount: 3 }]), createLicense);
+router.patch('/:id', upload.fields([{ name: 'documents', maxCount: 3 }]), updateLicense);
+router.delete('/:id', deleteLicense);
 
 // Delete individual document
-router.delete('/:id/documents/:docIndex', requireAdmin, deleteLicenseDocument);
+router.delete('/:id/documents/:docIndex', deleteLicenseDocument);
 
 export default router;

@@ -13,25 +13,7 @@ export default function NewLicensePage() {
   const router = useRouter();
 
   const handleSubmit = async (data: LicenseFormData) => {
-    const formData = new FormData();
-
-    // Append all fields
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'documents' && Array.isArray(value)) {
-        // Handle file uploads
-        value.forEach((file: File) => {
-          formData.append('documents', file);
-        });
-      } else if (value !== undefined && value !== null && value !== '') {
-        if (value instanceof Date) {
-          formData.append(key, value.toISOString());
-        } else {
-          formData.append(key, String(value));
-        }
-      }
-    });
-
-    const license = await createLicense(formData);
+    const license = await createLicense(data);
     toast.success('License created successfully');
     router.push(`/licenses/${license._id}`);
   };

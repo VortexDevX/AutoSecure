@@ -57,7 +57,7 @@ export interface IPolicy extends Document {
   fuel_type?: string;
   hypothecation?: string;
   model_name?: string;
-  mfg_date?: Date;
+  mfg_date?: string;
   engine_no?: string;
   chassis_no?: string;
   registration_number: string;
@@ -188,7 +188,7 @@ const PolicySchema = new Schema<IPolicy>(
     fuel_type: { type: String },
     hypothecation: { type: String },
     model_name: { type: String },
-    mfg_date: { type: Date },
+    mfg_date: { type: String },
     engine_no: { type: String, trim: true, uppercase: true },
     chassis_no: { type: String, trim: true, uppercase: true },
     registration_number: { type: String, required: true, trim: true, uppercase: true },

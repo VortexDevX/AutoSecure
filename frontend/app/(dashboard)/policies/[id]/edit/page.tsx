@@ -87,7 +87,7 @@ function EditPolicyFormContent({ policyId }: { policyId: string }) {
         fuel_type: policy.fuel_type,
         model_name: policy.model_name,
         hypothecation: policy.hypothecation,
-        mfg_date: formatDate(policy.mfg_date),
+        mfg_date: policy.mfg_date,
         engine_no: policy.engine_no,
         chassis_no: policy.chassis_no,
         registration_number: policy.registration_number,

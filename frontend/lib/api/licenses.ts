@@ -219,3 +219,16 @@ export const downloadLicenseFile = async (fileId: string, downloadName: string):
     throw error;
   }
 };
+
+/**
+ * Delete a specific document from a license
+ */
+export const deleteLicenseDocument = async (
+  licenseId: string,
+  docIndex: number
+): Promise<LicenseRecord> => {
+  const response = await apiClient.delete<LicenseResponse>(
+    `/api/v1/licenses/${licenseId}/documents/${docIndex}`
+  );
+  return response.data.data.license;
+};

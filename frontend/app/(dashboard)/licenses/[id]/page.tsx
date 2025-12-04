@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import useSWR from 'swr';
@@ -9,6 +9,7 @@ import {
   deleteLicense,
   viewLicenseFile,
   downloadLicenseFile,
+  deleteLicenseDocument,
 } from '@/lib/api/licenses';
 import { getLicenseEmailLogs } from '@/lib/api/emails';
 import { LicenseRecord } from '@/lib/types/license';
@@ -16,7 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Spinner } from '@/components/ui/Spinner';
-import { Modal } from '@/components/ui/Modal';
+import { Modal, ConfirmModal } from '@/components/ui/Modal';
 import { SendLicenseEmailModal } from '@/components/licenses/SendLicenseEmailModal';
 import { formatDate, formatCurrency } from '@/lib/utils/formatters';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -41,7 +42,7 @@ import toast from 'react-hot-toast';
 export default function LicenseDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const licenseId = params.id as string;
 
   const [isDeleting, setIsDeleting] = useState(false);
@@ -52,15 +53,31 @@ export default function LicenseDetailPage() {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showEmailLogsModal, setShowEmailLogsModal] = useState(false);
 
-  // Role-based permissions
-  const canEdit = user?.role === 'owner' || user?.role === 'admin';
-  const canDelete = user?.role === 'owner' || user?.role === 'admin';
+  // Document delete state
+  const [showDeleteDocModal, setShowDeleteDocModal] = useState(false);
+  const [docToDelete, setDocToDelete] = useState<{ index: number; label: string } | null>(null);
+  const [isDeletingDoc, setIsDeletingDoc] = useState(false);
+
+  // Use state for permissions to avoid hydration mismatch
+  const [permissions, setPermissions] = useState({ canEdit: false, canDelete: false });
+
+  // Calculate permissions after mount (client-side only)
+  useEffect(() => {
+    if (user) {
+      const isOwnerOrAdmin = user.role === 'owner' || user.role === 'admin';
+      setPermissions({
+        canEdit: isOwnerOrAdmin,
+        canDelete: isOwnerOrAdmin,
+      });
+    }
+  }, [user]);
 
   // Fetch license details
   const {
     data: license,
     error,
     isLoading,
+    mutate,
   } = useSWR<LicenseRecord>(`/api/v1/licenses/${licenseId}`, () => getLicenseById(licenseId));
 
   // Fetch email logs when modal is open
@@ -115,7 +132,31 @@ export default function LicenseDetailPage() {
     }
   };
 
-  if (isLoading) {
+  const handleDeleteDocClick = (index: number, label: string) => {
+    setDocToDelete({ index, label });
+    setShowDeleteDocModal(true);
+  };
+
+  const handleDeleteDocConfirm = async () => {
+    if (!docToDelete) return;
+
+    setIsDeletingDoc(true);
+    try {
+      await deleteLicenseDocument(licenseId, docToDelete.index);
+      toast.success(`${docToDelete.label} deleted successfully`);
+      mutate(); // Refresh license data
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      toast.error(err.response?.data?.message || err.message || 'Failed to delete document');
+    } finally {
+      setIsDeletingDoc(false);
+      setShowDeleteDocModal(false);
+      setDocToDelete(null);
+    }
+  };
+
+  // Show loading while auth is being checked
+  if (isLoading || isAuthLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Spinner size="lg" />
@@ -152,7 +193,7 @@ export default function LicenseDetailPage() {
           </div>
         </div>
 
-        {/* Action Buttons - Always visible container */}
+        {/* Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Email Button - visible to all */}
           <Button variant="primary" onClick={() => setShowEmailModal(true)}>
@@ -161,7 +202,7 @@ export default function LicenseDetailPage() {
           </Button>
 
           {/* Edit Button - Only for admin/owner */}
-          {canEdit && (
+          {permissions.canEdit && (
             <Link href={`/licenses/${license._id}/edit`}>
               <Button variant="secondary">
                 <PencilIcon className="w-4 h-4 mr-2" />
@@ -171,7 +212,7 @@ export default function LicenseDetailPage() {
           )}
 
           {/* Delete Button - Only for admin/owner */}
-          {canDelete && (
+          {permissions.canDelete && (
             <Button variant="danger" onClick={() => setShowDeleteModal(true)}>
               <TrashIcon className="w-4 h-4 mr-2" />
               Delete
@@ -399,6 +440,16 @@ export default function LicenseDetailPage() {
                         <DocumentArrowDownIcon className="w-5 h-5" />
                       )}
                     </button>
+                    {/* Delete Button - Only for admin/owner */}
+                    {permissions.canDelete && (
+                      <button
+                        onClick={() => handleDeleteDocClick(index, doc.label || doc.file_name)}
+                        className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                        title="Delete document"
+                      >
+                        <TrashIcon className="w-5 h-5" />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -510,6 +561,22 @@ export default function LicenseDetailPage() {
           </div>
         </div>
       </Modal>
+
+      {/* Delete Document Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteDocModal}
+        onClose={() => {
+          setShowDeleteDocModal(false);
+          setDocToDelete(null);
+        }}
+        onConfirm={handleDeleteDocConfirm}
+        title="Delete Document"
+        message={`Are you sure you want to delete "${docToDelete?.label}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeletingDoc}
+      />
 
       {/* Email Logs Modal */}
       <Modal

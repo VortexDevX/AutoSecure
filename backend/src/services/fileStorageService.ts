@@ -448,6 +448,25 @@ export class FileStorageService {
   }
 
   /**
+   * Get a signed URL for license file (for viewing in browser)
+   */
+  static async getLicenseFileSignedUrl(fileId: string, expiresIn: number = 3600): Promise<string> {
+    // fileId is already the full path like "licenses/FOLDER/filename"
+    try {
+      const command = new GetObjectCommand({
+        Bucket: R2_BUCKET_NAME,
+        Key: fileId,
+      });
+
+      const signedUrl = await getSignedUrl(s3Client, command, { expiresIn });
+      return signedUrl;
+    } catch (error: any) {
+      console.error('R2 license signed URL error:', error);
+      throw new AppError(`Failed to generate signed URL: ${error.message}`, 500);
+    }
+  }
+
+  /**
    * Get a signed download URL for license file (with Content-Disposition: attachment)
    */
   static async getLicenseDownloadUrl(

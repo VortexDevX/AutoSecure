@@ -11,7 +11,7 @@ export interface IAuditLog extends Document {
     | 'export'
     | 'site_toggle'
     | 'role_change';
-  resource_type?: 'policy' | 'meta' | 'user' | 'site_settings' | 'license'; // Changed from 'LicenseRecord' to 'license'
+  resource_type?: 'policy' | 'meta' | 'user' | 'site_settings' | 'license' | 'license_document'; // Changed from 'LicenseRecord' to 'license'
   resource_id?: string;
   details?: Record<string, unknown>;
   ip_address?: string;

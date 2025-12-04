@@ -128,7 +128,7 @@ export function Step3VehicleDetails() {
           placeholder="MM/YYYY (e.g., 01/2024)"
           value={formData.mfg_date || ''}
           onChange={handleMfgDateChange}
-          maxLength={7} // MM/YYYY
+          maxLength={7}
         />
 
         {/* Engine Number */}

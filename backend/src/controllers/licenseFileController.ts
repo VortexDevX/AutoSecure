@@ -54,8 +54,8 @@ export const getLicenseFileUrl = asyncHandler(async (req: Request, res: Response
     throw new AppError('File not found', 404);
   }
 
-  // Generate signed URL
-  const signedUrl = await FileStorageService.getSignedUrl(fileId, 3600);
+  // ✅ FIX: Use getLicenseFileSignedUrl instead of getSignedUrl
+  const signedUrl = await FileStorageService.getLicenseFileSignedUrl(fileId, 3600);
 
   res.json({
     success: true,

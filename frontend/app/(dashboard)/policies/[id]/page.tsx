@@ -431,7 +431,7 @@ export default function PolicyDetailPage() {
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-500">Mfg. Date</span>
-                  <span className="font-medium text-gray-900">{formatDate(policy.mfg_date)}</span>
+                  <span className="font-medium text-gray-900">{policy.mfg_date}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-500">Hypothecation</span>

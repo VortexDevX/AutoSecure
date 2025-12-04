@@ -313,7 +313,7 @@ export const emailService = {
       registration_date: formatDate(policy.registration_date),
       engine_no: policy.engine_no || 'N/A',
       chassis_no: policy.chassis_no || 'N/A',
-      mfg_date: formatDate(policy.mfg_date),
+      mfg_date: policy.mfg_date,
       hypothecation: policy.hypothecation || 'None',
 
       // Premium Details

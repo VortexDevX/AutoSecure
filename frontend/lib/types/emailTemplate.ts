@@ -94,7 +94,7 @@ export const POLICY_TEMPLATE_VARIABLES: TemplateVariable[] = [
     example: 'MA3FJEB1S00123456',
     section: 'vehicle',
   },
-  { key: '{{mfg_date}}', label: 'Manufacturing Date', example: 'Feb 2020', section: 'vehicle' },
+  { key: '{{mfg_date}}', label: 'Manufacturing Date', example: '02/2020', section: 'vehicle' },
   { key: '{{hypothecation}}', label: 'Hypothecation', example: 'HDFC Bank', section: 'vehicle' },
 
   // Company Details

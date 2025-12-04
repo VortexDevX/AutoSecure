@@ -6,6 +6,7 @@ import {
   updateLicense,
   deleteLicense,
   getExpiringLicenses,
+  deleteLicenseDocument,
 } from '../controllers/licenseController';
 import {
   getLicenseFile,
@@ -53,5 +54,8 @@ router.patch(
   updateLicense
 );
 router.delete('/:id', requireAdmin, deleteLicense);
+
+// Delete individual document
+router.delete('/:id/documents/:docIndex', requireAdmin, deleteLicenseDocument);
 
 export default router;

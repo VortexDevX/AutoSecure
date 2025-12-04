@@ -450,3 +450,56 @@ export const getExpiringLicenses = asyncHandler(async (req: Request, res: Respon
     data: { licenses },
   });
 });
+
+/**
+ * Delete a specific document from a license
+ * DELETE /api/v1/licenses/:id/documents/:docIndex
+ */
+export const deleteLicenseDocument = asyncHandler(async (req: Request, res: Response) => {
+  const { id, docIndex } = req.params;
+  const index = parseInt(docIndex, 10);
+
+  const license = await LicenseRecord.findById(id);
+
+  if (!license) {
+    throw new AppError('License record not found', 404);
+  }
+
+  if (isNaN(index) || index < 0 || index >= license.documents.length) {
+    throw new AppError('Invalid document index', 400);
+  }
+
+  const docToDelete = license.documents[index];
+
+  // Delete file from R2
+  try {
+    await FileStorageService.deleteLicenseFile(docToDelete.file_id);
+    console.log(`🗑️ Deleted license document: ${docToDelete.file_id}`);
+  } catch (err) {
+    console.error('Failed to delete file from storage:', err);
+    // Continue anyway - remove from database even if file deletion fails
+  }
+
+  // Remove document from array
+  license.documents.splice(index, 1);
+  await license.save();
+
+  await AuditService.log({
+    user_id: req.user!.userId,
+    action: 'delete',
+    resource_type: 'license_document',
+    resource_id: license._id.toString(),
+    details: {
+      lic_no: license.lic_no,
+      deleted_document: docToDelete.label || docToDelete.file_name,
+    },
+    ip_address: req.ip,
+    user_agent: req.get('user-agent'),
+  });
+
+  res.json({
+    success: true,
+    message: 'Document deleted successfully',
+    data: { license },
+  });
+});

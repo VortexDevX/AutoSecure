@@ -90,7 +90,7 @@ export function LicenseTable({ licenses, onDelete }: LicenseTableProps) {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <Badge variant={license.faceless_type === 'faceless' ? 'info' : 'default'}>
-                      {license.faceless_type === 'faceless' ? 'Faceless' : 'Non-Faceless'}
+                      {license.faceless_type}
                     </Badge>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

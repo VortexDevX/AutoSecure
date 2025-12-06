@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePolicies } from '@/lib/hooks/usePolicies';
 import { PolicyFilters } from '@/components/policies/PolicyFilters';
@@ -23,7 +23,6 @@ import {
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import apiClient from '@/lib/api/client';
-import { formatDate } from '@/lib/utils/formatters';
 
 export default function PoliciesPage() {
   const [page, setPage] = useState(1);
@@ -48,6 +47,44 @@ export default function PoliciesPage() {
     ...filters,
   });
 
+  // Running month's net premium from analytics endpoint (fallback to page calculation)
+  const [monthNetPremium, setMonthNetPremium] = useState<number | null>(null);
+  const [isLoadingMonthNetPremium, setIsLoadingMonthNetPremium] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchOverview = async () => {
+      setIsLoadingMonthNetPremium(true);
+      try {
+        const res = await apiClient.get('/api/v1/analytics/overview');
+        const value = res?.data?.data?.financial?.month_net_premium;
+
+        // Accept numbers or numeric strings from the API
+        const parsed = value === undefined || value === null ? null : Number(value);
+        if (mounted) {
+          if (parsed !== null && !Number.isNaN(parsed)) {
+            setMonthNetPremium(parsed);
+          } else if (value === null || value === undefined) {
+            setMonthNetPremium(null);
+          } else {
+            // non-numeric value — treat as 0 to avoid showing NaN
+            setMonthNetPremium(0);
+          }
+        }
+      } catch (err) {
+        // silently ignore — we'll fallback to computing from current page
+        if (mounted) setMonthNetPremium(null);
+      } finally {
+        if (mounted) setIsLoadingMonthNetPremium(false);
+      }
+    };
+
+    fetchOverview();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   // Calculate quick stats from current page data
   interface Stats {
     total: number;
@@ -63,7 +100,20 @@ export default function PoliciesPage() {
     completed: policies.filter((p) => p.ins_status === 'policy_done').length,
     pending: policies.filter((p) => p.ins_status === 'policy_pending').length,
     paymentPending: policies.filter((p) => p.customer_payment_status === 'pending').length,
-    totalPremium: policies.reduce((sum: number, p) => sum + (p.premium_amount || 0), 0),
+    // Use server-provided running month net_premium when available; otherwise compute from current page
+    totalPremium:
+      monthNetPremium !== null
+        ? monthNetPremium
+        : policies.reduce((sum: number, p) => {
+            const createdDate = p.created_at ? new Date(p.created_at) : null;
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+            if (createdDate && createdDate >= startOfMonth) {
+              return sum + (p.net_premium || 0);
+            }
+            return sum;
+          }, 0),
     expiringSoon: policies.filter((p) => {
       const saodDate = p.saod_end_date ? new Date(p.saod_end_date) : null;
       const endDate = new Date(p.end_date);
@@ -238,10 +288,19 @@ export default function PoliciesPage() {
               <CurrencyRupeeIcon className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-xl font-bold text-gray-900">
-                {formatCurrency(stats.totalPremium)}
+              <div className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                {isLoadingMonthNetPremium ? (
+                  <>
+                    <Spinner size="sm" />
+                    <span className="text-base font-medium">Fetching...</span>
+                  </>
+                ) : (
+                  formatCurrency(stats.totalPremium)
+                )}
+              </div>
+              <p className="text-xs text-gray-500 uppercase tracking-wide">
+                This Month Net Premium
               </p>
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Page Premium</p>
             </div>
           </div>
         </div>

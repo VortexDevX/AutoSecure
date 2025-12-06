@@ -45,7 +45,7 @@ export const getOverview = asyncHandler(async (req: Request, res: Response) => {
   const totalPremium = premiumStats[0]?.total_premium || 0;
   const totalCommission = premiumStats[0]?.total_commission || 0;
 
-  // Premium this month
+  // Premium this month (both premium_amount and net_premium)
   const premiumThisMonth = await Policy.aggregate([
     {
       $match: {
@@ -56,12 +56,14 @@ export const getOverview = asyncHandler(async (req: Request, res: Response) => {
       $group: {
         _id: null,
         total_premium: { $sum: '$premium_amount' },
+        total_net_premium: { $sum: '$net_premium' },
         total_commission: { $sum: '$agent_commission' },
       },
     },
   ]);
 
   const monthPremium = premiumThisMonth[0]?.total_premium || 0;
+  const monthNetPremium = premiumThisMonth[0]?.total_net_premium || 0;
   const monthCommission = premiumThisMonth[0]?.total_commission || 0;
 
   // Active vs Expired policies
@@ -132,6 +134,7 @@ export const getOverview = asyncHandler(async (req: Request, res: Response) => {
         total_premium: totalPremium,
         total_commission: totalCommission,
         month_premium: monthPremium,
+        month_net_premium: monthNetPremium,
         month_commission: monthCommission,
       },
       expiring_items: {

@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { Policy } from '../models/Policy';
 import { AuditService } from '../services/auditService';
 import { asyncHandler } from '../utils/asyncHandler';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 // All exportable fields
 const ALL_EXPORT_FIELDS = [
@@ -227,23 +227,39 @@ export const exportPolicies = asyncHandler(async (req: Request, res: Response) =
   });
 
   // Create workbook
-  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Policies');
+
+  // Add header row with labels
+  const headerRow = exportFields.map((field) => FIELD_LABELS[field] || field);
+  worksheet.addRow(headerRow);
+
+  // Style header row
+  worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+  worksheet.getRow(1).fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FF4472C4' },
+  };
 
   // Auto-size columns
   const colWidths = exportFields.map((field) => {
     const label = FIELD_LABELS[field] || field;
-    return { wch: Math.max(label.length + 2, 15) };
+    return Math.max(label.length + 2, 15);
   });
-  worksheet['!cols'] = colWidths;
+  worksheet.columns = colWidths.map((width) => ({ width }));
 
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Policies');
+  // Add data rows
+  data.forEach((row) => {
+    const rowValues = exportFields.map((field) => {
+      const label = FIELD_LABELS[field] || field;
+      return row[label] ?? '';
+    });
+    worksheet.addRow(rowValues);
+  });
 
   // Generate buffer
-  const excelBuffer = XLSX.write(workbook, {
-    type: 'buffer',
-    bookType: 'xlsx',
-  });
+  const excelBuffer = await workbook.xlsx.writeBuffer();
 
   // Audit log
   await AuditService.logExport(req.user!.userId, {

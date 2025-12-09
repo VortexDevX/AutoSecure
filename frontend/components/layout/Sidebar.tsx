@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -15,6 +16,7 @@ import {
   ClipboardDocumentListIcon,
   Cog6ToothIcon,
   EnvelopeIcon,
+  ChevronLeftIcon,
 } from '@heroicons/react/24/outline';
 
 interface NavItem {
@@ -56,6 +58,7 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { user } = useAuth();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Filter navigation based on user role
   const filteredNavigation = navigation.filter((item) => {
@@ -73,22 +76,57 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={clsx(
-          'fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[#2c3e50] text-white flex flex-col transition-transform duration-300 ease-in-out',
-          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          'fixed lg:static inset-y-0 left-0 z-50 bg-[#2c3e50] text-white flex flex-col transition-all duration-300 ease-in-out',
+          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+          isCollapsed ? 'w-20 lg:w-20' : 'w-64 lg:w-64'
         )}
       >
-        {/* Logo */}
-        <div className="flex items-center gap-3 p-6 border-b border-white/10">
-          <div className="w-8 h-8 relative flex-shrink-0">
-            <Image
-              src="/logo.png"
-              alt="AutoSecure Logo"
-              width={32}
-              height={32}
-              className="rounded-full"
+        {/* Logo / Header */}
+        <div
+          className={clsx(
+            'flex items-center justify-between p-4 border-b border-white/10 transition-all duration-300',
+            isCollapsed ? 'px-3' : 'px-6'
+          )}
+        >
+          {!isCollapsed && (
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 relative flex-shrink-0">
+                <Image
+                  src="/logo.png"
+                  alt="AutoSecure Logo"
+                  width={32}
+                  height={32}
+                  className="rounded-full"
+                />
+              </div>
+              <h1 className="text-xl font-bold">AutoSecure</h1>
+            </div>
+          )}
+          {isCollapsed && (
+            <div className="w-8 h-8 relative flex-shrink-0 mx-auto">
+              <Image
+                src="/logo.png"
+                alt="AutoSecure Logo"
+                width={32}
+                height={32}
+                className="rounded-full"
+              />
+            </div>
+          )}
+
+          {/* Collapse toggle - visible on lg+ screens */}
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="hidden lg:flex items-center justify-center p-1 hover:bg-white/10 rounded transition-colors ml-auto"
+            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <ChevronLeftIcon
+              className={clsx(
+                'w-5 h-5 transition-transform duration-300',
+                isCollapsed ? 'rotate-180' : ''
+              )}
             />
-          </div>
-          <h1 className="text-xl font-bold">AutoSecure</h1>
+          </button>
         </div>
 
         {/* Navigation */}
@@ -99,19 +137,22 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               const Icon = item.icon;
 
               return (
-                <li key={item.name}>
+                <li key={item.name} title={isCollapsed ? item.name : ''}>
                   <Link
                     href={item.href}
                     onClick={onClose}
                     className={clsx(
-                      'flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors',
+                      'flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors justify-center lg:justify-start',
                       isActive
                         ? 'bg-white/10 text-white'
-                        : 'hover:bg-white/5 text-white/80 hover:text-white'
+                        : 'hover:bg-white/5 text-white/80 hover:text-white',
+                      isCollapsed && 'px-3'
                     )}
                   >
-                    <Icon className={clsx('w-5 h-5', isActive ? 'text-secondary' : '')} />
-                    <span className="text-sm font-medium">{item.name}</span>
+                    <Icon
+                      className={clsx('w-5 h-5 flex-shrink-0', isActive ? 'text-secondary' : '')}
+                    />
+                    {!isCollapsed && <span className="text-sm font-medium">{item.name}</span>}
                   </Link>
                 </li>
               );

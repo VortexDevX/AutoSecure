@@ -34,10 +34,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       <LoadingBar />
 
-      {/* Sidebar */}
+      {/* Sidebar - will collapse on lg screens */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main Content */}
@@ -49,7 +49,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 
         {/* Main area */}
-        <main className="flex-1 overflow-y-auto bg-gray-50">
+        <main className="flex-1 overflow-y-auto">
           <div className="p-4 lg:p-8">{children}</div>
         </main>
       </div>

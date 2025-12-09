@@ -98,6 +98,7 @@ function EditPolicyFormContent({ policyId }: { policyId: string }) {
         cng_value: policy.cng_value,
         ncb: policy.ncb,
         net_premium: policy.net_premium,
+        total_premium_gst: policy.total_premium_gst,
         od_premium: policy.od_premium,
         addon_coverage: policy.addon_coverage || [],
         agent_commission: policy.agent_commission,

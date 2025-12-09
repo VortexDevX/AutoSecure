@@ -1,5 +1,10 @@
 import { Router } from 'express';
-import { exportPolicies, getExportCount } from '../controllers/exportController';
+import {
+  exportPolicies,
+  getExportCount,
+  exportLicenses,
+  getExportLicenseCount,
+} from '../controllers/exportController';
 import { requireAuth } from '../middleware/authMiddleware';
 import { exportRateLimiter } from '../middleware/rateLimitMiddleware';
 
@@ -8,8 +13,12 @@ const router = Router();
 // All routes require authentication
 router.use(requireAuth);
 
-// IMPORTANT: More specific route MUST come first
-router.post('/policies/count', getExportCount); // Removed duplicate requireAuth
+// Policy exports
+router.post('/policies/count', getExportCount);
 router.post('/policies', exportRateLimiter, exportPolicies);
+
+// License exports
+router.post('/licenses/count', getExportLicenseCount);
+router.post('/licenses', exportRateLimiter, exportLicenses);
 
 export default router;

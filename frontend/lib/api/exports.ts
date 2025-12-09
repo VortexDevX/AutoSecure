@@ -7,6 +7,13 @@ export interface ExportFilters {
   ins_type?: string;
   exicutive_name?: string;
   customer_payment_status?: string;
+  customer_name?: string;
+  lic_no?: string;
+  license_type?: string;
+  approved?: string;
+  faceless_type?: string;
+  expiring_soon?: boolean | string;
+  expiry_year?: string;
 }
 
 export interface ExportDateRange {
@@ -55,4 +62,22 @@ export function downloadExportFile(blob: Blob, filename?: string) {
   link.click();
   document.body.removeChild(link);
   window.URL.revokeObjectURL(url);
+}
+
+/**
+ * Get count of licenses matching export criteria
+ */
+export async function getExportLicenseCount(params: ExportCountParams): Promise<number> {
+  const response = await apiClient.post('/api/v1/exports/licenses/count', params);
+  return response.data.data.count;
+}
+
+/**
+ * Export licenses to Excel
+ */
+export async function exportLicenses(params: ExportCountParams): Promise<Blob> {
+  const response = await apiClient.post('/api/v1/exports/licenses', params, {
+    responseType: 'blob',
+  });
+  return response.data;
 }

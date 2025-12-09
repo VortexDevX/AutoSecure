@@ -45,11 +45,11 @@ export const getOverview = asyncHandler(async (req: Request, res: Response) => {
   const totalPremium = premiumStats[0]?.total_premium || 0;
   const totalCommission = premiumStats[0]?.total_commission || 0;
 
-  // Premium this month (both premium_amount and net_premium)
+  // Premium this month (both premium_amount and net_premium) - using issue_date instead of createdAt
   const premiumThisMonth = await Policy.aggregate([
     {
       $match: {
-        createdAt: { $gte: startOfMonth },
+        issue_date: { $gte: startOfMonth },
       },
     },
     {
@@ -86,20 +86,50 @@ export const getOverview = asyncHandler(async (req: Request, res: Response) => {
   thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
   const expiringSoon = await Policy.countDocuments({
-    $or: [
-      { saod_end_date: { $gte: now, $lte: thirtyDaysFromNow } },
-      { end_date: { $gte: now, $lte: thirtyDaysFromNow }, saod_end_date: { $exists: false } },
+    $and: [
+      {
+        $or: [
+          { saod_end_date: { $exists: true, $ne: null } },
+          { end_date: { $exists: true, $ne: null } },
+        ],
+      },
+      {
+        $or: [
+          { saod_end_date: { $gte: now, $lte: thirtyDaysFromNow } },
+          {
+            $and: [
+              { $or: [{ saod_end_date: { $exists: false } }, { saod_end_date: null }] },
+              { end_date: { $gte: now, $lte: thirtyDaysFromNow } },
+            ],
+          },
+        ],
+      },
     ],
   });
 
   // Get expiring policies (use saod_end_date if available, else end_date)
   const expiringPolicies = await Policy.find({
-    $or: [
-      { saod_end_date: { $gte: now, $lte: thirtyDaysFromNow } },
-      { end_date: { $gte: now, $lte: thirtyDaysFromNow }, saod_end_date: { $exists: false } },
+    $and: [
+      {
+        $or: [
+          { saod_end_date: { $exists: true, $ne: null } },
+          { end_date: { $exists: true, $ne: null } },
+        ],
+      },
+      {
+        $or: [
+          { saod_end_date: { $gte: now, $lte: thirtyDaysFromNow } },
+          {
+            $and: [
+              { $or: [{ saod_end_date: { $exists: false } }, { saod_end_date: null }] },
+              { end_date: { $gte: now, $lte: thirtyDaysFromNow } },
+            ],
+          },
+        ],
+      },
     ],
   })
-    .select('policy_no customer end_date saod_end_date registration_number')
+    .select('_id policy_no customer end_date saod_end_date registration_number')
     .sort({ saod_end_date: 1, end_date: 1 })
     .limit(10);
 

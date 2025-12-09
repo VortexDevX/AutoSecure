@@ -1,6 +1,7 @@
 // backend/src/controllers/exportController.ts
 import { Request, Response } from 'express';
 import { Policy } from '../models/Policy';
+import { LicenseRecord } from '../models/LicenseRecord';
 import { AuditService } from '../services/auditService';
 import { asyncHandler } from '../utils/asyncHandler';
 import ExcelJS from 'exceljs';
@@ -221,6 +222,19 @@ export const exportPolicies = asyncHandler(async (req: Request, res: Response) =
         value = value ? new Date(value as string).toLocaleDateString('en-IN') : '';
       }
 
+      // Convert coded string values like "two_wheeler" or "commercial-vehicle" into Title Case
+      // but only for short, single-token codes (no spaces) to avoid touching addresses/emails.
+      if (typeof value === 'string') {
+        const codeLike = /^[a-z0-9_-]+$/;
+        if (codeLike.test(value) && !value.includes(' ') && value.length <= 50) {
+          value = value
+            .replace(/[_-]+/g, ' ')
+            .split(' ')
+            .map((w) => (w.length ? w.charAt(0).toUpperCase() + w.slice(1) : w))
+            .join(' ');
+        }
+      }
+
       row[label] = value ?? '';
     });
     return row;
@@ -315,6 +329,202 @@ export const getExportCount = asyncHandler(async (req: Request, res: Response) =
   }
 
   const count = await Policy.countDocuments(query);
+
+  res.json({
+    success: true,
+    data: { count },
+  });
+});
+
+/**
+ * POST /api/v1/exports/licenses
+ * Export licenses to Excel
+ */
+export const exportLicenses = asyncHandler(async (req: Request, res: Response) => {
+  const { date_range, filters } = req.body;
+
+  // Build query based on filters
+  const query: Record<string, unknown> = {};
+
+  // Date range filter (for expiry_date)
+  if (date_range) {
+    const { start, end } = date_range;
+    if (start || end) {
+      query.expiry_date = {} as Record<string, Date>;
+      if (start) (query.expiry_date as Record<string, Date>).$gte = new Date(start);
+      if (end) {
+        const endDate = new Date(end);
+        endDate.setHours(23, 59, 59, 999);
+        (query.expiry_date as Record<string, Date>).$lte = endDate;
+      }
+    }
+  }
+
+  // Additional filters
+  if (filters) {
+    if (filters.customer_name)
+      query.customer_name = { $regex: filters.customer_name, $options: 'i' };
+    if (filters.lic_no) query.lic_no = { $regex: filters.lic_no, $options: 'i' };
+    if (filters.license_type) query.license_type = filters.license_type;
+    if (filters.approved !== undefined)
+      query.approved = filters.approved === 'true' || filters.approved === true;
+    if (filters.faceless_type) query.faceless_type = filters.faceless_type;
+  }
+
+  // Expiring soon shortcut (next 90 days) - only apply when no explicit date_range provided
+  if (filters && filters.expiring_soon && !date_range) {
+    const now = new Date();
+    const end = new Date();
+    end.setDate(now.getDate() + 90);
+    query.expiry_date = {} as Record<string, Date>;
+    (query.expiry_date as Record<string, Date>).$gte = now;
+    (query.expiry_date as Record<string, Date>).$lte = end;
+  }
+
+  // Expiring soon shortcut (next 90 days) - only apply when no explicit date_range provided
+  if (filters && filters.expiring_soon && !date_range) {
+    const now = new Date();
+    const end = new Date();
+    end.setDate(now.getDate() + 90);
+    query.expiry_date = {} as Record<string, Date>;
+    (query.expiry_date as Record<string, Date>).$gte = now;
+    (query.expiry_date as Record<string, Date>).$lte = end;
+  }
+
+  // Fetch licenses
+  const licenses = await LicenseRecord.find(query)
+    .populate('created_by', 'email full_name')
+    .sort({ expiry_date: -1 })
+    .lean();
+
+  // Create workbook
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Licenses');
+
+  // Define columns
+  const columns = [
+    { header: 'License Number', key: 'lic_no', width: 15 },
+    { header: 'Application Number', key: 'application_no', width: 15 },
+    { header: 'Customer Name', key: 'customer_name', width: 20 },
+    { header: 'Customer Address', key: 'customer_address', width: 25 },
+    { header: 'DOB', key: 'dob', width: 12 },
+    { header: 'Mobile Number', key: 'mobile_no', width: 15 },
+    { header: 'Aadhaar Number', key: 'aadhar_no', width: 15 },
+    { header: 'Reference', key: 'reference', width: 15 },
+    { header: 'Reference Mobile', key: 'reference_mobile_no', width: 15 },
+    { header: 'Issue Date', key: 'issue_date', width: 12 },
+    { header: 'Expiry Date', key: 'expiry_date', width: 12 },
+    { header: 'Fee', key: 'fee', width: 10 },
+    { header: 'Agent Fee', key: 'agent_fee', width: 10 },
+    { header: 'Customer Payment', key: 'customer_payment', width: 12 },
+    { header: 'Profit', key: 'profit', width: 10 },
+    { header: 'Work Process', key: 'work_process', width: 12 },
+    { header: 'Approved', key: 'approved', width: 10 },
+    { header: 'Faceless Type', key: 'faceless_type', width: 12 },
+    { header: 'Created At', key: 'createdAt', width: 15 },
+  ];
+
+  worksheet.columns = columns;
+
+  // Style header row
+  worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+  worksheet.getRow(1).fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FF4472C4' },
+  };
+
+  // Format dates and add data
+  const formatDate = (date: string | Date | undefined) => {
+    if (!date) return '';
+    try {
+      return new Date(date).toLocaleDateString('en-IN');
+    } catch {
+      return '';
+    }
+  };
+
+  licenses.forEach((license: Record<string, unknown>) => {
+    worksheet.addRow({
+      lic_no: license.lic_no || '',
+      application_no: license.application_no || '',
+      customer_name: license.customer_name || '',
+      customer_address: license.customer_address || '',
+      dob: formatDate(license.dob as string),
+      mobile_no: license.mobile_no || '',
+      aadhar_no: license.aadhar_no || '',
+      reference: license.reference || '',
+      reference_mobile_no: license.reference_mobile_no || '',
+      issue_date: license.issue_date ? formatDate(license.issue_date as string) : '',
+      expiry_date: formatDate(license.expiry_date as string),
+      fee: license.fee || 0,
+      agent_fee: license.agent_fee || 0,
+      customer_payment: license.customer_payment || 0,
+      profit: license.profit || 0,
+      work_process: license.work_process || '',
+      approved: license.approved ? 'Yes' : 'No',
+      faceless_type: license.faceless_type || 'non-faceless',
+      createdAt: formatDate(license.createdAt as string),
+    });
+  });
+
+  // Generate buffer
+  const excelBuffer = await workbook.xlsx.writeBuffer();
+
+  // Audit log
+  await AuditService.logExport(req.user!.userId, {
+    type: 'licenses',
+    count: licenses.length,
+    fields: 'all',
+    filters,
+  });
+
+  // Send file
+  res.setHeader(
+    'Content-Type',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  );
+  res.setHeader('Content-Disposition', `attachment; filename=licenses_export_${Date.now()}.xlsx`);
+
+  res.send(excelBuffer);
+});
+
+/**
+ * POST /api/v1/exports/licenses/count
+ * Get count of licenses matching export criteria
+ */
+export const getExportLicenseCount = asyncHandler(async (req: Request, res: Response) => {
+  const { date_range, filters } = req.body;
+
+  // Build query based on filters
+  const query: Record<string, unknown> = {};
+
+  // Date range filter
+  if (date_range) {
+    const { start, end } = date_range;
+    if (start || end) {
+      query.expiry_date = {} as Record<string, Date>;
+      if (start) (query.expiry_date as Record<string, Date>).$gte = new Date(start);
+      if (end) {
+        const endDate = new Date(end);
+        endDate.setHours(23, 59, 59, 999);
+        (query.expiry_date as Record<string, Date>).$lte = endDate;
+      }
+    }
+  }
+
+  // Additional filters
+  if (filters) {
+    if (filters.customer_name)
+      query.customer_name = { $regex: filters.customer_name, $options: 'i' };
+    if (filters.lic_no) query.lic_no = { $regex: filters.lic_no, $options: 'i' };
+    if (filters.license_type) query.license_type = filters.license_type;
+    if (filters.approved !== undefined)
+      query.approved = filters.approved === 'true' || filters.approved === true;
+    if (filters.faceless_type) query.faceless_type = filters.faceless_type;
+  }
+
+  const count = await LicenseRecord.countDocuments(query);
 
   res.json({
     success: true,

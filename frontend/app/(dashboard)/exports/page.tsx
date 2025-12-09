@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import clsx from 'clsx';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
@@ -11,6 +12,8 @@ import {
   exportPolicies,
   downloadExportFile,
   getExportCount,
+  exportLicenses,
+  getExportLicenseCount,
   ExportFilters,
   ExportDateRange,
 } from '@/lib/api/exports';
@@ -21,6 +24,8 @@ import {
 } from '@/lib/utils/exportFields';
 import {
   DocumentArrowDownIcon,
+  DocumentTextIcon,
+  DocumentDuplicateIcon,
   FunnelIcon,
   ChevronDownIcon,
   ChevronUpIcon,
@@ -33,6 +38,7 @@ import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
 type ExportMode = 'all' | 'selected';
+type ExportType = 'policies' | 'licenses';
 
 interface MetaOption {
   value: string;
@@ -45,6 +51,9 @@ interface DateRangeValue {
 }
 
 export default function ExportsPage() {
+  // Export type tab
+  const [exportType, setExportType] = useState<ExportType>('policies');
+
   // Export mode
   const [exportMode, setExportMode] = useState<ExportMode>('all');
 
@@ -63,6 +72,7 @@ export default function ExportsPage() {
 
   // Count preview
   const [policyCount, setPolicyCount] = useState<number | null>(null);
+  const [licenseCount, setLicenseCount] = useState<number | null>(null);
   const [isLoadingCount, setIsLoadingCount] = useState(false);
 
   // Export loading
@@ -88,18 +98,30 @@ export default function ExportsPage() {
   const fetchCount = useCallback(async () => {
     try {
       setIsLoadingCount(true);
-      const count = await getExportCount({
-        date_range: buildDateRange(),
-        filters: Object.keys(filters).length > 0 ? filters : undefined,
-      });
-      setPolicyCount(count);
+      if (exportType === 'policies') {
+        const count = await getExportCount({
+          date_range: buildDateRange(),
+          filters: Object.keys(filters).length > 0 ? filters : undefined,
+        });
+        setPolicyCount(count);
+      } else {
+        const count = await getExportLicenseCount({
+          date_range: buildDateRange(),
+          filters: Object.keys(filters).length > 0 ? filters : undefined,
+        });
+        setLicenseCount(count);
+      }
     } catch (error) {
       console.error('Failed to get count:', error);
-      setPolicyCount(null);
+      if (exportType === 'policies') {
+        setPolicyCount(null);
+      } else {
+        setLicenseCount(null);
+      }
     } finally {
       setIsLoadingCount(false);
     }
-  }, [buildDateRange, filters]);
+  }, [buildDateRange, filters, exportType]);
 
   // Fetch count on filter/date change
   useEffect(() => {
@@ -120,13 +142,20 @@ export default function ExportsPage() {
         filters: Object.keys(filters).length > 0 ? filters : undefined,
       };
 
-      const blob = await exportPolicies(params);
-      const filename = `policies_export_${format(new Date(), 'yyyy-MM-dd_HHmmss')}.xlsx`;
-      downloadExportFile(blob, filename);
-
-      toast.success(`Exported ${policyCount || 0} policies successfully!`);
+      if (exportType === 'policies') {
+        const blob = await exportPolicies(params);
+        const filename = `policies_export_${format(new Date(), 'yyyy-MM-dd_HHmmss')}.xlsx`;
+        downloadExportFile(blob, filename);
+        toast.success(`Exported ${policyCount || 0} policies successfully!`);
+      } else {
+        const blob = await exportLicenses(params);
+        const filename = `licenses_export_${format(new Date(), 'yyyy-MM-dd_HHmmss')}.xlsx`;
+        downloadExportFile(blob, filename);
+        toast.success(`Exported ${licenseCount || 0} licenses successfully!`);
+      }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to export policies';
+      const errorMessage =
+        error instanceof Error ? error.message : `Failed to export ${exportType}`;
       toast.error(errorMessage);
     } finally {
       setIsExporting(false);
@@ -201,19 +230,43 @@ export default function ExportsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Export Policies</h1>
-          <p className="text-gray-600 mt-1">Export policy data to Excel</p>
+          <h1 className="text-3xl font-bold text-gray-900">Export Data</h1>
+          <p className="text-gray-600 mt-1">Export policies or licenses to Excel</p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button
-            variant={showFilters ? 'primary' : 'secondary'}
-            onClick={() => setShowFilters(!showFilters)}
-          >
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" onClick={() => setShowFilters((s) => !s)}>
             <FunnelIcon className="w-4 h-4 mr-2" />
-            Filters
-            {hasActiveFilters && <span className="ml-2 w-2 h-2 bg-white rounded-full" />}
+            {showFilters ? 'Hide Filters' : 'Show Filters'}
           </Button>
         </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-4 border-b border-gray-200">
+        <button
+          onClick={() => setExportType('policies')}
+          className={clsx(
+            'pb-3 px-2 font-medium transition-colors',
+            exportType === 'policies'
+              ? 'border-b-2 border-primary text-primary'
+              : 'text-gray-600 hover:text-gray-900'
+          )}
+        >
+          <DocumentTextIcon className="w-4 h-4 inline mr-2" />
+          Export Policies
+        </button>
+        <button
+          onClick={() => setExportType('licenses')}
+          className={clsx(
+            'pb-3 px-2 font-medium transition-colors',
+            exportType === 'licenses'
+              ? 'border-b-2 border-primary text-primary'
+              : 'text-gray-600 hover:text-gray-900'
+          )}
+        >
+          <DocumentDuplicateIcon className="w-4 h-4 inline mr-2" />
+          Export Licenses
+        </button>
       </div>
 
       {/* Filters Panel */}
@@ -236,128 +289,135 @@ export default function ExportsPage() {
               </div>
 
               {/* Insurance Status */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Insurance Status
-                </label>
-                <select
-                  value={filters.ins_status || ''}
-                  onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, ins_status: e.target.value || undefined }))
-                  }
-                  className="input"
-                >
-                  <option value="">All Statuses</option>
-                  {insStatusOptions.map((opt: MetaOption) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {exportType === 'policies' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Insurance Status
+                    </label>
+                    <select
+                      value={filters.ins_status || ''}
+                      onChange={(e) =>
+                        setFilters((prev) => ({ ...prev, ins_status: e.target.value || undefined }))
+                      }
+                      className="input"
+                    >
+                      <option value="">All Statuses</option>
+                      {insStatusOptions.map((opt: MetaOption) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              {/* Branch */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
-                <select
-                  value={filters.branch_id || ''}
-                  onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, branch_id: e.target.value || undefined }))
-                  }
-                  className="input"
-                >
-                  <option value="">All Branches</option>
-                  {branchOptions.map((opt: MetaOption) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  {/* Branch */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
+                    <select
+                      value={filters.branch_id || ''}
+                      onChange={(e) =>
+                        setFilters((prev) => ({ ...prev, branch_id: e.target.value || undefined }))
+                      }
+                      className="input"
+                    >
+                      <option value="">All Branches</option>
+                      {branchOptions.map((opt: MetaOption) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              {/* Insurance Company */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Insurance Company
-                </label>
-                <select
-                  value={filters.ins_co_id || ''}
-                  onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, ins_co_id: e.target.value || undefined }))
-                  }
-                  className="input"
-                >
-                  <option value="">All Companies</option>
-                  {insCompanyOptions.map((opt: MetaOption) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  {/* Insurance Company */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Insurance Company
+                    </label>
+                    <select
+                      value={filters.ins_co_id || ''}
+                      onChange={(e) =>
+                        setFilters((prev) => ({ ...prev, ins_co_id: e.target.value || undefined }))
+                      }
+                      className="input"
+                    >
+                      <option value="">All Companies</option>
+                      {insCompanyOptions.map((opt: MetaOption) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              {/* Insurance Type */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Insurance Type
-                </label>
-                <select
-                  value={filters.ins_type || ''}
-                  onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, ins_type: e.target.value || undefined }))
-                  }
-                  className="input"
-                >
-                  <option value="">All Types</option>
-                  {insTypeOptions.map((opt: MetaOption) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  {/* Insurance Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Insurance Type
+                    </label>
+                    <select
+                      value={filters.ins_type || ''}
+                      onChange={(e) =>
+                        setFilters((prev) => ({ ...prev, ins_type: e.target.value || undefined }))
+                      }
+                      className="input"
+                    >
+                      <option value="">All Types</option>
+                      {insTypeOptions.map((opt: MetaOption) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              {/* Executive Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Executive Name
-                </label>
-                <select
-                  value={filters.exicutive_name || ''}
-                  onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, exicutive_name: e.target.value || undefined }))
-                  }
-                  className="input"
-                >
-                  <option value="">All Executives</option>
-                  {executiveOptions.map((opt: MetaOption) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  {/* Executive Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Executive Name
+                    </label>
+                    <select
+                      value={filters.exicutive_name || ''}
+                      onChange={(e) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          exicutive_name: e.target.value || undefined,
+                        }))
+                      }
+                      className="input"
+                    >
+                      <option value="">All Executives</option>
+                      {executiveOptions.map((opt: MetaOption) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              {/* Payment Status */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Payment Status
-                </label>
-                <select
-                  value={filters.customer_payment_status || ''}
-                  onChange={(e) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      customer_payment_status: e.target.value || undefined,
-                    }))
-                  }
-                  className="input"
-                >
-                  <option value="">All Statuses</option>
-                  <option value="pending">Pending</option>
-                  <option value="done">Done</option>
-                </select>
-              </div>
+                  {/* Payment Status */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Payment Status
+                    </label>
+                    <select
+                      value={filters.customer_payment_status || ''}
+                      onChange={(e) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          customer_payment_status: e.target.value || undefined,
+                        }))
+                      }
+                      className="input"
+                    >
+                      <option value="">All Statuses</option>
+                      <option value="pending">Pending</option>
+                      <option value="done">Done</option>
+                    </select>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Clear Filters */}
@@ -373,18 +433,66 @@ export default function ExportsPage() {
         </Card>
       )}
 
-      {/* Export Mode Selection */}
-      <Card>
-        <CardHeader>
-          <h3 className="text-lg font-medium">Export Options</h3>
-        </CardHeader>
-        <CardBody>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Export All Fields */}
-            <button
-              type="button"
-              onClick={() => setExportMode('all')}
-              className={`
+      {/* License-specific filters (expiry year dropdown) */}
+      {showFilters && exportType === 'licenses' && (
+        <Card>
+          <CardHeader>
+            <h3 className="text-lg font-medium">License Filters</h3>
+          </CardHeader>
+          <CardBody>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Expiry Year Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Year</label>
+                <select
+                  value={filters.expiry_year || ''}
+                  onChange={(e) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      expiry_year: e.target.value || undefined,
+                    }))
+                  }
+                  className="input"
+                >
+                  <option value="">All Years (Default)</option>
+                  {Array.from({ length: 10 }, (_, i) => {
+                    const year = new Date().getFullYear() + i;
+                    return (
+                      <option key={year} value={year.toString()}>
+                        {year}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            </div>
+
+            {/* Clear Filters */}
+            {(filters.expiry_year || dateRange?.from) && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <Button variant="ghost" onClick={handleClearFilters}>
+                  <XMarkIcon className="w-4 h-4 mr-2" />
+                  Clear All Filters
+                </Button>
+              </div>
+            )}
+          </CardBody>
+        </Card>
+      )}
+
+      {/* Export Mode Selection (only for policies) */}
+      {exportType === 'policies' && (
+        <Card>
+          <CardHeader>
+            <h3 className="text-lg font-medium">Export Options</h3>
+          </CardHeader>
+          <CardBody>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Export All Fields */}
+              <button
+                type="button"
+                onClick={() => setExportMode('all')}
+                className={`
                 p-4 rounded-lg border-2 text-left transition-all
                 ${
                   exportMode === 'all'
@@ -392,31 +500,31 @@ export default function ExportsPage() {
                     : 'border-gray-200 hover:border-gray-300'
                 }
               `}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className={`
                     w-10 h-10 rounded-lg flex items-center justify-center
                     ${exportMode === 'all' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'}
                   `}
-                >
-                  <TableCellsIcon className="w-5 h-5" />
+                  >
+                    <TableCellsIcon className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900">Export All Fields</h4>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Export all {ALL_EXPORT_FIELDS.length} available fields
+                    </p>
+                  </div>
+                  {exportMode === 'all' && <CheckIcon className="w-5 h-5 text-primary" />}
                 </div>
-                <div className="flex-1">
-                  <h4 className="font-medium text-gray-900">Export All Fields</h4>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Export all {ALL_EXPORT_FIELDS.length} available fields
-                  </p>
-                </div>
-                {exportMode === 'all' && <CheckIcon className="w-5 h-5 text-primary" />}
-              </div>
-            </button>
+              </button>
 
-            {/* Export Selected Fields */}
-            <button
-              type="button"
-              onClick={() => setExportMode('selected')}
-              className={`
+              {/* Export Selected Fields */}
+              <button
+                type="button"
+                onClick={() => setExportMode('selected')}
+                className={`
                 p-4 rounded-lg border-2 text-left transition-all
                 ${
                   exportMode === 'selected'
@@ -424,31 +532,36 @@ export default function ExportsPage() {
                     : 'border-gray-200 hover:border-gray-300'
                 }
               `}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className={`
                     w-10 h-10 rounded-lg flex items-center justify-center
-                    ${exportMode === 'selected' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'}
+                    ${
+                      exportMode === 'selected'
+                        ? 'bg-primary text-white'
+                        : 'bg-gray-100 text-gray-600'
+                    }
                   `}
-                >
-                  <ListBulletIcon className="w-5 h-5" />
+                  >
+                    <ListBulletIcon className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900">Export Selected Fields</h4>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Choose specific fields ({selectedFields.length} selected)
+                    </p>
+                  </div>
+                  {exportMode === 'selected' && <CheckIcon className="w-5 h-5 text-primary" />}
                 </div>
-                <div className="flex-1">
-                  <h4 className="font-medium text-gray-900">Export Selected Fields</h4>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Choose specific fields ({selectedFields.length} selected)
-                  </p>
-                </div>
-                {exportMode === 'selected' && <CheckIcon className="w-5 h-5 text-primary" />}
-              </div>
-            </button>
-          </div>
-        </CardBody>
-      </Card>
+              </button>
+            </div>
+          </CardBody>
+        </Card>
+      )}
 
-      {/* Field Selection (only shown when exportMode === 'selected') */}
-      {exportMode === 'selected' && (
+      {/* Field Selection (only shown when exportMode === 'selected' AND exportType === 'policies') */}
+      {exportMode === 'selected' && exportType === 'policies' && (
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -531,26 +644,43 @@ export default function ExportsPage() {
               {isLoadingCount ? (
                 <div className="flex items-center gap-2 text-gray-500">
                   <Spinner size="sm" />
-                  <span>Counting policies...</span>
+                  <span>Counting {exportType}...</span>
                 </div>
-              ) : policyCount !== null ? (
+              ) : exportType === 'policies' ? (
+                policyCount !== null ? (
+                  <div className="flex items-center gap-2">
+                    <DocumentArrowDownIcon className="w-5 h-5 text-gray-400" />
+                    <span className="text-gray-700">
+                      This will export{' '}
+                      <span className="font-semibold text-primary">{policyCount}</span>{' '}
+                      {policyCount === 1 ? 'policy' : 'policies'}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-gray-500">Unable to count policies</span>
+                )
+              ) : licenseCount !== null ? (
                 <div className="flex items-center gap-2">
                   <DocumentArrowDownIcon className="w-5 h-5 text-gray-400" />
                   <span className="text-gray-700">
                     This will export{' '}
-                    <span className="font-semibold text-primary">{policyCount}</span>{' '}
-                    {policyCount === 1 ? 'policy' : 'policies'}
+                    <span className="font-semibold text-primary">{licenseCount}</span>{' '}
+                    {licenseCount === 1 ? 'license' : 'licenses'}
                   </span>
                 </div>
               ) : (
-                <span className="text-gray-500">Unable to count policies</span>
+                <span className="text-gray-500">Unable to count licenses</span>
               )}
             </div>
 
             {/* Export Button */}
             <Button
               onClick={handleExport}
-              disabled={isExporting || policyCount === 0 || policyCount === null}
+              disabled={
+                isExporting ||
+                (exportType === 'policies' && (policyCount === 0 || policyCount === null)) ||
+                (exportType === 'licenses' && (licenseCount === 0 || licenseCount === null))
+              }
               size="lg"
             >
               {isExporting ? (

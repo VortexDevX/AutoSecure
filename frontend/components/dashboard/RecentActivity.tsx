@@ -60,36 +60,55 @@ export function RecentActivity() {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Recent Activity</h3>
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+        <h3 className="text-lg font-bold text-gray-900">Recent Activity</h3>
+        <Link href="/policies" className="text-sm text-primary font-medium hover:underline">
+          View All
+        </Link>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
-          <thead className="bg-gray-50 text-xs text-gray-700 uppercase">
+          <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider">
             <tr>
-              <th className="px-6 py-3">Policy No.</th>
-              <th className="px-6 py-3">Customer</th>
-              <th className="px-6 py-3">Vehicle</th>
-              <th className="px-6 py-3">Status</th>
-              <th className="px-6 py-3">Premium</th>
-              <th className="px-6 py-3">Created</th>
+              <th className="px-6 py-4 font-semibold">Policy No.</th>
+              <th className="px-6 py-4 font-semibold">Customer</th>
+              <th className="px-6 py-4 font-semibold">Vehicle</th>
+              <th className="px-6 py-4 font-semibold">Status</th>
+              <th className="px-6 py-4 font-semibold">Premium</th>
+              <th className="px-6 py-4 font-semibold">Created</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-100">
             {policies.map((policy) => (
-              <tr key={policy.id} className="border-b hover:bg-gray-50">
+              <tr key={policy.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 font-medium text-gray-900">
-                  <Link href={`/policies/${policy.id}`} className="hover:text-primary">
+                  <Link
+                    href={`/policies/${policy.id}`}
+                    className="hover:text-primary transition-colors"
+                  >
                     {policy.policy_no}
                   </Link>
                 </td>
-                <td className="px-6 py-4">{policy.customer}</td>
-                <td className="px-6 py-4">{policy.registration_number}</td>
+                <td className="px-6 py-4 text-gray-600">{policy.customer}</td>
+                <td className="px-6 py-4 text-gray-500">{policy.registration_number}</td>
                 <td className="px-6 py-4">
-                  <span className="badge-primary">{policy.ins_status}</span>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
+                    ${
+                      policy.ins_status === 'active'
+                        ? 'bg-green-100 text-green-800'
+                        : policy.ins_status === 'expired'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {policy.ins_status}
+                  </span>
                 </td>
-                <td className="px-6 py-4">₹{policy.premium_amount.toLocaleString('en-IN')}</td>
+                <td className="px-6 py-4 font-medium text-gray-900">
+                  ₹{policy.premium_amount.toLocaleString('en-IN')}
+                </td>
                 <td className="px-6 py-4 text-gray-500">{formatRelativeTime(policy.created_at)}</td>
               </tr>
             ))}

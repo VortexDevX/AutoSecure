@@ -369,6 +369,18 @@ export const exportLicenses = asyncHandler(async (req: Request, res: Response) =
     if (filters.approved !== undefined)
       query.approved = filters.approved === 'true' || filters.approved === true;
     if (filters.faceless_type) query.faceless_type = filters.faceless_type;
+    if (filters.expiry_year) {
+      // Filter by expiry year - licenses expiring in the selected year
+      const year = parseInt(filters.expiry_year);
+      if (!isNaN(year)) {
+        const startOfYear = new Date(year, 0, 1); // January 1st of the year
+        const endOfYear = new Date(year, 11, 31, 23, 59, 59, 999); // December 31st of the year
+        query.expiry_date = {
+          $gte: startOfYear,
+          $lte: endOfYear,
+        };
+      }
+    }
   }
 
   // Expiring soon shortcut (next 90 days) - only apply when no explicit date_range provided
@@ -522,6 +534,18 @@ export const getExportLicenseCount = asyncHandler(async (req: Request, res: Resp
     if (filters.approved !== undefined)
       query.approved = filters.approved === 'true' || filters.approved === true;
     if (filters.faceless_type) query.faceless_type = filters.faceless_type;
+    if (filters.expiry_year) {
+      // Filter by expiry year - licenses expiring in the selected year
+      const year = parseInt(filters.expiry_year);
+      if (!isNaN(year)) {
+        const startOfYear = new Date(year, 0, 1); // January 1st of the year
+        const endOfYear = new Date(year, 11, 31, 23, 59, 59, 999); // December 31st of the year
+        query.expiry_date = {
+          $gte: startOfYear,
+          $lte: endOfYear,
+        };
+      }
+    }
   }
 
   const count = await LicenseRecord.countDocuments(query);

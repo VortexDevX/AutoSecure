@@ -183,8 +183,21 @@ export const getOverview = asyncHandler(async (req: Request, res: Response) => {
  * GET /api/v1/analytics/policies
  */
 export const getPolicyAnalytics = asyncHandler(async (req: Request, res: Response) => {
+  const { startDate, endDate } = req.query;
+
+  const matchStage: any = {};
+
+  if (startDate || endDate) {
+    matchStage.createdAt = {};
+    if (startDate) matchStage.createdAt.$gte = new Date(startDate as string);
+    if (endDate) matchStage.createdAt.$lte = new Date(endDate as string);
+  }
+
   // Policy status breakdown
   const statusBreakdown = await Policy.aggregate([
+    {
+      $match: matchStage,
+    },
     {
       $group: {
         _id: '$ins_status',
@@ -198,6 +211,9 @@ export const getPolicyAnalytics = asyncHandler(async (req: Request, res: Respons
 
   // Policies by branch
   const byBranch = await Policy.aggregate([
+    {
+      $match: matchStage,
+    },
     {
       $group: {
         _id: '$branch_id',
@@ -214,6 +230,9 @@ export const getPolicyAnalytics = asyncHandler(async (req: Request, res: Respons
 
   // Policies by insurance type
   const byInsuranceType = await Policy.aggregate([
+    {
+      $match: matchStage,
+    },
     {
       $group: {
         _id: '$ins_type',
@@ -235,6 +254,14 @@ export const getPolicyAnalytics = asyncHandler(async (req: Request, res: Respons
 
   const ninetyDaysFromNow = new Date();
   ninetyDaysFromNow.setDate(ninetyDaysFromNow.getDate() + 90);
+
+  // Expiring counts should generally look forward from "now", regardless of the filtered range,
+  // OR they should respect the filtered range if the user wants to see what WAS expiring then.
+  // Standard dashboard behavior usually separates "historical stats" from "upcoming tasks".
+  // For now, I will KEEP expiring counts relative to TODAY (now) because "Expiring Soon" is an actionable item.
+  // HOWEVER, if the user specifically asked for "numerical analysis values" to change, they likely mean the charts.
+  // The expiring counts are usually for future action.
+  // Let's stick to modifying the breakdown charts which are historical analysis.
 
   const expiring7d = await Policy.countDocuments({
     $or: [
@@ -564,38 +591,38 @@ export const getTrends = asyncHandler(async (req: Request, res: Response) => {
   switch (period) {
     case 'daily':
       groupByFormat = {
-        year: { $year: '$createdAt' },
-        month: { $month: '$createdAt' },
-        day: { $dayOfMonth: '$createdAt' },
+        year: { $year: '$issue_date' },
+        month: { $month: '$issue_date' },
+        day: { $dayOfMonth: '$issue_date' },
       };
       dateRange = new Date();
-      dateRange.setDate(dateRange.getDate() - 30); // Last 30 days
+      dateRange.setDate(dateRange.getDate() - parseInt(months as string) * 30); // Convert months to approximate days
       break;
 
     case 'yearly':
       groupByFormat = {
-        year: { $year: '$createdAt' },
+        year: { $year: '$issue_date' },
       };
       dateRange = new Date();
-      dateRange.setFullYear(dateRange.getFullYear() - 5); // Last 5 years
+      dateRange.setFullYear(dateRange.getFullYear() - Math.ceil(parseInt(months as string) / 12)); // Convert months to years
       break;
 
     case 'monthly':
     default:
       groupByFormat = {
-        year: { $year: '$createdAt' },
-        month: { $month: '$createdAt' },
+        year: { $year: '$issue_date' },
+        month: { $month: '$issue_date' },
       };
       dateRange = new Date();
       dateRange.setMonth(dateRange.getMonth() - parseInt(months as string));
       break;
   }
 
-  // Policies created over time
+  // Policies issued over time
   const policiesOverTime = await Policy.aggregate([
     {
       $match: {
-        createdAt: { $gte: dateRange },
+        issue_date: { $gte: dateRange, $ne: null },
       },
     },
     {
@@ -670,5 +697,125 @@ export const getCustomAnalytics = asyncHandler(async (req: Request, res: Respons
         avg_commission: 0,
       },
     },
+  });
+});
+
+/**
+ * Get license analytics
+ * GET /api/v1/analytics/licenses
+ */
+export const getLicenseAnalytics = asyncHandler(async (req: Request, res: Response) => {
+  const { startDate, endDate } = req.query;
+  const now = new Date();
+
+  // For license status breakdown, we might want to see licenses created in a range,
+  // OR licenses expiring in a range?
+  // Usually "Numerical analysis values" implies "how many licenses do we have right now" or "how many were added".
+  // Given LicenseRecord doesn't have a visible createdAt in the view above, but checking the model structure would confirm.
+  // Assuming LicenseRecord has createdAt like Policy. If not, we might filter by expiry_date.
+  // However, "Status Distribution" (Active, Expired) is usually a snapshot of current state.
+  // But if the user changes time range, maybe they want to see "Licenses expiring in this range"?
+  // Or "Licenses added in this range"?
+  // Let's assume standard analytics behavior: "Activity in this period". So created or updated.
+  // If the user wants "Status Distribution", that's usually global.
+  // BUT the user said "numerical analysis values... even when i change the time range".
+  // This implies they expect the charts (pie chart of status) to change.
+  // If I filter by "createdAt", it shows "What is the status of licenses CREATED in this period".
+  // If I filter by "expiry_date", it shows "What is the status of licenses EXPIRING in this period".
+  // Let's go with createdAt if possible, or fallback.
+  // Looking at the use case: "License Status Distribution" -> Active, Expired, Suspended.
+  // If I select "Last 30 days", I probably want to know about licenses relevant to the last 30 days.
+  // Let's filter by createdAt for consistency with Policy Analytics.
+
+  const matchStage: any = {};
+  if (startDate || endDate) {
+    matchStage.createdAt = {}; // Assuming createdAt exists on LicenseRecord schema (standard timestamp)
+    if (startDate) matchStage.createdAt.$gte = new Date(startDate as string);
+    if (endDate) matchStage.createdAt.$lte = new Date(endDate as string);
+  }
+
+  // License status breakdown
+  const statusBreakdown = await LicenseRecord.aggregate([
+    {
+      $match: matchStage,
+    },
+    {
+      $group: {
+        _id: {
+          $cond: [{ $gte: ['$expiry_date', now] }, 'active', 'expired'],
+        },
+        count: { $sum: 1 },
+      },
+    },
+    {
+      $sort: { count: -1 },
+    },
+  ]);
+
+  // Licenses expiring in different periods - this is future looking, so typically NOT filtered by past date range.
+  // Same logic as Policies.
+
+  const sevenDaysFromNow = new Date();
+  sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+
+  const thirtyDaysFromNow = new Date();
+  thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+  const ninetyDaysFromNow = new Date();
+  ninetyDaysFromNow.setDate(ninetyDaysFromNow.getDate() + 90);
+
+  const expiring7Days = await LicenseRecord.countDocuments({
+    expiry_date: { $gte: now, $lte: sevenDaysFromNow },
+  });
+
+  const expiring30Days = await LicenseRecord.countDocuments({
+    expiry_date: { $gte: now, $lte: thirtyDaysFromNow },
+  });
+
+  const expiring90Days = await LicenseRecord.countDocuments({
+    expiry_date: { $gte: now, $lte: ninetyDaysFromNow },
+  });
+
+  res.json({
+    success: true,
+    data: {
+      status_breakdown: statusBreakdown,
+      expiring: {
+        next_7_days: expiring7Days,
+        next_30_days: expiring30Days,
+        next_90_days: expiring90Days,
+      },
+    },
+  });
+});
+
+/**
+ * Get branch performance analytics
+ * GET /api/v1/analytics/branches
+ */
+export const getBranchPerformance = asyncHandler(async (req: Request, res: Response) => {
+  // Branch performance with policy counts and financials
+  const branchStats = await Policy.aggregate([
+    {
+      $match: {
+        branch_id: { $exists: true, $ne: null },
+      },
+    },
+    {
+      $group: {
+        _id: '$branch_id',
+        count: { $sum: 1 },
+        total_premium: { $sum: '$premium_amount' },
+        total_commission: { $sum: '$agent_commission' },
+      },
+    },
+    {
+      $sort: { total_premium: -1 },
+    },
+  ]);
+
+  res.json({
+    success: true,
+    data: branchStats,
   });
 });

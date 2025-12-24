@@ -3,11 +3,12 @@
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useAnalytics } from '@/lib/hooks/useAnalytics';
 import { MetricCard } from '@/components/dashboard/MetricCard';
+import { FinancialMetrics } from '@/components/dashboard/FinancialMetrics';
 import { PoliciesByTypeChart } from '@/components/dashboard/PoliciesByTypeChart';
 import { PoliciesByStatusChart } from '@/components/dashboard/PoliciesByStatusChart';
-import { MonthlyTrendChart } from '@/components/dashboard/MonthlyTrendChart';
+import { LicenseAnalytics } from '@/components/dashboard/LicenseAnalytics';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
-import { QuickActions } from '@/components/dashboard/QuickActions';
+import { DateRangePreset, DateRangeSelector } from '@/components/ui/DateRangeSelector';
 import { Spinner } from '@/components/ui/Spinner';
 import { formatDate } from '@/lib/utils/formatters';
 import Link from 'next/link';
@@ -15,7 +16,6 @@ import {
   DocumentTextIcon,
   PlusIcon,
   ClockIcon,
-  DocumentDuplicateIcon,
   ExclamationTriangleIcon,
   IdentificationIcon,
 } from '@heroicons/react/24/outline';
@@ -145,7 +145,75 @@ function ExpiringItemsList() {
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { overview, policyAnalytics, trends, isLoading, error } = useAnalytics();
+  const {
+    overview,
+    policyAnalytics,
+    licenseAnalytics,
+    trends,
+    isLoading,
+    error,
+    dateRange,
+    updateDateRange,
+  } = useAnalytics();
+
+  const getPeriodFromRange = (range: DateRangePreset): 'daily' | 'monthly' | 'yearly' => {
+    switch (range) {
+      case '7d':
+      case '30d':
+        return 'daily';
+      case '1y':
+      case 'all':
+        return 'yearly';
+      default:
+        return 'monthly';
+    }
+  };
+
+  const getRangeLabel = (range: DateRangePreset): string => {
+    switch (range) {
+      case '7d':
+        return 'Last 7 Days';
+      case '30d':
+        return 'Last 30 Days';
+      case '3m':
+        return 'Last 3 Months';
+      case '6m':
+        return 'Last 6 Months';
+      case '1y':
+        return 'Last Year';
+      case 'all':
+        return 'All Time';
+      default:
+        return 'Selected Period';
+    }
+  };
+
+  const period = getPeriodFromRange(dateRange);
+  const rangeLabel = getRangeLabel(dateRange);
+
+  // Calculate financial metrics from trends data for the selected date range
+  const calculateFinancialMetrics = () => {
+    if (!trends?.trends || trends.trends.length === 0) {
+      return {
+        rangePremium: 0,
+        rangeCommission: 0,
+        totalPremium: overview?.financial?.total_premium || 0,
+        totalCommission: overview?.financial?.total_commission || 0,
+      };
+    }
+
+    const rangePremium = trends.trends.reduce((sum, item) => sum + item.total_premium, 0);
+    const rangeCommission = trends.trends.reduce((sum, item) => sum + item.total_commission, 0);
+
+    return {
+      rangePremium,
+      rangeCommission,
+      totalPremium: overview?.financial?.total_premium || 0,
+      totalCommission: overview?.financial?.total_commission || 0,
+    };
+  };
+
+  const financialMetrics = calculateFinancialMetrics();
 
   if (isLoading) {
     return (
@@ -167,81 +235,153 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* Page Heading */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">
-          Welcome back, {user?.full_name || user?.email?.split('@')[0]}! Here's an overview of your
-          insurance policies and licenses.
-        </p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <MetricCard
-          title="Total Policies"
-          value={overview?.policies.total || 0}
-          subtitle={`${overview?.policies.active || 0} active`}
-          icon={<DocumentTextIcon className="w-6 h-6" />}
-          color="blue"
-        />
-        <MetricCard
-          title="Created Today"
-          value={overview?.policies.today || 0}
-          subtitle="New policies"
-          icon={<PlusIcon className="w-6 h-6" />}
-          color="green"
-        />
-        <MetricCard
-          title="Expiring Soon"
-          value={overview?.expiring_items?.total_count || 0}
-          subtitle="Policies & Licenses"
-          icon={<ClockIcon className="w-6 h-6" />}
-          color="yellow"
-        />
-        <MetricCard
-          title="This Month"
-          value={overview?.policies.this_month || 0}
-          subtitle="policies created"
-          icon={<DocumentDuplicateIcon className="w-6 h-6" />}
-          color="gray"
-        />
-      </div>
-
-      {/* Expiring Items Section */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900">⚠️ Expiring Soon</h2>
-        </div>
-        <ExpiringItemsList />
-      </div>
-
-      {/* Quick Actions & Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-2">
-          <QuickActions />
-        </div>
-        <div>
-          {policyAnalytics?.by_insurance_type && policyAnalytics.by_insurance_type.length > 0 && (
-            <PoliciesByTypeChart data={policyAnalytics.by_insurance_type} />
-          )}
+    <div className="min-h-screen bg-gray-50">
+      {/* Page Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-gray-600 mt-1">
+                Welcome back, {user?.full_name || user?.email?.split('@')[0]}! Here's your business
+                overview.
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <DateRangeSelector
+                selectedRange={dateRange}
+                onRangeChange={updateDateRange}
+                className="w-48"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Analytics Charts */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Analytics</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {policyAnalytics?.status_breakdown && policyAnalytics.status_breakdown.length > 0 && (
-            <PoliciesByStatusChart data={policyAnalytics.status_breakdown} />
-          )}
-          <MonthlyTrendChart data={trends} />
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Financial Overview */}
+        {overview?.financial && (
+          <div className="mb-8">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Financial Overview</h2>
+              <p className="text-gray-600">
+                Revenue and commission metrics for selected time period
+              </p>
+            </div>
+            <FinancialMetrics
+              totalPremium={financialMetrics.totalPremium}
+              totalCommission={financialMetrics.totalCommission}
+              rangePremium={financialMetrics.rangePremium}
+              rangeCommission={financialMetrics.rangeCommission}
+              rangeLabel={rangeLabel}
+            />
+          </div>
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <MetricCard
+            title="Total Policies"
+            value={overview?.policies.total || 0}
+            subtitle={`${overview?.policies.active || 0} active`}
+            icon={<DocumentTextIcon className="w-6 h-6" />}
+            color="blue"
+          />
+          <MetricCard
+            title="Total Licenses"
+            value={
+              licenseAnalytics
+                ? licenseAnalytics.status_breakdown?.reduce(
+                    (sum: number, item: any) => sum + item.count,
+                    0
+                  ) || 0
+                : 0
+            }
+            subtitle={`${
+              licenseAnalytics?.status_breakdown?.find((item: any) => item._id === 'active')
+                ?.count || 0
+            } active`}
+            icon={<IdentificationIcon className="w-6 h-6" />}
+            color="blue"
+          />
+          <MetricCard
+            title="Created Today"
+            value={overview?.policies.today || 0}
+            subtitle="New policies"
+            icon={<PlusIcon className="w-6 h-6" />}
+            color="green"
+          />
+          <MetricCard
+            title="Expiring Soon"
+            value={overview?.expiring_items?.total_count || 0}
+            subtitle="Policies & Licenses"
+            icon={<ClockIcon className="w-6 h-6" />}
+            color="yellow"
+          />
+        </div>
+
+        {/* Expiring Items Alert */}
+        <div className="mb-8">
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-yellow-100 rounded-lg">
+                  <ExclamationTriangleIcon className="w-6 h-6 text-yellow-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Items Expiring Soon</h3>
+                  <p className="text-gray-600">Policies and licenses requiring attention</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-gray-900">
+                  {overview?.expiring_items?.total_count || 0}
+                </div>
+                <div className="text-sm text-gray-600">total items</div>
+              </div>
+            </div>
+            <ExpiringItemsList />
+          </div>
+        </div>
+
+        {/* Analytics Charts */}
+        <div className="mb-8">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Analytics & Insights</h2>
+            <p className="text-gray-600">Performance metrics and trends</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* Policy Analytics */}
+            <div className="space-y-4">
+              {policyAnalytics?.status_breakdown && policyAnalytics.status_breakdown.length > 0 && (
+                <PoliciesByStatusChart data={policyAnalytics.status_breakdown} />
+              )}
+              {policyAnalytics?.by_insurance_type &&
+                policyAnalytics.by_insurance_type.length > 0 && (
+                  <PoliciesByTypeChart data={policyAnalytics.by_insurance_type} />
+                )}
+            </div>
+
+            {/* License Analytics */}
+            <div className="space-y-4">
+              {licenseAnalytics?.status_breakdown &&
+                licenseAnalytics.status_breakdown.length > 0 && (
+                  <LicenseAnalytics
+                    statusBreakdown={licenseAnalytics.status_breakdown}
+                    totalLicenses={licenseAnalytics.status_breakdown.reduce(
+                      (sum: number, item: any) => sum + item.count,
+                      0
+                    )}
+                  />
+                )}
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Activity - Full Width at Bottom */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <RecentActivity />
         </div>
       </div>
-
-      {/* Recent Activity */}
-      <RecentActivity />
     </div>
   );
 }

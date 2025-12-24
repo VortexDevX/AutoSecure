@@ -21,32 +21,75 @@ export function MetricCard({
   trend,
   color = 'blue',
 }: MetricCardProps) {
-  const colorClasses = {
-    blue: 'bg-blue-50 border-blue-200 text-blue-500',
-    green: 'bg-green-50 border-green-200 text-green-500',
-    yellow: 'bg-yellow-50 border-yellow-200 text-yellow-500',
-    gray: 'bg-gray-100 border-gray-200 text-gray-500',
-    red: 'bg-red-50 border-red-200 text-red-500',
+  const colorStyles = {
+    blue: {
+      bg: 'bg-gradient-to-br from-blue-50 to-white',
+      border: 'border-blue-100',
+      text: 'text-blue-600',
+      iconBg: 'bg-blue-100',
+    },
+    green: {
+      bg: 'bg-gradient-to-br from-emerald-50 to-white',
+      border: 'border-emerald-100',
+      text: 'text-emerald-600',
+      iconBg: 'bg-emerald-100',
+    },
+    yellow: {
+      bg: 'bg-gradient-to-br from-amber-50 to-white',
+      border: 'border-amber-100',
+      text: 'text-amber-600',
+      iconBg: 'bg-amber-100',
+    },
+    gray: {
+      bg: 'bg-gradient-to-br from-slate-50 to-white',
+      border: 'border-slate-100',
+      text: 'text-slate-600',
+      iconBg: 'bg-slate-100',
+    },
+    red: {
+      bg: 'bg-gradient-to-br from-rose-50 to-white',
+      border: 'border-rose-100',
+      text: 'text-rose-600',
+      iconBg: 'bg-rose-100',
+    },
   };
 
+  const styles = colorStyles[color];
+
   return (
-    <div className={clsx('rounded-xl p-6 border shadow-sm', colorClasses[color])}>
-      <div className="flex justify-between items-center mb-2">
-        <p className="text-gray-700 font-medium text-sm">{title}</p>
-        {icon && <div className="text-current">{icon}</div>}
-      </div>
-      <p className="text-3xl font-bold text-gray-900 mb-1">{value.toLocaleString('en-IN')}</p>
-      {subtitle && <p className="text-sm text-gray-600">{subtitle}</p>}
-      {trend && (
-        <p
-          className={clsx(
-            'text-sm font-medium mt-1',
-            trend.isPositive ? 'text-green-600' : 'text-red-600'
-          )}
-        >
-          {trend.isPositive ? '↑' : '↓'} {trend.value}
-        </p>
+    <div
+      className={clsx(
+        'rounded-2xl p-6 border shadow-sm transition-all duration-200 hover:shadow-md',
+        styles.bg,
+        styles.border
       )}
+    >
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <p className="text-gray-500 font-medium text-sm tracking-wide uppercase">{title}</p>
+        </div>
+        {icon && <div className={clsx('p-2 rounded-lg', styles.iconBg, styles.text)}>{icon}</div>}
+      </div>
+
+      <div className="flex items-end justify-between">
+        <div>
+          <p className="text-3xl font-bold text-gray-900 mb-1">
+            {typeof value === 'number' ? value.toLocaleString('en-IN') : value}
+          </p>
+          {subtitle && <p className="text-xs text-gray-500 font-medium">{subtitle}</p>}
+        </div>
+        {trend && (
+          <div
+            className={clsx(
+              'flex items-center gap-1 text-sm font-semibold px-2 py-1 rounded-full',
+              trend.isPositive ? 'bg-green-100 text-green-700' : 'bg-rose-100 text-rose-700'
+            )}
+          >
+            <span>{trend.isPositive ? '↑' : '↓'}</span>
+            <span>{trend.value}</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -84,10 +84,16 @@ export const analyticsApi = {
   /**
    * Get policy analytics
    */
-  async getPolicyAnalytics(): Promise<PolicyAnalytics> {
+  async getPolicyAnalytics(startDate?: string, endDate?: string): Promise<PolicyAnalytics> {
     try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+
       const response = await apiClient.get<ApiResponse<PolicyAnalytics>>(
-        '/api/v1/analytics/policies'
+        `/api/v1/analytics/policies${queryString}`
       );
       return response.data.data!;
     } catch (error) {
@@ -106,6 +112,64 @@ export const analyticsApi = {
       const response = await apiClient.get<ApiResponse<TrendData>>(
         `/api/v1/analytics/trends?period=${period}&months=${months}`
       );
+      return response.data.data!;
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
+    }
+  },
+
+  /**
+   * Get license analytics
+   */
+  async getLicenseAnalytics(
+    startDate?: string,
+    endDate?: string
+  ): Promise<{
+    status_breakdown: Array<{ _id: string; count: number }>;
+    expiring: {
+      next_7_days: number;
+      next_30_days: number;
+      next_90_days: number;
+    };
+  }> {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+
+      const response = await apiClient.get<ApiResponse<any>>(
+        `/api/v1/analytics/licenses${queryString}`
+      );
+      return response.data.data!;
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
+    }
+  },
+
+  /**
+   * Get branch performance data
+   */
+  async getBranchPerformance(): Promise<
+    Array<{
+      _id: string;
+      count: number;
+      total_premium: number;
+      total_commission: number;
+    }>
+  > {
+    try {
+      const response = await apiClient.get<
+        ApiResponse<
+          Array<{
+            _id: string;
+            count: number;
+            total_premium: number;
+            total_commission: number;
+          }>
+        >
+      >('/api/v1/analytics/branches');
       return response.data.data!;
     } catch (error) {
       throw new Error(getErrorMessage(error));

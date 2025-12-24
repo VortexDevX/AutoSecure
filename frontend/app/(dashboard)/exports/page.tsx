@@ -444,7 +444,8 @@ export default function ExportsPage() {
               {/* Expiry Year Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Year</label>
-                <select
+                <input
+                  type="number"
                   value={filters.expiry_year || ''}
                   onChange={(e) =>
                     setFilters((prev) => ({
@@ -452,18 +453,11 @@ export default function ExportsPage() {
                       expiry_year: e.target.value || undefined,
                     }))
                   }
+                  placeholder="Enter year (e.g., 2025)"
                   className="input"
-                >
-                  <option value="">All Years (Default)</option>
-                  {Array.from({ length: 10 }, (_, i) => {
-                    const year = new Date().getFullYear() + i;
-                    return (
-                      <option key={year} value={year.toString()}>
-                        {year}
-                      </option>
-                    );
-                  })}
-                </select>
+                  min="1900"
+                  max="2100"
+                />
               </div>
             </div>
 

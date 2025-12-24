@@ -7,6 +7,8 @@ import {
   getVehicleAnalytics,
   getTrends,
   getCustomAnalytics,
+  getLicenseAnalytics,
+  getBranchPerformance,
 } from '../controllers/analyticsController';
 import { requireAuth } from '../middleware/authMiddleware';
 
@@ -17,6 +19,8 @@ router.use(requireAuth);
 
 router.get('/overview', getOverview);
 router.get('/policies', getPolicyAnalytics);
+router.get('/licenses', getLicenseAnalytics);
+router.get('/branches', getBranchPerformance);
 router.get('/financial', getFinancialAnalytics);
 router.get('/customers', getCustomerAnalytics);
 router.get('/vehicles', getVehicleAnalytics);

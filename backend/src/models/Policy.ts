@@ -247,5 +247,8 @@ PolicySchema.index({ branch_id: 1 });
 PolicySchema.index({ createdAt: -1 });
 PolicySchema.index({ customer_payment_status: 1 });
 PolicySchema.index({ ins_status: 1 });
+PolicySchema.index({ issue_date: -1 });
+PolicySchema.index({ end_date: -1 });
+PolicySchema.index({ saod_end_date: -1 });
 
 export const Policy = model<IPolicy>('Policy', PolicySchema);

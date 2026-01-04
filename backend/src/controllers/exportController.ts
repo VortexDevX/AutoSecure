@@ -214,7 +214,6 @@ export const exportPolicies = asyncHandler(async (req: Request, res: Response) =
         field === 'saod_start_date' ||
         field === 'saod_end_date' ||
         field === 'registration_date' ||
-        field === 'mfg_date' ||
         field === 'nominee_dob' ||
         field === 'previous_policy_expiry_date' ||
         field === 'company_cheque_date'
@@ -381,16 +380,6 @@ export const exportLicenses = asyncHandler(async (req: Request, res: Response) =
         };
       }
     }
-  }
-
-  // Expiring soon shortcut (next 90 days) - only apply when no explicit date_range provided
-  if (filters && filters.expiring_soon && !date_range) {
-    const now = new Date();
-    const end = new Date();
-    end.setDate(now.getDate() + 90);
-    query.expiry_date = {} as Record<string, Date>;
-    (query.expiry_date as Record<string, Date>).$gte = now;
-    (query.expiry_date as Record<string, Date>).$lte = end;
   }
 
   // Expiring soon shortcut (next 90 days) - only apply when no explicit date_range provided

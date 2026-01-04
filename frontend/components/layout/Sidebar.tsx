@@ -2,9 +2,9 @@
 
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { NavLink } from '@/lib/context/NavigationContext';
 import clsx from 'clsx';
 import {
   HomeIcon,
@@ -138,7 +138,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
               return (
                 <li key={item.name} title={isCollapsed ? item.name : ''}>
-                  <Link
+                  <NavLink
                     href={item.href}
                     onClick={onClose}
                     className={clsx(
@@ -153,7 +153,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       className={clsx('w-5 h-5 flex-shrink-0', isActive ? 'text-secondary' : '')}
                     />
                     {!isCollapsed && <span className="text-sm font-medium">{item.name}</span>}
-                  </Link>
+                  </NavLink>
                 </li>
               );
             })}

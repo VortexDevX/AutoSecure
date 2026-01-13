@@ -53,12 +53,6 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     throw new AuthenticationError('Invalid email or password');
   }
 
-  // Check if TOTP is enabled (this field should always be present now)
-  console.log('🔍 TOTP Status:', {
-    totp_enabled: user.totp_enabled,
-    totp_verified: user.totp_verified,
-  });
-
   // If TOTP not enabled, set it up
   if (!user.totp_enabled) {
     const totpData = await TOTPService.generateSecret(email);
@@ -67,14 +61,12 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     user.totp_secret = totpData.secret;
     await user.save();
 
-    console.log('✅ TOTP secret saved for', email);
-
     return res.json({
       status: 'success',
       message: 'TOTP setup required',
       totp_setup_required: true,
       totp_qr_code: totpData.qr_code,
-      totp_secret: totpData.secret,
+      // Note: TOTP secret is NOT sent to client for security - QR code contains it encoded
     });
   }
 
@@ -108,10 +100,6 @@ export const verifyTOTP = asyncHandler(async (req: Request, res: Response) => {
     throw new NotFoundError('User not found');
   }
 
-  console.log('🔍 Verifying TOTP for:', email);
-  console.log('   Current totp_enabled:', user.totp_enabled);
-  console.log('   Current totp_verified:', user.totp_verified);
-
   // Verify TOTP
   const isValid = TOTPService.verify(totp_code, user.totp_secret);
 
@@ -132,8 +120,6 @@ export const verifyTOTP = asyncHandler(async (req: Request, res: Response) => {
     user.totp_enabled = true;
     user.totp_verified = true;
     await user.save();
-
-    console.log('✅ TOTP enabled for', email);
   }
 
   // Generate JWT tokens

@@ -25,12 +25,14 @@ export const getLicenses = asyncHandler(async (req: Request, res: Response) => {
   const query: Record<string, unknown> = {};
 
   if (search) {
+    // Sanitize search input to prevent ReDoS and NoSQL injection
+    const sanitizedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     query.$or = [
-      { lic_no: { $regex: search, $options: 'i' } },
-      { customer_name: { $regex: search, $options: 'i' } },
-      { mobile_no: { $regex: search, $options: 'i' } },
-      { aadhar_no: { $regex: search, $options: 'i' } },
-      { application_no: { $regex: search, $options: 'i' } },
+      { lic_no: { $regex: sanitizedSearch, $options: 'i' } },
+      { customer_name: { $regex: sanitizedSearch, $options: 'i' } },
+      { mobile_no: { $regex: sanitizedSearch, $options: 'i' } },
+      { aadhar_no: { $regex: sanitizedSearch, $options: 'i' } },
+      { application_no: { $regex: sanitizedSearch, $options: 'i' } },
     ];
   }
 

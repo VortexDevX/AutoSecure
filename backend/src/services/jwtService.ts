@@ -1,8 +1,16 @@
 import jwt, { SignOptions } from 'jsonwebtoken';
 import { AuthenticationError } from '../utils/errors';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-change-in-production';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'fallback-refresh-secret';
+// Ensure JWT secrets are configured
+if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
+  console.error('❌ FATAL: JWT secrets not configured!');
+  console.error('   Set JWT_SECRET and JWT_REFRESH_SECRET environment variables.');
+  throw new Error('JWT_SECRET and JWT_REFRESH_SECRET must be set');
+}
+
+// After the check, we know these are defined
+const JWT_SECRET: string = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET: string = process.env.JWT_REFRESH_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '30d';
 

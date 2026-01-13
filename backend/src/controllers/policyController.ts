@@ -59,11 +59,13 @@ export const listPolicies = asyncHandler(async (req: Request, res: Response) => 
   const query: any = {};
 
   if (search) {
+    // Sanitize search input to prevent ReDoS and NoSQL injection
+    const sanitizedSearch = (search as string).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     query.$or = [
-      { policy_no: { $regex: search, $options: 'i' } },
-      { customer: { $regex: search, $options: 'i' } },
-      { registration_number: { $regex: search, $options: 'i' } },
-      { email: { $regex: search, $options: 'i' } },
+      { policy_no: { $regex: sanitizedSearch, $options: 'i' } },
+      { customer: { $regex: sanitizedSearch, $options: 'i' } },
+      { registration_number: { $regex: sanitizedSearch, $options: 'i' } },
+      { email: { $regex: sanitizedSearch, $options: 'i' } },
     ];
   }
 
@@ -224,12 +226,14 @@ export const getPolicies = asyncHandler(async (req: Request, res: Response) => {
   const query: any = {};
 
   if (search) {
+    // Sanitize search input to prevent ReDoS and NoSQL injection
+    const sanitizedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     query.$or = [
-      { policy_no: { $regex: search, $options: 'i' } },
-      { customer: { $regex: search, $options: 'i' } },
-      { registration_number: { $regex: search, $options: 'i' } },
-      { email: { $regex: search, $options: 'i' } },
-      { serial_no: { $regex: search, $options: 'i' } },
+      { policy_no: { $regex: sanitizedSearch, $options: 'i' } },
+      { customer: { $regex: sanitizedSearch, $options: 'i' } },
+      { registration_number: { $regex: sanitizedSearch, $options: 'i' } },
+      { email: { $regex: sanitizedSearch, $options: 'i' } },
+      { serial_no: { $regex: sanitizedSearch, $options: 'i' } },
     ];
   }
 

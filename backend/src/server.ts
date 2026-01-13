@@ -57,13 +57,36 @@ app.use(
   })
 );
 
-// Helmet (configured to not break CORS)
+// Helmet security headers
+const isProduction = process.env.NODE_ENV === 'production';
+
 app.use(
   helmet({
-    crossOriginResourcePolicy: false,
-    crossOriginOpenerPolicy: false,
-    crossOriginEmbedderPolicy: false,
-    contentSecurityPolicy: false,
+    // Enable protection against clickjacking
+    contentSecurityPolicy: isProduction
+      ? {
+          directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", 'data:', 'blob:'],
+            connectSrc: ["'self'", process.env.FRONTEND_URL || ''].filter(Boolean),
+            fontSrc: ["'self'"],
+            objectSrc: ["'none'"],
+            mediaSrc: ["'self'"],
+            frameSrc: ["'none'"],
+          },
+        }
+      : false,
+    crossOriginResourcePolicy: { policy: isProduction ? 'same-origin' : 'cross-origin' },
+    crossOriginOpenerPolicy: isProduction ? { policy: 'same-origin' } : false,
+    crossOriginEmbedderPolicy: false, // Keep false for API
+    // Additional security headers
+    hsts: isProduction ? { maxAge: 31536000, includeSubDomains: true } : false,
+    noSniff: true,
+    xssFilter: true,
+    hidePoweredBy: true,
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
   })
 );
 

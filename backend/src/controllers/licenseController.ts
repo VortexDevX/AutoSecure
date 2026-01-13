@@ -171,7 +171,7 @@ export const createLicense = asyncHandler(async (req: Request, res: Response) =>
   const fee = parseNumber(body.fee, 0);
   const agent_fee = parseNumber(body.agent_fee, 0);
   const customer_payment = parseNumber(body.customer_payment, 0);
-  const profit = fee - agent_fee - customer_payment;
+  const profit = customer_payment - fee - agent_fee;
 
   const licNo = getUppercaseString(body.lic_no)!;
   const folderName = sanitizeFolderName(licNo);

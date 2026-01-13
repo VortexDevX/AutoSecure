@@ -77,7 +77,7 @@ export function LicenseForm({ initialData, onSubmit, isEdit = false }: LicenseFo
   const fee = watch('fee') || 0;
   const agentFee = watch('agent_fee') || 0;
   const customerPayment = watch('customer_payment') || 0;
-  const profit = fee - agentFee - customerPayment;
+  const profit = customerPayment - fee - agentFee;
 
   // Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -419,7 +419,7 @@ export function LicenseForm({ initialData, onSubmit, isEdit = false }: LicenseFo
               </span>
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Profit = Fee - Agent Fee - Customer Payment
+              Profit = Customer Payment - Fee - Agent Fee
             </p>
           </div>
         </Card.Body>

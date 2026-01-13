@@ -11,6 +11,7 @@ interface MetricCardProps {
     isPositive: boolean;
   };
   color?: 'blue' | 'green' | 'yellow' | 'gray' | 'red';
+  valueFormat?: 'number' | 'currency';
 }
 
 export function MetricCard({
@@ -20,6 +21,7 @@ export function MetricCard({
   icon,
   trend,
   color = 'blue',
+  valueFormat = 'number',
 }: MetricCardProps) {
   const colorStyles = {
     blue: {
@@ -56,32 +58,52 @@ export function MetricCard({
 
   const styles = colorStyles[color];
 
+  const formatValue = (val: string | number): string => {
+    if (typeof val === 'string') return val;
+    if (valueFormat === 'currency') {
+      // Format as compact currency for large values
+      if (val >= 10000000) {
+        return `₹${(val / 10000000).toFixed(2)}Cr`;
+      }
+      if (val >= 100000) {
+        return `₹${(val / 100000).toFixed(2)}L`;
+      }
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(val);
+    }
+    return val.toLocaleString('en-IN');
+  };
+
   return (
     <div
       className={clsx(
-        'rounded-2xl p-6 border shadow-sm transition-all duration-200 hover:shadow-md',
+        'rounded-xl p-4 border shadow-sm transition-all duration-200 hover:shadow-md',
         styles.bg,
         styles.border
       )}
     >
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex justify-between items-start mb-2">
         <div>
-          <p className="text-gray-500 font-medium text-sm tracking-wide uppercase">{title}</p>
+          <p className="text-gray-500 font-medium text-xs tracking-wide uppercase truncate">
+            {title}
+          </p>
         </div>
-        {icon && <div className={clsx('p-2 rounded-lg', styles.iconBg, styles.text)}>{icon}</div>}
+        {icon && <div className={clsx('p-1.5 rounded-lg', styles.iconBg, styles.text)}>{icon}</div>}
       </div>
 
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-3xl font-bold text-gray-900 mb-1">
-            {typeof value === 'number' ? value.toLocaleString('en-IN') : value}
-          </p>
-          {subtitle && <p className="text-xs text-gray-500 font-medium">{subtitle}</p>}
+          <p className="text-xl font-bold text-gray-900 mb-0.5">{formatValue(value)}</p>
+          {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
         </div>
         {trend && (
           <div
             className={clsx(
-              'flex items-center gap-1 text-sm font-semibold px-2 py-1 rounded-full',
+              'flex items-center gap-1 text-xs font-semibold px-1.5 py-0.5 rounded-full',
               trend.isPositive ? 'bg-green-100 text-green-700' : 'bg-rose-100 text-rose-700'
             )}
           >

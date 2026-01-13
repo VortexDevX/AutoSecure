@@ -1,12 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 
-export type DateRangePreset = '7d' | '30d' | '3m' | '6m' | '1y' | 'all';
+export type DateRangePreset =
+  | '7d'
+  | 'this_month'
+  | 'last_month'
+  | 'last_year'
+  | 'this_year'
+  | 'all';
 
 export interface DateRangeOption {
   key: DateRangePreset;
@@ -16,10 +21,10 @@ export interface DateRangeOption {
 
 const DATE_RANGE_OPTIONS: DateRangeOption[] = [
   { key: '7d', label: 'Last 7 Days', description: 'Past week' },
-  { key: '30d', label: 'Last 30 Days', description: 'Past month' },
-  { key: '3m', label: 'Last 3 Months', description: 'Past quarter' },
-  { key: '6m', label: 'Last 6 Months', description: 'Past half year' },
-  { key: '1y', label: 'Last Year', description: 'Past 12 months' },
+  { key: 'this_month', label: 'This Month', description: 'Current month' },
+  { key: 'last_month', label: 'Last Month', description: 'Previous month' },
+  { key: 'this_year', label: 'This Year', description: 'Current year' },
+  { key: 'last_year', label: 'Last Year', description: 'Previous year' },
   { key: 'all', label: 'All Time', description: 'Complete history' },
 ];
 

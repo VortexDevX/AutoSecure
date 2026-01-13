@@ -103,7 +103,7 @@ LicenseRecordSchema.pre('save', function (next) {
   const fee = this.fee || 0;
   const agentFee = this.agent_fee || 0;
   const customerPayment = this.customer_payment || 0;
-  this.profit = fee - agentFee - customerPayment;
+  this.profit = customerPayment - fee - agentFee;
   next();
 });
 

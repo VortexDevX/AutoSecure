@@ -583,10 +583,10 @@ export const getVehicleAnalytics = asyncHandler(async (req: Request, res: Respon
  * GET /api/v1/analytics/trends
  */
 export const getTrends = asyncHandler(async (req: Request, res: Response) => {
-  const { period = 'monthly', months = 12 } = req.query;
+  const { period = 'monthly', months = 12, startDate, endDate } = req.query;
 
   let groupByFormat: Record<string, unknown>;
-  let dateRange: Date;
+  let dateRangeFilter: any = {};
 
   switch (period) {
     case 'daily':
@@ -595,16 +595,12 @@ export const getTrends = asyncHandler(async (req: Request, res: Response) => {
         month: { $month: '$issue_date' },
         day: { $dayOfMonth: '$issue_date' },
       };
-      dateRange = new Date();
-      dateRange.setDate(dateRange.getDate() - parseInt(months as string) * 30); // Convert months to approximate days
       break;
 
     case 'yearly':
       groupByFormat = {
         year: { $year: '$issue_date' },
       };
-      dateRange = new Date();
-      dateRange.setFullYear(dateRange.getFullYear() - Math.ceil(parseInt(months as string) / 12)); // Convert months to years
       break;
 
     case 'monthly':
@@ -613,16 +609,41 @@ export const getTrends = asyncHandler(async (req: Request, res: Response) => {
         year: { $year: '$issue_date' },
         month: { $month: '$issue_date' },
       };
-      dateRange = new Date();
-      dateRange.setMonth(dateRange.getMonth() - parseInt(months as string));
       break;
+  }
+
+  // Use startDate/endDate if provided, otherwise calculate from months
+  if (startDate || endDate) {
+    dateRangeFilter = { $ne: null };
+    if (startDate) {
+      dateRangeFilter.$gte = new Date(startDate as string);
+    }
+    if (endDate) {
+      dateRangeFilter.$lte = new Date(endDate as string);
+    }
+  } else {
+    // Fallback to months-based calculation
+    const dateRange = new Date();
+    switch (period) {
+      case 'daily':
+        dateRange.setDate(dateRange.getDate() - parseInt(months as string) * 30);
+        break;
+      case 'yearly':
+        dateRange.setFullYear(dateRange.getFullYear() - Math.ceil(parseInt(months as string) / 12));
+        break;
+      case 'monthly':
+      default:
+        dateRange.setMonth(dateRange.getMonth() - parseInt(months as string));
+        break;
+    }
+    dateRangeFilter = { $gte: dateRange, $ne: null };
   }
 
   // Policies issued over time
   const policiesOverTime = await Policy.aggregate([
     {
       $match: {
-        issue_date: { $gte: dateRange, $ne: null },
+        issue_date: dateRangeFilter,
       },
     },
     {
@@ -642,7 +663,7 @@ export const getTrends = asyncHandler(async (req: Request, res: Response) => {
     success: true,
     data: {
       period,
-      date_range: dateRange,
+      date_range: dateRangeFilter,
       trends: policiesOverTime,
     },
   });
@@ -794,13 +815,20 @@ export const getLicenseAnalytics = asyncHandler(async (req: Request, res: Respon
  * GET /api/v1/analytics/branches
  */
 export const getBranchPerformance = asyncHandler(async (req: Request, res: Response) => {
-  // Branch performance with policy counts and financials
+  const { startDate, endDate } = req.query;
+
+  const matchStage: any = {
+    branch_id: { $exists: true, $ne: null },
+  };
+
+  if (startDate || endDate) {
+    matchStage.issue_date = {};
+    if (startDate) matchStage.issue_date.$gte = new Date(startDate as string);
+    if (endDate) matchStage.issue_date.$lte = new Date(endDate as string);
+  }
+
   const branchStats = await Policy.aggregate([
-    {
-      $match: {
-        branch_id: { $exists: true, $ne: null },
-      },
-    },
+    { $match: matchStage },
     {
       $group: {
         _id: '$branch_id',
@@ -809,13 +837,190 @@ export const getBranchPerformance = asyncHandler(async (req: Request, res: Respo
         total_commission: { $sum: '$agent_commission' },
       },
     },
-    {
-      $sort: { total_premium: -1 },
-    },
+    { $sort: { total_premium: -1 } },
+    { $limit: 10 },
   ]);
 
   res.json({
     success: true,
     data: branchStats,
+  });
+});
+
+/**
+ * Get insurance company performance analytics
+ * GET /api/v1/analytics/insurance-companies
+ */
+export const getInsuranceCompanyPerformance = asyncHandler(async (req: Request, res: Response) => {
+  const { startDate, endDate } = req.query;
+
+  const matchStage: any = {
+    ins_co_id: { $exists: true, $ne: null },
+  };
+
+  if (startDate || endDate) {
+    matchStage.issue_date = {};
+    if (startDate) matchStage.issue_date.$gte = new Date(startDate as string);
+    if (endDate) matchStage.issue_date.$lte = new Date(endDate as string);
+  }
+
+  const companyStats = await Policy.aggregate([
+    { $match: matchStage },
+    {
+      $group: {
+        _id: '$ins_co_id',
+        count: { $sum: 1 },
+        total_premium: { $sum: '$premium_amount' },
+        total_commission: { $sum: '$agent_commission' },
+      },
+    },
+    { $sort: { total_premium: -1 } },
+    { $limit: 10 },
+  ]);
+
+  res.json({
+    success: true,
+    data: companyStats,
+  });
+});
+
+/**
+ * Get insurance dealer performance analytics
+ * GET /api/v1/analytics/insurance-dealers
+ */
+export const getInsuranceDealerPerformance = asyncHandler(async (req: Request, res: Response) => {
+  const { startDate, endDate } = req.query;
+
+  const matchStage: any = {
+    insurance_dealer: { $exists: true, $nin: [null, ''] },
+  };
+
+  if (startDate || endDate) {
+    matchStage.issue_date = {};
+    if (startDate) matchStage.issue_date.$gte = new Date(startDate as string);
+    if (endDate) matchStage.issue_date.$lte = new Date(endDate as string);
+  }
+
+  const dealerStats = await Policy.aggregate([
+    { $match: matchStage },
+    {
+      $group: {
+        _id: '$insurance_dealer',
+        count: { $sum: 1 },
+        total_premium: { $sum: '$premium_amount' },
+        total_commission: { $sum: '$agent_commission' },
+      },
+    },
+    { $sort: { total_premium: -1 } },
+    { $limit: 10 },
+  ]);
+
+  res.json({
+    success: true,
+    data: dealerStats,
+  });
+});
+
+/**
+ * Get executive performance analytics
+ * GET /api/v1/analytics/executives
+ */
+export const getExecutivePerformance = asyncHandler(async (req: Request, res: Response) => {
+  const { startDate, endDate } = req.query;
+
+  const matchStage: any = {
+    exicutive_name: { $exists: true, $nin: [null, ''] },
+  };
+
+  if (startDate || endDate) {
+    matchStage.issue_date = {};
+    if (startDate) matchStage.issue_date.$gte = new Date(startDate as string);
+    if (endDate) matchStage.issue_date.$lte = new Date(endDate as string);
+  }
+
+  const executiveStats = await Policy.aggregate([
+    { $match: matchStage },
+    {
+      $group: {
+        _id: '$exicutive_name',
+        count: { $sum: 1 },
+        total_premium: { $sum: '$premium_amount' },
+        total_commission: { $sum: '$agent_commission' },
+      },
+    },
+    { $sort: { total_premium: -1 } },
+    { $limit: 10 },
+  ]);
+
+  res.json({
+    success: true,
+    data: executiveStats,
+  });
+});
+
+/**
+ * Get calendar events (expiring policies and licenses)
+ * GET /api/v1/analytics/calendar-events
+ */
+export const getCalendarEvents = asyncHandler(async (req: Request, res: Response) => {
+  const { startDate, endDate } = req.query;
+
+  if (!startDate || !endDate) {
+    return res.status(400).json({
+      success: false,
+      message: 'startDate and endDate are required',
+    });
+  }
+
+  const start = new Date(startDate as string);
+  const end = new Date(endDate as string);
+
+  // Get expiring policies in date range
+  const expiringPolicies = await Policy.find({
+    $or: [
+      { saod_end_date: { $gte: start, $lte: end } },
+      {
+        $and: [
+          { $or: [{ saod_end_date: { $exists: false } }, { saod_end_date: null }] },
+          { end_date: { $gte: start, $lte: end } },
+        ],
+      },
+    ],
+  })
+    .select('_id policy_no customer end_date saod_end_date registration_number')
+    .sort({ saod_end_date: 1, end_date: 1 })
+    .limit(100);
+
+  // Get expiring licenses in date range
+  const expiringLicenses = await LicenseRecord.find({
+    expiry_date: { $gte: start, $lte: end },
+  })
+    .select('_id lic_no customer_name expiry_date')
+    .sort({ expiry_date: 1 })
+    .limit(100);
+
+  // Format as calendar events
+  const policyEvents = expiringPolicies.map((p: any) => ({
+    id: p._id,
+    type: 'policy',
+    title: `${p.policy_no} - ${p.customer}`,
+    date: p.saod_end_date || p.end_date,
+    registration: p.registration_number,
+  }));
+
+  const licenseEvents = expiringLicenses.map((l: any) => ({
+    id: l._id,
+    type: 'license',
+    title: `${l.lic_no} - ${l.customer_name}`,
+    date: l.expiry_date,
+  }));
+
+  res.json({
+    success: true,
+    data: {
+      policies: policyEvents,
+      licenses: licenseEvents,
+      total: policyEvents.length + licenseEvents.length,
+    },
   });
 });

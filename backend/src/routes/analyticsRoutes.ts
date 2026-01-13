@@ -9,6 +9,10 @@ import {
   getCustomAnalytics,
   getLicenseAnalytics,
   getBranchPerformance,
+  getInsuranceCompanyPerformance,
+  getInsuranceDealerPerformance,
+  getExecutivePerformance,
+  getCalendarEvents,
 } from '../controllers/analyticsController';
 import { requireAuth } from '../middleware/authMiddleware';
 
@@ -21,6 +25,10 @@ router.get('/overview', getOverview);
 router.get('/policies', getPolicyAnalytics);
 router.get('/licenses', getLicenseAnalytics);
 router.get('/branches', getBranchPerformance);
+router.get('/insurance-companies', getInsuranceCompanyPerformance);
+router.get('/insurance-dealers', getInsuranceDealerPerformance);
+router.get('/executives', getExecutivePerformance);
+router.get('/calendar-events', getCalendarEvents);
 router.get('/financial', getFinancialAnalytics);
 router.get('/customers', getCustomerAnalytics);
 router.get('/vehicles', getVehicleAnalytics);

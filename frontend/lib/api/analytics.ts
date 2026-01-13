@@ -66,6 +66,27 @@ export interface TrendData {
   }>;
 }
 
+export interface PerformanceData {
+  _id: string;
+  count: number;
+  total_premium: number;
+  total_commission: number;
+}
+
+export interface CalendarEvent {
+  id: string;
+  type: 'policy' | 'license';
+  title: string;
+  date: string;
+  registration?: string;
+}
+
+export interface CalendarEventsData {
+  policies: CalendarEvent[];
+  licenses: CalendarEvent[];
+  total: number;
+}
+
 export const analyticsApi = {
   /**
    * Get overview analytics
@@ -106,11 +127,19 @@ export const analyticsApi = {
    */
   async getTrends(
     period: 'daily' | 'monthly' | 'yearly' = 'monthly',
-    months: number = 6
+    months: number = 6,
+    startDate?: string,
+    endDate?: string
   ): Promise<TrendData> {
     try {
+      const params = new URLSearchParams();
+      params.append('period', period);
+      params.append('months', months.toString());
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
       const response = await apiClient.get<ApiResponse<TrendData>>(
-        `/api/v1/analytics/trends?period=${period}&months=${months}`
+        `/api/v1/analytics/trends?${params.toString()}`
       );
       return response.data.data!;
     } catch (error) {
@@ -151,25 +180,97 @@ export const analyticsApi = {
   /**
    * Get branch performance data
    */
-  async getBranchPerformance(): Promise<
-    Array<{
-      _id: string;
-      count: number;
-      total_premium: number;
-      total_commission: number;
-    }>
-  > {
+  async getBranchPerformance(startDate?: string, endDate?: string): Promise<PerformanceData[]> {
     try {
-      const response = await apiClient.get<
-        ApiResponse<
-          Array<{
-            _id: string;
-            count: number;
-            total_premium: number;
-            total_commission: number;
-          }>
-        >
-      >('/api/v1/analytics/branches');
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+
+      const response = await apiClient.get<ApiResponse<PerformanceData[]>>(
+        `/api/v1/analytics/branches${queryString}`
+      );
+      return response.data.data!;
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
+    }
+  },
+
+  /**
+   * Get insurance company performance data
+   */
+  async getInsuranceCompanyPerformance(
+    startDate?: string,
+    endDate?: string
+  ): Promise<PerformanceData[]> {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+
+      const response = await apiClient.get<ApiResponse<PerformanceData[]>>(
+        `/api/v1/analytics/insurance-companies${queryString}`
+      );
+      return response.data.data!;
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
+    }
+  },
+
+  /**
+   * Get insurance dealer performance data
+   */
+  async getInsuranceDealerPerformance(
+    startDate?: string,
+    endDate?: string
+  ): Promise<PerformanceData[]> {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+
+      const response = await apiClient.get<ApiResponse<PerformanceData[]>>(
+        `/api/v1/analytics/insurance-dealers${queryString}`
+      );
+      return response.data.data!;
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
+    }
+  },
+
+  /**
+   * Get executive performance data
+   */
+  async getExecutivePerformance(startDate?: string, endDate?: string): Promise<PerformanceData[]> {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+
+      const response = await apiClient.get<ApiResponse<PerformanceData[]>>(
+        `/api/v1/analytics/executives${queryString}`
+      );
+      return response.data.data!;
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
+    }
+  },
+
+  /**
+   * Get calendar events (expiring policies and licenses)
+   */
+  async getCalendarEvents(startDate: string, endDate: string): Promise<CalendarEventsData> {
+    try {
+      const response = await apiClient.get<ApiResponse<CalendarEventsData>>(
+        `/api/v1/analytics/calendar-events?startDate=${startDate}&endDate=${endDate}`
+      );
       return response.data.data!;
     } catch (error) {
       throw new Error(getErrorMessage(error));

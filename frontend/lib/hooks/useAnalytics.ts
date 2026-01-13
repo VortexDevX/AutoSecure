@@ -1,5 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { analyticsApi, OverviewAnalytics, PolicyAnalytics, TrendData } from '../api/analytics';
+import {
+  analyticsApi,
+  OverviewAnalytics,
+  PolicyAnalytics,
+  TrendData,
+  PerformanceData,
+  CalendarEventsData,
+} from '../api/analytics';
 import { DateRangePreset } from '@/components/ui/DateRangeSelector';
 
 export function useAnalytics() {
@@ -7,35 +14,65 @@ export function useAnalytics() {
   const [policyAnalytics, setPolicyAnalytics] = useState<PolicyAnalytics | null>(null);
   const [licenseAnalytics, setLicenseAnalytics] = useState<any | null>(null);
   const [trends, setTrends] = useState<TrendData | null>(null);
+
+  // Performance data
+  const [branchPerformance, setBranchPerformance] = useState<PerformanceData[] | null>(null);
+  const [companyPerformance, setCompanyPerformance] = useState<PerformanceData[] | null>(null);
+  const [dealerPerformance, setDealerPerformance] = useState<PerformanceData[] | null>(null);
+  const [executivePerformance, setExecutivePerformance] = useState<PerformanceData[] | null>(null);
+
+  // Calendar events
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEventsData | null>(null);
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dateRange, setDateRange] = useState<DateRangePreset>('3m');
+  const [dateRange, setDateRange] = useState<DateRangePreset>('this_month');
 
-  const getMonthsFromRange = (range: DateRangePreset): number => {
+  // Calculate start and end dates based on range preset
+  const calculateDates = (range: DateRangePreset): { start: Date; end: Date } | null => {
+    if (range === 'all') return null;
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
     switch (range) {
-      case '7d':
-        return 1; // Will use daily period
-      case '30d':
-        return 1; // Will use daily period
-      case '3m':
-        return 3;
-      case '6m':
-        return 6;
-      case '1y':
-        return 12;
-      case 'all':
-        return 60; // 5 years
+      case '7d': {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0);
+        return { start, end: today };
+      }
+      case 'this_month': {
+        const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+        return { start, end: today };
+      }
+      case 'last_month': {
+        const start = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0);
+        const end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+        return { start, end };
+      }
+      case 'this_year': {
+        const start = new Date(now.getFullYear(), 0, 1, 0, 0, 0);
+        return { start, end: today };
+      }
+      case 'last_year': {
+        const start = new Date(now.getFullYear() - 1, 0, 1, 0, 0, 0);
+        const end = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59);
+        return { start, end };
+      }
       default:
-        return 6;
+        return null;
     }
   };
 
-  const getPeriodFromRange = (range: DateRangePreset): 'daily' | 'monthly' | 'yearly' => {
+  // Get period type for trends API
+  const getTrendsPeriod = (range: DateRangePreset): 'daily' | 'monthly' | 'yearly' => {
     switch (range) {
       case '7d':
-      case '30d':
+      case 'this_month':
+      case 'last_month':
         return 'daily';
-      case '1y':
+      case 'this_year':
+      case 'last_year':
+        return 'monthly';
       case 'all':
         return 'yearly';
       default:
@@ -43,88 +80,103 @@ export function useAnalytics() {
     }
   };
 
-  const calculateDatesFromRange = (
-    range: DateRangePreset
-  ): { startDate?: string; endDate?: string } => {
-    if (range === 'all') return {};
-
-    const end = new Date();
-    const start = new Date();
-
+  // Get months count for trends API
+  const getTrendsMonths = (range: DateRangePreset): number => {
     switch (range) {
       case '7d':
-        start.setDate(end.getDate() - 7);
-        break;
-      case '30d':
-        start.setDate(end.getDate() - 30);
-        break;
-      case '3m':
-        start.setMonth(end.getMonth() - 3);
-        break;
-      case '6m':
-        start.setMonth(end.getMonth() - 6);
-        break;
-      case '1y':
-        start.setFullYear(end.getFullYear() - 1);
-        break;
+        return 1;
+      case 'this_month':
+      case 'last_month':
+        return 2;
+      case 'this_year':
+      case 'last_year':
+        return 12;
+      case 'all':
+        return 60;
       default:
-        start.setMonth(end.getMonth() - 3); // Default to 3m
+        return 6;
     }
-
-    return {
-      startDate: start.toISOString(),
-      endDate: end.toISOString(),
-    };
   };
 
   const fetchAnalytics = useCallback(async () => {
     try {
       setIsLoading(true);
+      setError(null);
 
-      const { startDate, endDate } = calculateDatesFromRange(dateRange);
+      const dates = calculateDates(dateRange);
+      const startDate = dates?.start.toISOString();
+      const endDate = dates?.end.toISOString();
 
-      // Now passing dates to getPolicyAnalytics and getLicenseAnalytics
-      // static data (overview) stays static or could ideally also be filtered if the user wanted,
-      // but the implementation plan focused on policy/license analytics for charts.
-      // NOTE: Overview usually contains "Total Policies" which might be "Total ALL time" or "Total in range".
-      // The user complained about "numerical analysis values". The cards (Total Policies) are usually global totals.
-      // But the charts are analysis.
-      // Let's filter the analytics calls.
+      console.log('Fetching with dates:', { dateRange, startDate, endDate });
 
-      const [overviewData, policyData, licenseData] = await Promise.all([
-        analyticsApi.getOverview(), // Overview often remains global, or we could update it too. Plan didn't explicitly say overview.
+      const [
+        overviewData,
+        policyData,
+        licenseData,
+        branchData,
+        companyData,
+        dealerData,
+        executiveData,
+      ] = await Promise.all([
+        analyticsApi.getOverview(),
         analyticsApi.getPolicyAnalytics(startDate, endDate),
         analyticsApi.getLicenseAnalytics(startDate, endDate),
+        analyticsApi.getBranchPerformance(startDate, endDate),
+        analyticsApi.getInsuranceCompanyPerformance(startDate, endDate),
+        analyticsApi.getInsuranceDealerPerformance(startDate, endDate),
+        analyticsApi.getExecutivePerformance(startDate, endDate),
       ]);
 
       setOverview(overviewData);
       setPolicyAnalytics(policyData);
       setLicenseAnalytics(licenseData);
+      setBranchPerformance(branchData);
+      setCompanyPerformance(companyData);
+      setDealerPerformance(dealerData);
+      setExecutivePerformance(executiveData);
     } catch (err: any) {
+      console.error('Analytics fetch error:', err);
       setError(err.message || 'Failed to fetch analytics');
     } finally {
       setIsLoading(false);
     }
-  }, [dateRange]); // Added dateRange dependency
-
-  // Separate trend fetch or combine?
-  // trends is already dependent on dateRange.
-  // We can actually combine them or keep separate.
-  // Since both depend on dateRange now, we can simplify/unify if we wanted,
-  // but existing structure splits them.
-  // The original useEffect for fetchAnalytics was [] (mount only).
-  // Now it depends on [dateRange].
+  }, [dateRange]);
 
   const fetchTrends = useCallback(async () => {
     try {
-      const period = getPeriodFromRange(dateRange);
-      const months = getMonthsFromRange(dateRange);
-      const trendsData = await analyticsApi.getTrends(period, months);
+      const period = getTrendsPeriod(dateRange);
+      const months = getTrendsMonths(dateRange);
+      const dates = calculateDates(dateRange);
+      const startDate = dates?.start.toISOString();
+      const endDate = dates?.end.toISOString();
+
+      console.log('Fetching trends:', { dateRange, period, months, startDate, endDate });
+      const trendsData = await analyticsApi.getTrends(period, months, startDate, endDate);
       setTrends(trendsData);
     } catch (err: any) {
+      console.error('Trends fetch error:', err);
       setError(err.message || 'Failed to fetch trends');
     }
   }, [dateRange]);
+
+  const fetchCalendarEvents = useCallback(async () => {
+    try {
+      // Fetch calendar events for current month + 2 months ahead
+      const start = new Date();
+      start.setDate(1); // Start of current month
+      const end = new Date();
+      end.setMonth(end.getMonth() + 3);
+      end.setDate(0); // End of month 2 months ahead
+
+      const calendarData = await analyticsApi.getCalendarEvents(
+        start.toISOString(),
+        end.toISOString()
+      );
+      setCalendarEvents(calendarData);
+    } catch (err: any) {
+      console.error('Failed to fetch calendar events:', err);
+    }
+  }, []);
 
   useEffect(() => {
     fetchAnalytics();
@@ -134,10 +186,14 @@ export function useAnalytics() {
     fetchTrends();
   }, [fetchTrends]);
 
+  useEffect(() => {
+    fetchCalendarEvents();
+  }, [fetchCalendarEvents]);
+
   const refetch = async () => {
     setIsLoading(true);
     try {
-      await Promise.all([fetchAnalytics(), fetchTrends()]);
+      await Promise.all([fetchAnalytics(), fetchTrends(), fetchCalendarEvents()]);
       setError(null);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch analytics');
@@ -148,7 +204,6 @@ export function useAnalytics() {
 
   const updateDateRange = (newRange: DateRangePreset) => {
     setDateRange(newRange);
-    // fetchTrends will be called automatically due to useEffect dependency
   };
 
   return {
@@ -156,6 +211,11 @@ export function useAnalytics() {
     policyAnalytics,
     licenseAnalytics,
     trends,
+    branchPerformance,
+    companyPerformance,
+    dealerPerformance,
+    executivePerformance,
+    calendarEvents,
     isLoading,
     error,
     dateRange,

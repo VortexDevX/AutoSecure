@@ -342,6 +342,14 @@ export const createPolicy = asyncHandler(async (req: Request, res: Response) => 
     throw new ValidationError(`Missing required fields: ${missingFields.join(', ')}`);
   }
 
+  // Validate policy_no doesn't contain characters that would break folder creation
+  const invalidFolderChars = /[/\\:*?"<>|]/;
+  if (invalidFolderChars.test(policyData.policy_no)) {
+    throw new ValidationError(
+      'Policy number cannot contain special characters: / \\ : * ? " < > |'
+    );
+  }
+
   const folderId = await FileStorageService.createPolicyFolder(policyData.policy_no);
 
   // Upload Aadhaar file if provided

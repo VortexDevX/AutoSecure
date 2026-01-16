@@ -44,7 +44,12 @@ export function Step1PolicyDetails() {
           type="text"
           placeholder="POL-2025-001"
           value={formData.policy_no || ''}
-          onChange={(e) => updateFormData({ policy_no: e.target.value })}
+          onChange={(e) => {
+            // Block characters that are invalid in folder names: / \ : * ? " < > |
+            const invalidChars = /[/\\:*?"<>|]/g;
+            const sanitizedValue = e.target.value.replace(invalidChars, '');
+            updateFormData({ policy_no: sanitizedValue });
+          }}
           required
         />
 

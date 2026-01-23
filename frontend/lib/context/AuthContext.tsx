@@ -5,6 +5,7 @@ import { User } from '../types/user';
 import { authApi } from '../api/auth';
 import { useRouter } from 'next/navigation';
 import { ROUTES, STORAGE_KEYS } from '../utils/constants';
+import { setToken, clearToken, hasToken } from '../utils/tokenStore';
 
 interface AuthContextType {
   user: User | null;
@@ -23,23 +24,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Load user from localStorage on mount
+  // Load user on mount - recover token via refresh if needed
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
         const savedUser = localStorage.getItem(STORAGE_KEYS.USER);
 
-        if (token && savedUser) {
+        if (savedUser) {
+          // Set user from localStorage for immediate UI
           setUser(JSON.parse(savedUser));
-          // Verify token is still valid
+
+          // If no token in memory, try to get one via refresh
+          if (!hasToken()) {
+            try {
+              // Refresh token is in httpOnly cookie, this will recover access token
+              const refreshResponse = await authApi.refreshToken();
+              if (refreshResponse.access_token) {
+                setToken(refreshResponse.access_token);
+              }
+            } catch (error) {
+              // Refresh failed, clear user
+              localStorage.removeItem(STORAGE_KEYS.USER);
+              setUser(null);
+              return;
+            }
+          }
+
+          // Verify user is still valid
           try {
             const currentUser = await authApi.getCurrentUser();
             setUser(currentUser);
             localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
           } catch (error) {
-            // Token invalid, clear storage
-            localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+            // Token invalid, clear everything
+            clearToken();
             localStorage.removeItem(STORAGE_KEYS.USER);
             setUser(null);
           }
@@ -58,8 +76,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await authApi.login({ email, password });
 
-      console.log('Login response in context:', response); // Debug log
-
       // Save email for TOTP step
       localStorage.setItem(STORAGE_KEYS.TOTP_EMAIL, email);
 
@@ -68,7 +84,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         sessionStorage.setItem(
           'totp_setup',
           JSON.stringify({
-            secret: response.totp_secret,
             qr_code: response.totp_qr_code,
           })
         );
@@ -79,7 +94,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         requiresTOTP: true,
         totpSetup: response.totp_setup_required
           ? {
-              secret: response.totp_secret || '',
               qr_code: response.totp_qr_code || '',
             }
           : undefined,
@@ -94,28 +108,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await authApi.verifyTOTP({ email, totp_code: code });
 
-      console.log('TOTP verification response:', response); // Debug log
-
-      // Backend returns { data: { user: {...}, accessToken: "..." } }
       const accessToken = response.accessToken || response.access_token;
-      const user = response.user;
+      const userData = response.user;
 
       if (!accessToken) {
-        console.error('No access token in response:', response);
         throw new Error('No access token received from server');
       }
 
-      if (!user) {
-        console.error('No user in response:', response);
+      if (!userData) {
         throw new Error('No user data received from server');
       }
 
-      // Save token and user
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+      // Save token in memory (not localStorage) for XSS protection
+      setToken(accessToken);
+
+      // Save user data in localStorage (non-sensitive, for UX)
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
       localStorage.removeItem(STORAGE_KEYS.TOTP_EMAIL);
 
-      setUser(user);
+      setUser(userData);
 
       // Clear TOTP setup data
       sessionStorage.removeItem('totp_setup');
@@ -134,8 +145,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Clear local storage
-      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+      // Clear token from memory
+      clearToken();
+
+      // Clear localStorage
       localStorage.removeItem(STORAGE_KEYS.USER);
       localStorage.removeItem(STORAGE_KEYS.TOTP_EMAIL);
       sessionStorage.removeItem('totp_setup');

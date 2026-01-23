@@ -51,6 +51,10 @@ export function Step1PolicyDetails() {
             updateFormData({ policy_no: sanitizedValue });
           }}
           required
+          // Make read-only when editing (drive_folder_id exists)
+          readOnly={!!formData.drive_folder_id}
+          className={formData.drive_folder_id ? 'bg-gray-100 cursor-not-allowed' : ''}
+          title={formData.drive_folder_id ? 'Policy number cannot be changed after creation' : ''}
         />
 
         <SingleDatePicker

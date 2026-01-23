@@ -149,68 +149,74 @@ const OtherDocumentSchema = new Schema(
 const PolicySchema = new Schema<IPolicy>(
   {
     // Policy Details
-    serial_no: { type: String, required: true, unique: true },
-    policy_no: { type: String, required: true, unique: true, trim: true },
+    serial_no: { type: String, required: true, unique: true, maxlength: 50 },
+    policy_no: { type: String, required: true, unique: true, trim: true, maxlength: 100 },
     issue_date: { type: Date, required: true },
-    ins_type: { type: String, required: true },
+    ins_type: { type: String, required: true, maxlength: 50 },
     start_date: { type: Date, required: true },
     end_date: { type: Date, required: true },
-    ins_status: { type: String, required: true },
-    ins_co_id: { type: String, required: true },
-    insurance_dealer: { type: String },
+    ins_status: { type: String, required: true, maxlength: 50 },
+    ins_co_id: { type: String, required: true, maxlength: 100 },
+    insurance_dealer: { type: String, maxlength: 100 },
     saod_start_date: { type: Date },
     saod_end_date: { type: Date },
     inspection: { type: String, enum: ['yes', 'no'], required: true },
 
     // Customer Details
-    branch_id: { type: String, required: true },
+    branch_id: { type: String, required: true, maxlength: 100 },
     created_by: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    exicutive_name: { type: String, required: true },
-    customer: { type: String, required: true, trim: true },
-    adh_id: { type: String },
+    exicutive_name: { type: String, required: true, maxlength: 100 },
+    customer: { type: String, required: true, trim: true, maxlength: 200 },
+    adh_id: { type: String, maxlength: 20 },
     adh_file: DriveFileSchema,
-    pan_no: { type: String, uppercase: true },
+    pan_no: { type: String, uppercase: true, maxlength: 20 },
     pan_file: DriveFileSchema,
-    mobile_no: { type: String },
-    mobile_no_two: { type: String },
-    email: { type: String, lowercase: true },
-    city_id: { type: String },
-    address_1: { type: String },
+    mobile_no: { type: String, maxlength: 20 },
+    mobile_no_two: { type: String, maxlength: 20 },
+    email: { type: String, lowercase: true, maxlength: 255 },
+    city_id: { type: String, maxlength: 100 },
+    address_1: { type: String, maxlength: 500 },
 
     // Nominee Details
-    nominee_name: { type: String, trim: true },
+    nominee_name: { type: String, trim: true, maxlength: 200 },
     nominee_dob: { type: Date },
-    nominee_relation: { type: String },
+    nominee_relation: { type: String, maxlength: 50 },
 
     // Vehicle Details
-    product: { type: String, required: true },
-    manufacturer: { type: String },
-    fuel_type: { type: String },
-    hypothecation: { type: String },
-    model_name: { type: String },
-    mfg_date: { type: String },
-    engine_no: { type: String, trim: true, uppercase: true },
-    chassis_no: { type: String, trim: true, uppercase: true },
-    registration_number: { type: String, required: true, trim: true, uppercase: true },
+    product: { type: String, required: true, maxlength: 100 },
+    manufacturer: { type: String, maxlength: 100 },
+    fuel_type: { type: String, maxlength: 50 },
+    hypothecation: { type: String, maxlength: 200 },
+    model_name: { type: String, maxlength: 100 },
+    mfg_date: { type: String, maxlength: 20 },
+    engine_no: { type: String, trim: true, uppercase: true, maxlength: 50 },
+    chassis_no: { type: String, trim: true, uppercase: true, maxlength: 50 },
+    registration_number: {
+      type: String,
+      required: true,
+      trim: true,
+      uppercase: true,
+      maxlength: 20,
+    },
     registration_date: { type: Date },
 
     // Premium Details
     sum_insured: { type: Number, min: 0 },
     cng_value: { type: Number, min: 0 },
-    od_premium: { type: Number, min: 0 }, // ✅ RENAMED from discounted_value
-    ncb: { type: String },
+    od_premium: { type: Number, min: 0 },
+    ncb: { type: String, maxlength: 20 },
     net_premium: { type: Number, min: 0 },
-    total_premium_gst: { type: Number, min: 0 }, // ✅ RENAMED from on_date_premium
-    addon_coverage: [{ type: String }],
+    total_premium_gst: { type: Number, min: 0 },
+    addon_coverage: [{ type: String, maxlength: 100 }],
     agent_commission: { type: Number, min: 0 },
     date: { type: Date },
-    other_remark: { type: String },
+    other_remark: { type: String, maxlength: 1000 },
 
     // Previous Policy Details
-    previous_policy_no: { type: String },
-    previous_policy_company: { type: String },
+    previous_policy_no: { type: String, maxlength: 100 },
+    previous_policy_company: { type: String, maxlength: 100 },
     previous_policy_expiry_date: { type: Date },
-    previous_policy_ncb: { type: String },
+    previous_policy_ncb: { type: String, maxlength: 20 },
     previous_policy_claim: { type: String, enum: ['yes', 'no'] },
 
     // Other Documents
@@ -218,22 +224,22 @@ const PolicySchema = new Schema<IPolicy>(
 
     // Customer Payment
     premium_amount: { type: Number, required: true, min: 0 },
-    customer_payment_type: { type: String },
+    customer_payment_type: { type: String, maxlength: 50 },
     customer_payment_status: { type: String, enum: ['pending', 'done'], required: true },
     voucher_no: { type: Number },
     payment_details: [PaymentDetailSchema],
-    extra_amount: { type: Number }, // ✅ Can be negative (auto-calculated)
-    profit: { type: Number }, // ✅ NEW: Can be negative (auto-calculated)
+    extra_amount: { type: Number },
+    profit: { type: Number },
 
     // Company Payment (formerly Krunal)
-    company_payment_mode: { type: String },
-    company_bank_name: { type: String },
-    company_cheque_no: { type: String },
+    company_payment_mode: { type: String, maxlength: 50 },
+    company_bank_name: { type: String, maxlength: 100 },
+    company_cheque_no: { type: String, maxlength: 50 },
     company_amount: { type: Number, min: 0 },
     company_cheque_date: { type: Date },
 
     // System
-    drive_folder_id: { type: String, required: true },
+    drive_folder_id: { type: String, required: true, maxlength: 200 },
   },
   {
     timestamps: true,

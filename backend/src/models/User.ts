@@ -22,12 +22,14 @@ const UserSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       trim: true,
+      maxlength: 255,
       match: [/^\S+@\S+\.\S+$/, 'Invalid email format'],
     },
     password_hash: {
       type: String,
       required: true,
-      select: false, // ← ADDED: Don't return by default
+      select: false,
+      maxlength: 200,
     },
     role: {
       type: String,
@@ -37,7 +39,8 @@ const UserSchema = new Schema<IUser>(
     totp_secret: {
       type: String,
       required: true,
-      select: false, // ← ADDED: Don't return by default
+      select: false,
+      maxlength: 100,
     },
     totp_enabled: {
       type: Boolean,
@@ -54,6 +57,7 @@ const UserSchema = new Schema<IUser>(
     full_name: {
       type: String,
       trim: true,
+      maxlength: 100,
     },
   },
   {

@@ -587,6 +587,11 @@ export const updatePolicy = asyncHandler(async (req: Request, res: Response) => 
   const fieldsToUpdate = { ...updateData };
   delete fieldsToUpdate.adh_file;
   delete fieldsToUpdate.pan_file;
+  // Protect immutable fields - these should never change after creation
+  // Changing policy_no would break file access since files are stored using drive_folder_id
+  delete fieldsToUpdate.drive_folder_id;
+  delete fieldsToUpdate.policy_no;
+  delete fieldsToUpdate.serial_no;
 
   Object.assign(policy, fieldsToUpdate);
   await policy.save();

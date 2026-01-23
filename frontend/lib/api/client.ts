@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { getToken, setToken, clearToken } from '../utils/tokenStore';
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
@@ -10,10 +11,10 @@ const apiClient: AxiosInstance = axios.create({
   withCredentials: true, // For cookies (refresh token)
 });
 
-// Request interceptor - Add auth token
+// Request interceptor - Add auth token from memory
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('access_token');
+    const token = getToken();
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -35,26 +36,29 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // Try to refresh token
+        // Try to refresh token using httpOnly cookie
         const refreshResponse = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/refresh`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/auth/refresh`,
           {},
           { withCredentials: true }
         );
 
-        const { access_token } = refreshResponse.data.data;
+        const newAccessToken =
+          refreshResponse.data.data?.accessToken || refreshResponse.data.data?.access_token;
 
-        // Save new token
-        localStorage.setItem('access_token', access_token);
+        if (newAccessToken) {
+          // Save new token in memory (not localStorage)
+          setToken(newAccessToken);
 
-        // Retry original request with new token
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${access_token}`;
+          // Retry original request with new token
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          }
+          return apiClient(originalRequest);
         }
-        return apiClient(originalRequest);
       } catch (refreshError) {
-        // Refresh failed, redirect to login
-        localStorage.removeItem('access_token');
+        // Refresh failed, clear token and redirect to login
+        clearToken();
         localStorage.removeItem('user');
         window.location.href = '/login';
         return Promise.reject(refreshError);

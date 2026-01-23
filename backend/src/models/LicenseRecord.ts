@@ -45,12 +45,12 @@ export interface ILicenseRecord extends Document {
 
 const LicenseDocumentSchema = new Schema(
   {
-    file_id: { type: String, required: true },
-    file_name: { type: String, required: true },
-    original_name: { type: String }, // Optional for backward compatibility
-    label: { type: String }, // Optional for backward compatibility
-    mime_type: { type: String, required: true },
-    web_view_link: { type: String, required: true },
+    file_id: { type: String, required: true, maxlength: 200 },
+    file_name: { type: String, required: true, maxlength: 200 },
+    original_name: { type: String, maxlength: 200 },
+    label: { type: String, maxlength: 100 },
+    mime_type: { type: String, required: true, maxlength: 100 },
+    web_view_link: { type: String, required: true, maxlength: 500 },
     uploaded_at: { type: Date, default: Date.now },
   },
   { _id: false }
@@ -59,18 +59,25 @@ const LicenseDocumentSchema = new Schema(
 const LicenseRecordSchema = new Schema<ILicenseRecord>(
   {
     // Required fields
-    lic_no: { type: String, required: true, unique: true, trim: true, uppercase: true },
+    lic_no: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      uppercase: true,
+      maxlength: 50,
+    },
     expiry_date: { type: Date, required: true },
 
     // Optional fields
-    application_no: { type: String, trim: true, uppercase: true },
-    customer_name: { type: String, trim: true, uppercase: true },
-    customer_address: { type: String, uppercase: true },
+    application_no: { type: String, trim: true, uppercase: true, maxlength: 50 },
+    customer_name: { type: String, trim: true, uppercase: true, maxlength: 200 },
+    customer_address: { type: String, uppercase: true, maxlength: 500 },
     dob: { type: Date },
-    mobile_no: { type: String, trim: true },
-    aadhar_no: { type: String, trim: true },
-    reference: { type: String, trim: true, uppercase: true },
-    reference_mobile_no: { type: String, trim: true },
+    mobile_no: { type: String, trim: true, maxlength: 20 },
+    aadhar_no: { type: String, trim: true, maxlength: 20 },
+    reference: { type: String, trim: true, uppercase: true, maxlength: 200 },
+    reference_mobile_no: { type: String, trim: true, maxlength: 20 },
 
     // Financial (optional with defaults)
     fee: { type: Number, default: 0, min: 0 },
@@ -79,7 +86,7 @@ const LicenseRecordSchema = new Schema<ILicenseRecord>(
     profit: { type: Number, default: 0 },
 
     // Status
-    work_process: { type: String, uppercase: true },
+    work_process: { type: String, uppercase: true, maxlength: 100 },
     approved: { type: Boolean, default: false },
     faceless_type: {
       type: String,

@@ -6,7 +6,7 @@ import { TOTPService } from '../services/totpService';
 import { AuditService } from '../services/auditService';
 import { asyncHandler } from '../utils/asyncHandler';
 import { AuthenticationError, ValidationError, NotFoundError } from '../utils/errors';
-import { validateEmail } from '../utils/validators';
+import { validateEmail, MAX_LENGTHS, validateMaxLength } from '../utils/validators';
 
 /**
  * POST /api/v1/auth/login
@@ -22,6 +22,14 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
   if (!validateEmail(email)) {
     throw new ValidationError('Invalid email format');
+  }
+
+  // Validate input lengths to prevent DoS
+  if (!validateMaxLength(email, MAX_LENGTHS.email)) {
+    throw new ValidationError('Email is too long');
+  }
+  if (!validateMaxLength(password, MAX_LENGTHS.password)) {
+    throw new ValidationError('Password is too long');
   }
 
   // Find user (include password_hash and totp_secret for verification)

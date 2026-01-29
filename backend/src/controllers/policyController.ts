@@ -4,6 +4,7 @@ import { FileStorageService } from '../services/fileStorageService';
 import { AuditService } from '../services/auditService';
 import { asyncHandler } from '../utils/asyncHandler';
 import { NotFoundError, ValidationError } from '../utils/errors';
+import { MAX_LENGTHS, validateMaxLength } from '../utils/validators';
 
 /**
  * Generate next serial number (AS20250001 format)
@@ -59,6 +60,10 @@ export const listPolicies = asyncHandler(async (req: Request, res: Response) => 
   const query: any = {};
 
   if (search) {
+    // Validate search length to prevent DoS
+    if (!validateMaxLength(search as string, MAX_LENGTHS.search)) {
+      throw new ValidationError('Search query is too long');
+    }
     // Sanitize search input to prevent ReDoS and NoSQL injection
     const sanitizedSearch = (search as string).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     query.$or = [
@@ -226,6 +231,10 @@ export const getPolicies = asyncHandler(async (req: Request, res: Response) => {
   const query: any = {};
 
   if (search) {
+    // Validate search length to prevent DoS
+    if (!validateMaxLength(search, MAX_LENGTHS.search)) {
+      throw new ValidationError('Search query is too long');
+    }
     // Sanitize search input to prevent ReDoS and NoSQL injection
     const sanitizedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     query.$or = [

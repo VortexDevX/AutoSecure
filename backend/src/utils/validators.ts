@@ -1,5 +1,43 @@
 import { ValidationError } from './errors';
 
+/**
+ * Maximum allowed lengths for user inputs to prevent DoS via memory exhaustion
+ */
+export const MAX_LENGTHS = {
+  email: 254,
+  password: 128,
+  name: 100,
+  policy_no: 50,
+  search: 200,
+  customer: 150,
+  address: 500,
+  notes: 2000,
+} as const;
+
+/**
+ * Validate that a string does not exceed the maximum length
+ */
+export const validateMaxLength = (value: string, max: number): boolean => {
+  return value.length <= max;
+};
+
+/**
+ * Validate string length and return error message if exceeded
+ */
+export const validateStringLength = (
+  value: string,
+  fieldName: string,
+  max: number
+): { valid: boolean; error?: string } => {
+  if (value.length > max) {
+    return {
+      valid: false,
+      error: `${fieldName} must not exceed ${max} characters`,
+    };
+  }
+  return { valid: true };
+};
+
 export const validateEmail = (email: string): boolean => {
   const emailRegex = /^\S+@\S+\.\S+$/;
   return emailRegex.test(email);

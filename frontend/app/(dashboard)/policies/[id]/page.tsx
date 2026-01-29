@@ -663,7 +663,9 @@ export default function PolicyDetailPage() {
               <div className="space-y-4">
                 <div>
                   <p className="text-xl font-semibold text-gray-900">{policy.customer}</p>
-                  <p className="text-sm text-gray-500">Executive: {policy.exicutive_name}</p>
+                  <p className="text-sm text-gray-500">
+                    Executive: {formatLabel(renderValue(policy.exicutive_name))}
+                  </p>
                 </div>
                 <div className="space-y-2 text-sm">
                   {policy.mobile_no && (

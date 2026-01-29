@@ -222,6 +222,7 @@ export interface PolicyListItem {
   mobile_no?: string;
   registration_number: string;
   ins_status: string;
+  ins_co_id: string;
   customer_payment_status: string;
   premium_amount: number;
   net_premium: number;

@@ -280,7 +280,7 @@ export const getPolicies = asyncHandler(async (req: Request, res: Response) => {
       .skip(skip)
       .limit(limit)
       .select(
-        'serial_no policy_no customer email mobile_no registration_number ins_status customer_payment_status premium_amount net_premium start_date end_date saod_end_date created_by createdAt'
+        'serial_no policy_no customer email mobile_no registration_number ins_status ins_co_id customer_payment_status premium_amount net_premium start_date end_date saod_end_date created_by createdAt'
       ),
     Policy.countDocuments(query),
   ]);
@@ -297,6 +297,7 @@ export const getPolicies = asyncHandler(async (req: Request, res: Response) => {
         mobile_no: policy.mobile_no,
         registration_number: policy.registration_number,
         ins_status: policy.ins_status,
+        ins_co_id: policy.ins_co_id,
         customer_payment_status: policy.customer_payment_status,
         premium_amount: policy.premium_amount,
         net_premium: policy.net_premium,

@@ -24,9 +24,9 @@ interface PolicyTableProps {
 }
 
 // Menu item heights for position calculation
-const MENU_ITEM_HEIGHT = 40; // Each menu item ~40px
-const MENU_DIVIDER_HEIGHT = 9; // Divider with margin ~9px
-const MENU_PADDING = 8; // py-1 = 8px total
+const MENU_ITEM_HEIGHT = 40;
+const MENU_DIVIDER_HEIGHT = 9;
+const MENU_PADDING = 8;
 
 function ActionsMenu({
   policy,
@@ -50,14 +50,11 @@ function ActionsMenu({
     setIsMounted(true);
   }, []);
 
-  // Calculate actual menu height based on visible items
   const getMenuHeight = () => {
-    let itemCount = 2; // View Details + Send Email (always visible)
-    if (canEdit) itemCount += 1; // Edit Policy
-    if (canDelete) itemCount += 1; // Delete Policy
-
-    const dividerCount = canDelete ? 1 : 0; // Divider only shows before Delete
-
+    let itemCount = 2;
+    if (canEdit) itemCount += 1;
+    if (canDelete) itemCount += 1;
+    const dividerCount = canDelete ? 1 : 0;
     return itemCount * MENU_ITEM_HEIGHT + dividerCount * MENU_DIVIDER_HEIGHT + MENU_PADDING;
   };
 
@@ -69,22 +66,18 @@ function ActionsMenu({
       const spaceAbove = rect.top;
       const menuHeight = getMenuHeight();
 
-      // Determine if we should open up or down
       const shouldOpenUp = spaceBelow < menuHeight && spaceAbove > spaceBelow;
       setOpenDirection(shouldOpenUp ? 'up' : 'down');
 
-      // Calculate left position (ensure menu doesn't go off-screen)
-      let left = rect.right + window.scrollX - 224; // 224 = menu width (w-56 = 14rem = 224px)
-      if (left < 8) left = 8; // Minimum 8px from left edge
+      let left = rect.right + window.scrollX - 224;
+      if (left < 8) left = 8;
 
       if (shouldOpenUp) {
-        // Position above the button
         setMenuPosition({
           top: rect.top + window.scrollY - menuHeight - 8,
           left,
         });
       } else {
-        // Position below the button
         setMenuPosition({
           top: rect.bottom + window.scrollY + 8,
           left,
@@ -113,10 +106,10 @@ function ActionsMenu({
           <>
             <Menu.Button
               ref={buttonRef}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
               aria-label="Actions"
             >
-              <EllipsisVerticalIcon className="w-5 h-5 text-gray-600" />
+              <EllipsisVerticalIcon className="w-4 h-4 text-gray-500" />
             </Menu.Button>
 
             {isMounted &&
@@ -133,7 +126,7 @@ function ActionsMenu({
                 >
                   <Menu.Items
                     className={clsx(
-                      'fixed w-56 bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50',
+                      'fixed w-48 bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50',
                       openDirection === 'up' ? 'origin-bottom-right' : 'origin-top-right'
                     )}
                     style={{
@@ -147,29 +140,28 @@ function ActionsMenu({
                           <Link
                             href={`/policies/${policy.id}`}
                             className={clsx(
-                              'flex items-center gap-2 px-4 py-2 text-sm',
+                              'flex items-center gap-2 px-3 py-2 text-sm',
                               active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
                             )}
                           >
                             <EyeIcon className="w-4 h-4" />
-                            View Details
+                            View
                           </Link>
                         )}
                       </Menu.Item>
 
-                      {/* Edit - Only for admin/owner */}
                       {canEdit && (
                         <Menu.Item>
                           {({ active }) => (
                             <Link
                               href={`/policies/${policy.id}/edit`}
                               className={clsx(
-                                'flex items-center gap-2 px-4 py-2 text-sm',
+                                'flex items-center gap-2 px-3 py-2 text-sm',
                                 active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
                               )}
                             >
                               <PencilIcon className="w-4 h-4" />
-                              Edit Policy
+                              Edit
                             </Link>
                           )}
                         </Menu.Item>
@@ -180,17 +172,16 @@ function ActionsMenu({
                           <button
                             onClick={() => onSendEmail(policy.id)}
                             className={clsx(
-                              'w-full flex items-center gap-2 px-4 py-2 text-sm text-left',
+                              'w-full flex items-center gap-2 px-3 py-2 text-sm text-left',
                               active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
                             )}
                           >
                             <EnvelopeIcon className="w-4 h-4" />
-                            Send Email
+                            Email
                           </button>
                         )}
                       </Menu.Item>
 
-                      {/* Delete - Only for admin/owner */}
                       {canDelete && (
                         <>
                           <div className="border-t border-gray-100 my-1"></div>
@@ -199,12 +190,12 @@ function ActionsMenu({
                               <button
                                 onClick={() => onDelete(policy.id)}
                                 className={clsx(
-                                  'w-full flex items-center gap-2 px-4 py-2 text-sm text-left',
+                                  'w-full flex items-center gap-2 px-3 py-2 text-sm text-left',
                                   active ? 'bg-red-50 text-red-700' : 'text-red-600'
                                 )}
                               >
                                 <TrashIcon className="w-4 h-4" />
-                                Delete Policy
+                                Delete
                               </button>
                             )}
                           </Menu.Item>
@@ -225,7 +216,6 @@ function ActionsMenu({
 export function PolicyTable({ policies, onDelete, onSendEmail }: PolicyTableProps) {
   const { user } = useAuth();
 
-  // Users can only view and send email, not edit or delete
   const canEdit = user?.role === 'owner' || user?.role === 'admin';
   const canDelete = user?.role === 'owner' || user?.role === 'admin';
 
@@ -241,66 +231,80 @@ export function PolicyTable({ policies, onDelete, onSendEmail }: PolicyTableProp
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-gray-50 text-xs text-gray-700 uppercase">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50/80 text-xs text-gray-600 uppercase tracking-wide border-b border-gray-200">
             <tr>
-              <th className="px-6 py-3 whitespace-nowrap">Serial No.</th>
-              <th className="px-6 py-3 whitespace-nowrap">Policy No.</th>
-              <th className="px-6 py-3 whitespace-nowrap">Customer</th>
-              <th className="px-6 py-3 whitespace-nowrap">Vehicle</th>
-              <th className="px-6 py-3 whitespace-nowrap">Status</th>
-              <th className="px-6 py-3 whitespace-nowrap">Payment</th>
-              <th className="px-6 py-3 whitespace-nowrap">Net Premium</th>
-              <th className="px-6 py-3 whitespace-nowrap">Expiry Date</th>
-              <th className="px-6 py-3 text-right whitespace-nowrap">Actions</th>
+              <th className="px-3 py-2.5 text-left font-medium">Serial</th>
+              <th className="px-3 py-2.5 text-left font-medium">Policy No</th>
+              <th className="px-3 py-2.5 text-left font-medium">Customer</th>
+              <th className="px-3 py-2.5 text-left font-medium">Vehicle</th>
+              <th className="px-3 py-2.5 text-left font-medium">Ins. Company</th>
+              <th className="px-3 py-2.5 text-left font-medium">Status</th>
+              <th className="px-3 py-2.5 text-left font-medium">Payment</th>
+              <th className="px-3 py-2.5 text-right font-medium">Premium</th>
+              <th className="px-3 py-2.5 text-left font-medium">Expiry</th>
+              <th className="px-3 py-2.5 text-right font-medium w-12"></th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-100">
             {policies.map((policy) => (
-              <tr key={policy.id} className="border-b hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
-                  {policy.serial_no || '-'}
-                </td>
-                <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                  <Link href={`/policies/${policy.id}`} className="hover:text-primary">
+              <tr key={policy.id} className="hover:bg-gray-50/50 transition-colors">
+                <td className="px-3 py-2.5 text-gray-500 text-xs">{policy.serial_no || '-'}</td>
+                <td className="px-3 py-2.5">
+                  <Link
+                    href={`/policies/${policy.id}`}
+                    className="font-medium text-gray-900 hover:text-primary transition-colors"
+                  >
                     {policy.policy_no}
                   </Link>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div>
-                    <p className="font-medium text-gray-900">{policy.customer}</p>
+                <td className="px-3 py-2.5">
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900 truncate max-w-[180px]">
+                      {policy.customer}
+                    </p>
                     <p className="text-xs text-gray-500">{policy.mobile_no || '-'}</p>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">{policy.registration_number}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={clsx(
-                      'badge',
-                      policy.ins_status === 'policy_done' ? 'badge-success' : 'badge-warning'
-                    )}
-                  >
-                    {policy.ins_status}
+                <td className="px-3 py-2.5 text-gray-700 font-mono text-xs">
+                  {policy.registration_number}
+                </td>
+                <td className="px-3 py-2.5">
+                  <span className="text-xs font-medium text-gray-600 uppercase">
+                    {policy.ins_co_id || '-'}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 py-2.5">
                   <span
                     className={clsx(
-                      'badge',
-                      policy.customer_payment_status === 'done' ? 'badge-success' : 'badge-warning'
+                      'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
+                      policy.ins_status === 'policy_done'
+                        ? 'bg-green-50 text-green-700'
+                        : 'bg-amber-50 text-amber-700'
                     )}
                   >
-                    {policy.customer_payment_status}
+                    {policy.ins_status === 'policy_done' ? 'Done' : policy.ins_status}
                   </span>
                 </td>
-                <td className="px-6 py-4 font-semibold whitespace-nowrap">
+                <td className="px-3 py-2.5">
+                  <span
+                    className={clsx(
+                      'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
+                      policy.customer_payment_status === 'done'
+                        ? 'bg-green-50 text-green-700'
+                        : 'bg-amber-50 text-amber-700'
+                    )}
+                  >
+                    {policy.customer_payment_status === 'done' ? 'Paid' : 'Pending'}
+                  </span>
+                </td>
+                <td className="px-3 py-2.5 text-right font-semibold text-gray-900 tabular-nums">
                   {formatCurrency(policy.net_premium ?? policy.premium_amount)}
                 </td>
-                <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
-                  {/* FIX: Show saod_end_date if available, otherwise end_date */}
+                <td className="px-3 py-2.5 text-gray-500 text-xs">
                   {formatDate(policy.saod_end_date || policy.end_date)}
                 </td>
-                <td className="px-6 py-4 text-right whitespace-nowrap">
+                <td className="px-3 py-2.5 text-right">
                   <ActionsMenu
                     policy={policy}
                     onDelete={onDelete}

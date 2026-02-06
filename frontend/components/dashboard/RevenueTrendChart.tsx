@@ -34,37 +34,6 @@ export function RevenueTrendChart({ data, period }: RevenueTrendChartProps) {
     }).format(value);
   };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
-          <p className="font-medium text-gray-900 mb-2">
-            {period === 'yearly'
-              ? data._id.year
-              : period === 'monthly'
-              ? new Date(data._id.year, data._id.month - 1).toLocaleDateString('en-US', {
-                  month: 'long',
-                  year: 'numeric',
-                })
-              : new Date(data._id.year, data._id.month - 1, data._id.day).toLocaleDateString(
-                  'en-US',
-                  { month: 'short', day: 'numeric', year: 'numeric' }
-                )}
-          </p>
-          <div className="space-y-1">
-            <p className="text-sm text-blue-600">Premium: {formatCurrency(data.total_premium)}</p>
-            <p className="text-sm text-green-600">
-              Commission: {formatCurrency(data.total_commission)}
-            </p>
-            <p className="text-sm text-gray-600">Policies: {data.count}</p>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
-
   if (!data || data.length === 0) {
     return (
       <Card>
@@ -94,25 +63,25 @@ export function RevenueTrendChart({ data, period }: RevenueTrendChartProps) {
         period === 'yearly'
           ? item._id.year.toString()
           : period === 'monthly'
-          ? `${item._id.year}-${(item._id.month || 1).toString().padStart(2, '0')}`
-          : `${item._id.year}-${(item._id.month || 1).toString().padStart(2, '0')}-${(
-              item._id.day || 1
-            )
-              .toString()
-              .padStart(2, '0')}`,
+            ? `${item._id.year}-${(item._id.month || 1).toString().padStart(2, '0')}`
+            : `${item._id.year}-${(item._id.month || 1).toString().padStart(2, '0')}-${(
+                item._id.day || 1
+              )
+                .toString()
+                .padStart(2, '0')}`,
       displayDate:
         period === 'yearly'
           ? item._id.year.toString()
           : period === 'monthly'
-          ? new Date(item._id.year, (item._id.month || 1) - 1).toLocaleDateString('en-US', {
-              month: 'short',
-              year: '2-digit',
-            })
-          : new Date(
-              item._id.year,
-              (item._id.month || 1) - 1,
-              item._id.day || 1
-            ).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            ? new Date(item._id.year, (item._id.month || 1) - 1).toLocaleDateString('en-US', {
+                month: 'short',
+                year: '2-digit',
+              })
+            : new Date(
+                item._id.year,
+                (item._id.month || 1) - 1,
+                item._id.day || 1
+              ).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     }));
 
   return (
@@ -132,7 +101,8 @@ export function RevenueTrendChart({ data, period }: RevenueTrendChartProps) {
                 fontSize={11}
                 width={50}
               />
-              <Tooltip content={<CustomTooltip />} />
+
+              <Tooltip content={<CustomTooltip period={period} />} />
               <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Line
                 type="monotone"
@@ -159,3 +129,50 @@ export function RevenueTrendChart({ data, period }: RevenueTrendChartProps) {
     </Card>
   );
 }
+
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+};
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: any[];
+  label?: string;
+  period: 'daily' | 'monthly' | 'yearly';
+}
+
+const CustomTooltip = ({ active, payload, label, period }: CustomTooltipProps) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+        <p className="font-medium text-gray-900 mb-2">
+          {period === 'yearly'
+            ? data._id.year
+            : period === 'monthly'
+              ? new Date(data._id.year, data._id.month - 1).toLocaleDateString('en-US', {
+                  month: 'long',
+                  year: 'numeric',
+                })
+              : new Date(data._id.year, data._id.month - 1, data._id.day).toLocaleDateString(
+                  'en-US',
+                  { month: 'short', day: 'numeric', year: 'numeric' }
+                )}
+        </p>
+        <div className="space-y-1">
+          <p className="text-sm text-blue-600">Premium: {formatCurrency(data.total_premium)}</p>
+          <p className="text-sm text-green-600">
+            Commission: {formatCurrency(data.total_commission)}
+          </p>
+          <p className="text-sm text-gray-600">Policies: {data.count}</p>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};

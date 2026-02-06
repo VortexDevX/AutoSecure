@@ -3,6 +3,7 @@ import {
   analyticsApi,
   OverviewAnalytics,
   PolicyAnalytics,
+  LicenseAnalytics,
   TrendData,
   PerformanceData,
   CalendarEventsData,
@@ -12,7 +13,7 @@ import { DateRangePreset } from '@/components/ui/DateRangeSelector';
 export function useAnalytics() {
   const [overview, setOverview] = useState<OverviewAnalytics | null>(null);
   const [policyAnalytics, setPolicyAnalytics] = useState<PolicyAnalytics | null>(null);
-  const [licenseAnalytics, setLicenseAnalytics] = useState<any | null>(null);
+  const [licenseAnalytics, setLicenseAnalytics] = useState<LicenseAnalytics | null>(null);
   const [trends, setTrends] = useState<TrendData | null>(null);
 
   // Performance data
@@ -134,9 +135,9 @@ export function useAnalytics() {
       setCompanyPerformance(companyData);
       setDealerPerformance(dealerData);
       setExecutivePerformance(executiveData);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Analytics fetch error:', err);
-      setError(err.message || 'Failed to fetch analytics');
+      setError((err as Error).message || 'Failed to fetch analytics');
     } finally {
       setIsLoading(false);
     }
@@ -153,9 +154,9 @@ export function useAnalytics() {
       console.log('Fetching trends:', { dateRange, period, months, startDate, endDate });
       const trendsData = await analyticsApi.getTrends(period, months, startDate, endDate);
       setTrends(trendsData);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Trends fetch error:', err);
-      setError(err.message || 'Failed to fetch trends');
+      setError((err as Error).message || 'Failed to fetch trends');
     }
   }, [dateRange]);
 
@@ -173,7 +174,7 @@ export function useAnalytics() {
         end.toISOString()
       );
       setCalendarEvents(calendarData);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch calendar events:', err);
     }
   }, []);
@@ -195,8 +196,8 @@ export function useAnalytics() {
     try {
       await Promise.all([fetchAnalytics(), fetchTrends(), fetchCalendarEvents()]);
       setError(null);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch analytics');
+    } catch (err) {
+      setError((err as Error).message || 'Failed to fetch analytics');
     } finally {
       setIsLoading(false);
     }

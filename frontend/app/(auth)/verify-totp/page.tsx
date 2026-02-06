@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ROUTES, STORAGE_KEYS } from '@/lib/utils/constants';
 import toast from 'react-hot-toast';
+import { getErrorMessage } from '@/lib/api/client';
 import Image from 'next/image';
 
 export default function VerifyTOTPPage() {
@@ -52,7 +53,7 @@ export default function VerifyTOTPPage() {
       sessionStorage.removeItem('totp_setup');
       toast.success('Login successful!');
     } catch (error: any) {
-      toast.error(error.message || 'Invalid TOTP code. Please try again.');
+      toast.error(getErrorMessage(error));
       setCode('');
     } finally {
       setIsLoading(false);

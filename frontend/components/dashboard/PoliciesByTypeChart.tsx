@@ -13,22 +13,6 @@ export function PoliciesByTypeChart({ data }: PoliciesByTypeChartProps) {
     value: item.count,
   }));
 
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0];
-      return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
-          <p className="font-medium text-gray-900">{data.name}</p>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: data.payload.fill }} />
-            <p className="text-sm text-gray-600">{data.value} policies</p>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
-
   if (!data || data.length === 0) {
     return (
       <Card>
@@ -89,3 +73,19 @@ export function PoliciesByTypeChart({ data }: PoliciesByTypeChartProps) {
     </Card>
   );
 }
+
+const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: any[] }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0];
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+        <p className="font-medium text-gray-900">{data.name}</p>
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: data.payload.fill }} />
+          <p className="text-sm text-gray-600">{data.value} policies</p>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};

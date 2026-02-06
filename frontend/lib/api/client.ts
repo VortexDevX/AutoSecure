@@ -32,7 +32,12 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
     // If 401 and not already retried, try to refresh token
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Skip refresh for auth routes (login, verify-totp) to avoid infinite loops
+    const isAuthRoute =
+      originalRequest.url?.includes('/auth/login') ||
+      originalRequest.url?.includes('/auth/verify-totp');
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
       originalRequest._retry = true;
 
       try {

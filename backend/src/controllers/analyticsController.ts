@@ -38,12 +38,28 @@ export const getOverview = asyncHandler(async (req: Request, res: Response) => {
         _id: null,
         total_premium: { $sum: '$premium_amount' },
         total_commission: { $sum: '$agent_commission' },
+        total_profit: { $sum: '$profit' },
+        total_gst: { $sum: '$total_premium_gst' },
+      },
+    },
+  ]);
+
+  // Total profit from licenses
+  const licenseProfitStats = await LicenseRecord.aggregate([
+    {
+      $group: {
+        _id: null,
+        total_profit: { $sum: '$profit' },
       },
     },
   ]);
 
   const totalPremium = premiumStats[0]?.total_premium || 0;
   const totalCommission = premiumStats[0]?.total_commission || 0;
+  const totalPolicyProfit = premiumStats[0]?.total_profit || 0;
+  const totalLicenseProfit = licenseProfitStats[0]?.total_profit || 0;
+  const totalGST = premiumStats[0]?.total_gst || 0;
+  const totalProfit = totalPolicyProfit + totalLicenseProfit;
 
   // Premium this month (both premium_amount and net_premium) - using issue_date instead of createdAt
   const premiumThisMonth = await Policy.aggregate([
@@ -58,6 +74,24 @@ export const getOverview = asyncHandler(async (req: Request, res: Response) => {
         total_premium: { $sum: '$premium_amount' },
         total_net_premium: { $sum: '$net_premium' },
         total_commission: { $sum: '$agent_commission' },
+        total_profit: { $sum: '$profit' },
+        total_gst: { $sum: '$total_premium_gst' },
+      },
+    },
+  ]);
+
+  // License profit this month (approximate based on expiry_date for now as createdAt might not be reliably set for all)
+  // Or better, use createdAt if available on LicenseRecord
+  const licenseProfitThisMonth = await LicenseRecord.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startOfMonth },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        total_profit: { $sum: '$profit' },
       },
     },
   ]);
@@ -65,6 +99,10 @@ export const getOverview = asyncHandler(async (req: Request, res: Response) => {
   const monthPremium = premiumThisMonth[0]?.total_premium || 0;
   const monthNetPremium = premiumThisMonth[0]?.total_net_premium || 0;
   const monthCommission = premiumThisMonth[0]?.total_commission || 0;
+  const monthPolicyProfit = premiumThisMonth[0]?.total_profit || 0;
+  const monthLicenseProfit = licenseProfitThisMonth[0]?.total_profit || 0;
+  const monthProfit = monthPolicyProfit + monthLicenseProfit;
+  const monthGST = premiumThisMonth[0]?.total_gst || 0;
 
   // Active vs Expired policies
   const activeVsExpired = await Policy.aggregate([
@@ -163,9 +201,13 @@ export const getOverview = asyncHandler(async (req: Request, res: Response) => {
       financial: {
         total_premium: totalPremium,
         total_commission: totalCommission,
+        total_profit: totalProfit,
+        total_gst: totalGST,
         month_premium: monthPremium,
         month_net_premium: monthNetPremium,
         month_commission: monthCommission,
+        month_profit: monthProfit,
+        month_gst: monthGST,
       },
       expiring_items: {
         policies: expiringPolicies,
@@ -652,6 +694,8 @@ export const getTrends = asyncHandler(async (req: Request, res: Response) => {
         count: { $sum: 1 },
         total_premium: { $sum: '$premium_amount' },
         total_commission: { $sum: '$agent_commission' },
+        total_profit: { $sum: '$profit' },
+        total_gst: { $sum: '$total_premium_gst' },
       },
     },
     {

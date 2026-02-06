@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { ROUTES } from '@/lib/utils/constants';
 import toast from 'react-hot-toast';
 import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import { getErrorMessage } from '@/lib/api/client';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -58,7 +59,7 @@ export default function LoginPage() {
       console.error('Login error:', error);
 
       // ✅ IMPROVED: Show specific error messages
-      const errorMessage = error?.message || 'Login failed. Please check your credentials.';
+      const errorMessage = getErrorMessage(error);
 
       // ✅ Show toast with specific styling based on error type
       if (errorMessage.includes('deactivated')) {

@@ -513,11 +513,19 @@ export default function PolicyDetailPage() {
               )}
 
               {/* Total Premium */}
-              <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center">
-                <span className="text-lg font-semibold text-gray-900">Total Premium Amount</span>
-                <span className="text-2xl font-bold text-primary">
-                  {formatCurrency(policy.premium_amount)}
-                </span>
+              <div className="mt-6 pt-4 border-t border-gray-200 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold text-gray-900">Total Premium Amount</span>
+                  <span className="text-2xl font-bold text-gray-900">
+                    {formatCurrency(policy.premium_amount)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-base font-medium text-gray-500">GST Premium</span>
+                  <span className="text-xl font-semibold text-primary">
+                    {policy.total_premium_gst ? formatCurrency(policy.total_premium_gst) : '-'}
+                  </span>
+                </div>
               </div>
             </div>
           </Card>

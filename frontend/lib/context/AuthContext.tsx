@@ -73,70 +73,76 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    try {
-      const response = await authApi.login({ email, password });
+    const result = await authApi.login({ email, password });
 
-      // Save email for TOTP step
-      localStorage.setItem(STORAGE_KEYS.TOTP_EMAIL, email);
-
-      // Check if TOTP setup is needed (first time)
-      if (response.totp_setup_required && response.totp_qr_code) {
-        sessionStorage.setItem(
-          'totp_setup',
-          JSON.stringify({
-            qr_code: response.totp_qr_code,
-          })
-        );
-      }
-
-      // Always requires TOTP
-      return {
-        requiresTOTP: true,
-        totpSetup: response.totp_setup_required
-          ? {
-              qr_code: response.totp_qr_code || '',
-            }
-          : undefined,
-      };
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
+    if (!result.success || !result.data) {
+      const errorMsg = result.error || 'Login failed';
+      console.warn('Login failed:', errorMsg);
+      throw new Error(errorMsg);
     }
+
+    const response = result.data;
+
+    // Save email for TOTP step
+    localStorage.setItem(STORAGE_KEYS.TOTP_EMAIL, email);
+
+    // Check if TOTP setup is needed (first time)
+    if (response.totp_setup_required && response.totp_qr_code) {
+      sessionStorage.setItem(
+        'totp_setup',
+        JSON.stringify({
+          qr_code: response.totp_qr_code,
+        })
+      );
+    }
+
+    // Always requires TOTP
+    return {
+      requiresTOTP: true,
+      totpSetup: response.totp_setup_required
+        ? {
+            qr_code: response.totp_qr_code || '',
+          }
+        : undefined,
+    };
   };
 
   const verifyTOTP = async (email: string, code: string) => {
-    try {
-      const response = await authApi.verifyTOTP({ email, totp_code: code });
+    const result = await authApi.verifyTOTP({ email, totp_code: code });
 
-      const accessToken = response.accessToken || response.access_token;
-      const userData = response.user;
-
-      if (!accessToken) {
-        throw new Error('No access token received from server');
-      }
-
-      if (!userData) {
-        throw new Error('No user data received from server');
-      }
-
-      // Save token in memory (not localStorage) for XSS protection
-      setToken(accessToken);
-
-      // Save user data in localStorage (non-sensitive, for UX)
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
-      localStorage.removeItem(STORAGE_KEYS.TOTP_EMAIL);
-
-      setUser(userData);
-
-      // Clear TOTP setup data
-      sessionStorage.removeItem('totp_setup');
-
-      // Redirect to dashboard
-      router.push(ROUTES.DASHBOARD);
-    } catch (error) {
-      console.error('TOTP verification error:', error);
-      throw error;
+    if (!result.success || !result.data) {
+      const errorMsg = result.error || 'TOTP verification failed';
+      console.warn('TOTP verification failed:', errorMsg);
+      throw new Error(errorMsg);
     }
+
+    const response = result.data;
+
+    const accessToken = response.accessToken || response.access_token;
+    const userData = response.user;
+
+    if (!accessToken) {
+      throw new Error('No access token received from server');
+    }
+
+    if (!userData) {
+      throw new Error('No user data received from server');
+    }
+
+    // Save token in memory (not localStorage) for XSS protection
+    setToken(accessToken);
+
+    // Save user data in localStorage (non-sensitive, for UX)
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+    localStorage.removeItem(STORAGE_KEYS.TOTP_EMAIL);
+
+    setUser(userData);
+
+    // Clear TOTP setup data
+    sessionStorage.removeItem('totp_setup');
+
+    // Redirect to dashboard
+    router.push(ROUTES.DASHBOARD);
   };
 
   const logout = async () => {

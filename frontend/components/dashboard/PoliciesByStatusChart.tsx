@@ -24,18 +24,6 @@ export function PoliciesByStatusChart({ data }: PoliciesByStatusChartProps) {
 
   const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6'];
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
-          <p className="font-medium text-gray-900">{label}</p>
-          <p className="text-sm text-gray-600">{payload[0].value} policies</p>
-        </div>
-      );
-    }
-    return null;
-  };
-
   if (!data || data.length === 0) {
     return (
       <Card>
@@ -83,3 +71,23 @@ export function PoliciesByStatusChart({ data }: PoliciesByStatusChartProps) {
     </Card>
   );
 }
+
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: any[];
+  label?: string;
+}) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+        <p className="font-medium text-gray-900">{label}</p>
+        <p className="text-sm text-gray-600">{payload[0].value} policies</p>
+      </div>
+    );
+  }
+  return null;
+};

@@ -6,7 +6,9 @@ export const authApi = {
   /**
    * Login - Step 1: Email + Password
    */
-  async login(credentials: LoginCredentials): Promise<AuthResponse> {
+  async login(
+    credentials: LoginCredentials
+  ): Promise<{ success: boolean; data?: AuthResponse; error?: string }> {
     try {
       const response = await apiClient.post<ApiResponse<AuthResponse>>(
         '/api/v1/auth/login',
@@ -14,39 +16,18 @@ export const authApi = {
       );
 
       const data = response.data.data || response.data;
-      return data as AuthResponse;
+      return { success: true, data: data as AuthResponse };
     } catch (error: any) {
-      // ✅ IMPROVED: Extract specific error messages
-      const message = error?.response?.data?.message || getErrorMessage(error);
-
-      // ✅ Map backend errors to user-friendly messages
-      if (
-        message.includes('Invalid credentials') ||
-        message.includes('Invalid email or password')
-      ) {
-        throw new Error('Invalid email or password. Please check your credentials and try again.');
-      }
-      if (
-        message.includes('disabled') ||
-        message.includes('deactivated') ||
-        message.includes('inactive')
-      ) {
-        throw new Error(
-          'Your account has been deactivated. Please contact the system administrator.'
-        );
-      }
-      if (message.includes('not found')) {
-        throw new Error('Invalid email or password. Please check your credentials and try again.');
-      }
-
-      throw new Error(message || 'Login failed. Please try again.');
+      return { success: false, error: getErrorMessage(error) };
     }
   },
 
   /**
    * Login - Step 2: TOTP Verification
    */
-  async verifyTOTP(verification: TOTPVerification): Promise<AuthResponse> {
+  async verifyTOTP(
+    verification: TOTPVerification
+  ): Promise<{ success: boolean; data?: AuthResponse; error?: string }> {
     try {
       const response = await apiClient.post<ApiResponse<AuthResponse>>(
         '/api/v1/auth/verify-totp',
@@ -54,19 +35,9 @@ export const authApi = {
       );
 
       const data = response.data.data || response.data;
-      return data as AuthResponse;
+      return { success: true, data: data as AuthResponse };
     } catch (error: any) {
-      // ✅ IMPROVED: Specific TOTP error messages
-      const message = error?.response?.data?.message || getErrorMessage(error);
-
-      if (message.includes('Invalid') || message.includes('incorrect')) {
-        throw new Error('Invalid TOTP code. Please check your authenticator app and try again.');
-      }
-      if (message.includes('expired')) {
-        throw new Error('TOTP code expired. Please generate a new code.');
-      }
-
-      throw new Error(message || 'TOTP verification failed. Please try again.');
+      return { success: false, error: getErrorMessage(error) };
     }
   },
 

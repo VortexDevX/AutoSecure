@@ -1,5 +1,5 @@
 // Generic API response wrapper
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   status?: 'success' | 'error';
   success?: boolean;
   message?: string;

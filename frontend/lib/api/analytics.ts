@@ -38,8 +38,12 @@ export interface OverviewAnalytics {
   financial: {
     total_premium: number;
     total_commission: number;
+    total_profit: number;
+    total_gst: number;
     month_premium: number;
     month_commission: number;
+    month_profit: number;
+    month_gst: number;
   };
   expiring_items: ExpiringItems;
 }
@@ -55,6 +59,15 @@ export interface PolicyAnalytics {
   };
 }
 
+export interface LicenseAnalytics {
+  status_breakdown: Array<{ _id: string; count: number }>;
+  expiring: {
+    next_7_days: number;
+    next_30_days: number;
+    next_90_days: number;
+  };
+}
+
 export interface TrendData {
   period: string;
   date_range: string;
@@ -63,6 +76,8 @@ export interface TrendData {
     count: number;
     total_premium: number;
     total_commission: number;
+    total_profit: number;
+    total_gst: number;
   }>;
 }
 
@@ -150,17 +165,7 @@ export const analyticsApi = {
   /**
    * Get license analytics
    */
-  async getLicenseAnalytics(
-    startDate?: string,
-    endDate?: string
-  ): Promise<{
-    status_breakdown: Array<{ _id: string; count: number }>;
-    expiring: {
-      next_7_days: number;
-      next_30_days: number;
-      next_90_days: number;
-    };
-  }> {
+  async getLicenseAnalytics(startDate?: string, endDate?: string): Promise<LicenseAnalytics> {
     try {
       const params = new URLSearchParams();
       if (startDate) params.append('startDate', startDate);

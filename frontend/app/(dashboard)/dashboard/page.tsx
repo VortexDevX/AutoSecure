@@ -86,19 +86,29 @@ export default function DashboardPage() {
       return {
         rangePremium: 0,
         rangeCommission: 0,
+        rangeProfit: 0,
+        rangeGST: 0,
         totalPremium: overview?.financial?.total_premium || 0,
         totalCommission: overview?.financial?.total_commission || 0,
+        totalProfit: overview?.financial?.total_profit || 0,
+        totalGST: overview?.financial?.total_gst || 0,
       };
     }
 
     const rangePremium = trends.trends.reduce((sum, item) => sum + item.total_premium, 0);
     const rangeCommission = trends.trends.reduce((sum, item) => sum + item.total_commission, 0);
+    const rangeProfit = trends.trends.reduce((sum, item) => sum + item.total_profit, 0);
+    const rangeGST = trends.trends.reduce((sum, item) => sum + item.total_gst, 0);
 
     return {
       rangePremium,
       rangeCommission,
+      rangeProfit,
+      rangeGST,
       totalPremium: overview?.financial?.total_premium || 0,
       totalCommission: overview?.financial?.total_commission || 0,
+      totalProfit: overview?.financial?.total_profit || 0,
+      totalGST: overview?.financial?.total_gst || 0,
     };
   };
 
@@ -218,21 +228,15 @@ export default function DashboardPage() {
                 <p className="text-xs font-medium text-green-600 uppercase mb-1">Licenses</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {licenseAnalytics?.status_breakdown?.reduce(
-                    (sum: number, item: any) => sum + item.count,
+                    (sum: number, item) => sum + item.count,
                     0
                   ) || 0}
                 </p>
                 <p className="text-xs text-gray-500">
-                  {licenseAnalytics?.status_breakdown?.find((item: any) => item._id === 'active')
+                  {licenseAnalytics?.status_breakdown?.find((item) => item._id === 'active')
                     ?.count || 0}{' '}
                   active
                 </p>
-              </div>
-
-              <div className="bg-amber-50 rounded-lg p-4 border border-amber-100">
-                <p className="text-xs font-medium text-amber-600 uppercase mb-1">Today</p>
-                <p className="text-2xl font-bold text-gray-900">{overview?.policies.today || 0}</p>
-                <p className="text-xs text-gray-500">New policies</p>
               </div>
 
               <div className="bg-rose-50 rounded-lg p-4 border border-rose-100">
@@ -244,13 +248,13 @@ export default function DashboardPage() {
               </div>
 
               <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-100">
-                <p className="text-xs font-medium text-emerald-600 uppercase mb-1">Premium</p>
+                <p className="text-xs font-medium text-emerald-600 uppercase mb-1">GST Premium</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {financialMetrics.rangePremium >= 10000000
-                    ? `₹${(financialMetrics.rangePremium / 10000000).toFixed(2)}Cr`
-                    : financialMetrics.rangePremium >= 100000
-                    ? `₹${(financialMetrics.rangePremium / 100000).toFixed(2)}L`
-                    : `₹${financialMetrics.rangePremium.toLocaleString('en-IN')}`}
+                  {financialMetrics.rangeGST >= 10000000
+                    ? `₹${(financialMetrics.rangeGST / 10000000).toFixed(2)}Cr`
+                    : financialMetrics.rangeGST >= 100000
+                      ? `₹${(financialMetrics.rangeGST / 100000).toFixed(2)}L`
+                      : `₹${financialMetrics.rangeGST.toLocaleString('en-IN')}`}
                 </p>
                 <p className="text-xs text-gray-500">{rangeLabel}</p>
               </div>
@@ -261,8 +265,20 @@ export default function DashboardPage() {
                   {financialMetrics.rangeCommission >= 10000000
                     ? `₹${(financialMetrics.rangeCommission / 10000000).toFixed(2)}Cr`
                     : financialMetrics.rangeCommission >= 100000
-                    ? `₹${(financialMetrics.rangeCommission / 100000).toFixed(2)}L`
-                    : `₹${financialMetrics.rangeCommission.toLocaleString('en-IN')}`}
+                      ? `₹${(financialMetrics.rangeCommission / 100000).toFixed(2)}L`
+                      : `₹${financialMetrics.rangeCommission.toLocaleString('en-IN')}`}
+                </p>
+                <p className="text-xs text-gray-500">{rangeLabel}</p>
+              </div>
+
+              <div className="bg-amber-50 rounded-lg p-4 border border-amber-100">
+                <p className="text-xs font-medium text-amber-600 uppercase mb-1">Profit</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {financialMetrics.rangeProfit >= 10000000
+                    ? `₹${(financialMetrics.rangeProfit / 10000000).toFixed(2)}Cr`
+                    : financialMetrics.rangeProfit >= 100000
+                      ? `₹${(financialMetrics.rangeProfit / 100000).toFixed(2)}L`
+                      : `₹${financialMetrics.rangeProfit.toLocaleString('en-IN')}`}
                 </p>
                 <p className="text-xs text-gray-500">{rangeLabel}</p>
               </div>

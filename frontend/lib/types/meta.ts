@@ -6,7 +6,7 @@ export interface Meta {
   active: boolean;
   sort_order: number;
   parent_value?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }
@@ -18,7 +18,7 @@ export interface MetaOption {
   active: boolean;
   sort_order: number;
   parent_value?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export type MetaCategory =

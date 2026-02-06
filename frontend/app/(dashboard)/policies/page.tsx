@@ -217,89 +217,86 @@ export default function PoliciesPage() {
       {/* Quick Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
         {/* Total Policies */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <DocumentTextIcon className="w-5 h-5 text-blue-600" />
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100/50 hover:shadow-md transition-all duration-300 group">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <DocumentTextIcon className="w-6 h-6" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Total Policies</p>
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total</p>
             </div>
           </div>
         </div>
 
         {/* Completed */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <CheckCircleIcon className="w-5 h-5 text-green-600" />
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100/50 hover:shadow-md transition-all duration-300 group">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <CheckCircleIcon className="w-6 h-6" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{stats.completed}</p>
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Completed</p>
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Done</p>
             </div>
           </div>
         </div>
 
         {/* Pending Status */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-              <ClockIcon className="w-5 h-5 text-amber-600" />
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100/50 hover:shadow-md transition-all duration-300 group">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <ClockIcon className="w-6 h-6" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Pending</p>
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Pending</p>
             </div>
           </div>
         </div>
 
         {/* Payment Pending */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-              <ExclamationCircleIcon className="w-5 h-5 text-red-600" />
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100/50 hover:shadow-md transition-all duration-300 group">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <ExclamationCircleIcon className="w-6 h-6" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{stats.paymentPending}</p>
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Payment Due</p>
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Unpaid</p>
             </div>
           </div>
         </div>
 
         {/* Expiring Soon */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <ClockIcon className="w-5 h-5 text-yellow-600" />
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100/50 hover:shadow-md transition-all duration-300 group">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <ClockIcon className="w-6 h-6" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{stats.expiringSoon}</p>
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Expiring Soon</p>
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Expiring</p>
             </div>
           </div>
         </div>
 
         {/* Total Premium (This Page) */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow lg:col-span-1">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-              <CurrencyRupeeIcon className="w-5 h-5 text-purple-600" />
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100/50 hover:shadow-md transition-all duration-300 group lg:col-span-1">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <CurrencyRupeeIcon className="w-6 h-6" />
             </div>
             <div>
-              <div className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <div className="text-lg font-bold text-gray-900">
                 {isLoadingMonthNetPremium ? (
-                  <>
-                    <Spinner size="sm" />
-                    <span className="text-base font-medium">Fetching...</span>
-                  </>
+                  <span className="text-sm font-medium animate-pulse">Loading...</span>
                 ) : (
                   formatCurrency(stats.totalPremium)
                 )}
               </div>
-              <p className="text-xs text-gray-500 uppercase tracking-wide">
-                This Month Net Premium
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                Net Premium
               </p>
             </div>
           </div>

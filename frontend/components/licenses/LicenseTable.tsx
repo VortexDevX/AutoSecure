@@ -196,23 +196,23 @@ export function LicenseTable({ licenses, onDelete }: LicenseTableProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+    <div className="">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50/80 text-xs text-gray-600 uppercase tracking-wide border-b border-gray-200">
+        <table className="w-full text-sm border-separate border-spacing-y-2 px-2">
+          <thead className="text-xs text-gray-500 uppercase tracking-wider font-semibold">
             <tr>
-              <th className="px-3 py-2.5 text-left font-medium">License No</th>
-              <th className="px-3 py-2.5 text-left font-medium">Customer</th>
-              <th className="px-3 py-2.5 text-left font-medium">Mobile</th>
-              <th className="px-3 py-2.5 text-left font-medium">Expiry</th>
-              <th className="px-3 py-2.5 text-left font-medium">Type</th>
-              <th className="px-3 py-2.5 text-left font-medium">Approved</th>
-              <th className="px-3 py-2.5 text-right font-medium">Fee</th>
-              <th className="px-3 py-2.5 text-right font-medium">Profit</th>
-              <th className="px-3 py-2.5 text-right font-medium w-12"></th>
+              <th className="px-4 py-3 text-left">License No</th>
+              <th className="px-4 py-3 text-left">Customer</th>
+              <th className="px-4 py-3 text-left">Mobile</th>
+              <th className="px-4 py-3 text-left">Expiry</th>
+              <th className="px-4 py-3 text-left">Type</th>
+              <th className="px-4 py-3 text-left">Approved</th>
+              <th className="px-4 py-3 text-right">Fee</th>
+              <th className="px-4 py-3 text-right">Profit</th>
+              <th className="px-4 py-3 text-right w-12"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="space-y-3">
             {licenses.map((license) => {
               const isExpired = new Date(license.expiry_date) < new Date();
               const isExpiringSoon =
@@ -220,88 +220,93 @@ export function LicenseTable({ licenses, onDelete }: LicenseTableProps) {
                 new Date(license.expiry_date) < new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
 
               return (
-                <tr key={license._id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-3 py-2.5">
+                <tr
+                  key={license._id}
+                  className="bg-white shadow-sm hover:shadow-md rounded-2xl transition-all duration-200 group"
+                >
+                  <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl border-y border-l border-gray-100 group-hover:border-primary-100">
                     <Link
                       href={`/licenses/${license._id}`}
-                      className="font-medium text-gray-900 hover:text-primary transition-colors"
+                      className="font-medium text-gray-900 group-hover:text-primary-600 transition-colors"
                     >
                       {license.lic_no}
                     </Link>
                   </td>
-                  <td className="px-3 py-2.5">
+                  <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl border-y border-gray-100 group-hover:border-primary-100">
                     <div className="min-w-0">
-                      <p className="font-medium text-gray-900 truncate max-w-[180px]">
+                      <p className="font-medium text-gray-900 truncate max-w-[150px]">
                         {license.customer_name}
                       </p>
                       <p className="text-xs text-gray-500">{license.aadhar_no}</p>
                     </div>
                   </td>
-                  <td className="px-3 py-2.5 text-gray-600 text-xs">{license.mobile_no}</td>
-                  <td className="px-3 py-2.5">
+                  <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl text-gray-600 text-xs border-y border-gray-100 group-hover:border-primary-100">
+                    {license.mobile_no}
+                  </td>
+                  <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl border-y border-gray-100 group-hover:border-primary-100">
                     <div className="flex items-center gap-1.5">
                       <span
                         className={clsx(
-                          'text-xs',
+                          'text-xs font-medium',
                           isExpired
-                            ? 'text-red-600 font-medium'
+                            ? 'text-red-700'
                             : isExpiringSoon
-                              ? 'text-amber-600 font-medium'
-                              : 'text-gray-600'
+                              ? 'text-amber-700'
+                              : 'text-gray-700'
                         )}
                       >
                         {formatDate(license.expiry_date)}
                       </span>
                       {isExpired && (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-50 text-red-700 border border-red-100">
                           Expired
                         </span>
                       )}
                       {isExpiringSoon && (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-100">
                           Soon
                         </span>
                       )}
                     </div>
                   </td>
-                  <td className="px-3 py-2.5">
+                  <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl border-y border-gray-100 group-hover:border-primary-100">
                     <span
                       className={clsx(
-                        'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
+                        'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium',
                         license.faceless_type === 'faceless'
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'bg-gray-100 text-gray-700'
+                          ? 'bg-blue-50 text-blue-700 border border-blue-100'
+                          : 'bg-gray-50 text-gray-700 border border-gray-100'
                       )}
                     >
                       {license.faceless_type}
                     </span>
                   </td>
-                  <td className="px-3 py-2.5">
+                  <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl border-y border-gray-100 group-hover:border-primary-100">
                     <span
                       className={clsx(
-                        'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
+                        'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium',
                         license.approved
-                          ? 'bg-green-50 text-green-700'
-                          : 'bg-amber-50 text-amber-700'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                          : 'bg-amber-50 text-amber-700 border border-amber-100'
                       )}
                     >
                       {license.approved ? 'Yes' : 'No'}
                     </span>
                   </td>
-                  <td className="px-3 py-2.5 text-right font-medium text-gray-900 tabular-nums">
+                  <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl text-right font-medium text-gray-900 tabular-nums border-y border-gray-100 group-hover:border-primary-100">
                     {formatCurrency(license.fee)}
                   </td>
-                  <td className="px-3 py-2.5 text-right tabular-nums">
+                  <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl text-right tabular-nums border-y border-gray-100 group-hover:border-primary-100">
                     <span
                       className={clsx(
-                        'font-semibold',
-                        license.profit >= 0 ? 'text-green-600' : 'text-red-600'
+                        'font-bold',
+                        license.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'
                       )}
                     >
                       {formatCurrency(license.profit)}
                     </span>
                   </td>
-                  <td className="px-3 py-2.5 text-right">
+                  <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl text-right border-y border-r border-gray-100 group-hover:border-primary-100">
                     <ActionsMenu license={license} onDelete={onDelete} canEdit={canEdit} />
                   </td>
                 </tr>

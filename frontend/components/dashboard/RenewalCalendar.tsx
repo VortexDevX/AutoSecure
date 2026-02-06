@@ -110,13 +110,13 @@ export function RenewalCalendar({ policies, licenses, isLoading }: RenewalCalend
       days.push(
         <div
           key={day}
-          className={`h-20 p-1 border-b border-r border-gray-100 transition-colors hover:bg-gray-50 ${
+          className={`min-h-[3rem] p-1 border-b border-r border-gray-100 transition-colors hover:bg-gray-50 ${
             isToday(day) ? 'bg-blue-50' : ''
           }`}
         >
           <div
-            className={`text-xs font-medium mb-1 ${
-              isToday(day) ? 'text-blue-600' : 'text-gray-600'
+            className={`text-[10px] font-medium mb-0.5 ${
+              isToday(day) ? 'text-blue-600' : 'text-gray-400'
             }`}
           >
             {day}
@@ -170,33 +170,33 @@ export function RenewalCalendar({ policies, licenses, isLoading }: RenewalCalend
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Renewal Calendar</h3>
-            <p className="text-sm text-gray-600">Upcoming policy and license expirations</p>
+            <p className="text-xs text-gray-500 mt-0.5">Expirations</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between w-full sm:w-auto gap-2">
             <button
               onClick={goToToday}
-              className="px-3 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-2.5 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Today
             </button>
-            <div className="flex items-center border border-gray-200 rounded-lg">
+            <div className="flex items-center border border-gray-200 rounded-lg shadow-sm">
               <button
                 onClick={prevMonth}
-                className="p-1.5 hover:bg-gray-100 transition-colors rounded-l-lg"
+                className="p-1 hover:bg-gray-50 transition-colors rounded-l-lg border-r border-gray-100"
               >
-                <ChevronLeftIcon className="w-4 h-4 text-gray-600" />
+                <ChevronLeftIcon className="w-3.5 h-3.5 text-gray-500" />
               </button>
-              <span className="px-3 py-1 text-sm font-medium text-gray-900 min-w-[140px] text-center">
+              <span className="px-2 py-1 text-xs font-semibold text-gray-700 min-w-[100px] text-center bg-gray-50/50">
                 {monthNames[currentMonth]} {currentYear}
               </span>
               <button
                 onClick={nextMonth}
-                className="p-1.5 hover:bg-gray-100 transition-colors rounded-r-lg"
+                className="p-1 hover:bg-gray-50 transition-colors rounded-r-lg border-l border-gray-100"
               >
-                <ChevronRightIcon className="w-4 h-4 text-gray-600" />
+                <ChevronRightIcon className="w-3.5 h-3.5 text-gray-500" />
               </button>
             </div>
           </div>

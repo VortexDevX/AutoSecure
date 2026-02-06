@@ -115,8 +115,8 @@ export default function DashboardPage() {
   const financialMetrics = calculateFinancialMetrics();
 
   const performanceTabs = [
-    { id: 'branch' as const, label: 'Branch', icon: BuildingOfficeIcon },
     { id: 'company' as const, label: 'Ins. Company', icon: ChartBarIcon },
+    { id: 'branch' as const, label: 'Branch', icon: BuildingOfficeIcon },
     { id: 'dealer' as const, label: 'Ins. Dealer', icon: TruckIcon },
     { id: 'executive' as const, label: 'Executive', icon: UserGroupIcon },
   ];
@@ -336,32 +336,40 @@ export default function DashboardPage() {
         </div>
 
         {/* Analytics Charts + Calendar */}
-        <div className="mb-8 grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="mb-8 grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Left Column - Policy/License Charts */}
-          <div className="space-y-6">
+          <div className="xl:col-span-2 space-y-6">
             <div className="mb-4">
               <h2 className="text-xl font-bold text-gray-900">Policy & License Analytics</h2>
               <p className="text-gray-600 text-sm">Status and type distribution</p>
             </div>
+
+            {/* Status Chart - Full Width */}
             {policyAnalytics?.status_breakdown && policyAnalytics.status_breakdown.length > 0 && (
               <PoliciesByStatusChart data={policyAnalytics.status_breakdown} />
             )}
-            {policyAnalytics?.by_insurance_type && policyAnalytics.by_insurance_type.length > 0 && (
-              <PoliciesByTypeChart data={policyAnalytics.by_insurance_type} />
-            )}
-            {licenseAnalytics?.status_breakdown && licenseAnalytics.status_breakdown.length > 0 && (
-              <LicenseAnalytics
-                statusBreakdown={licenseAnalytics.status_breakdown}
-                totalLicenses={licenseAnalytics.status_breakdown.reduce(
-                  (sum: number, item: any) => sum + item.count,
-                  0
+
+            {/* Side-by-Side Pie Charts */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {policyAnalytics?.by_insurance_type &&
+                policyAnalytics.by_insurance_type.length > 0 && (
+                  <PoliciesByTypeChart data={policyAnalytics.by_insurance_type} />
                 )}
-              />
-            )}
+              {licenseAnalytics?.status_breakdown &&
+                licenseAnalytics.status_breakdown.length > 0 && (
+                  <LicenseAnalytics
+                    statusBreakdown={licenseAnalytics.status_breakdown}
+                    totalLicenses={licenseAnalytics.status_breakdown.reduce(
+                      (sum: number, item: any) => sum + item.count,
+                      0
+                    )}
+                  />
+                )}
+            </div>
           </div>
 
-          {/* Right Column - Calendar */}
-          <div>
+          {/* Right Column - Calendar (Narrower 1/3 width) */}
+          <div className="xl:col-span-1">
             <RenewalCalendar
               policies={calendarEvents?.policies || []}
               licenses={calendarEvents?.licenses || []}

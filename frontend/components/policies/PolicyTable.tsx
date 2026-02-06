@@ -229,82 +229,87 @@ export function PolicyTable({ policies, onDelete, onSendEmail }: PolicyTableProp
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+    <div className="">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50/80 text-xs text-gray-600 uppercase tracking-wide border-b border-gray-200">
+        <table className="w-full text-sm border-separate border-spacing-y-2 px-2">
+          <thead className="text-xs text-gray-500 uppercase tracking-wider font-semibold">
             <tr>
-              <th className="px-3 py-2.5 text-left font-medium">Serial</th>
-              <th className="px-3 py-2.5 text-left font-medium">Policy No</th>
-              <th className="px-3 py-2.5 text-left font-medium">Customer</th>
-              <th className="px-3 py-2.5 text-left font-medium">Vehicle</th>
-              <th className="px-3 py-2.5 text-left font-medium">Ins. Company</th>
-              <th className="px-3 py-2.5 text-left font-medium">Status</th>
-              <th className="px-3 py-2.5 text-left font-medium">Payment</th>
-              <th className="px-3 py-2.5 text-right font-medium">Premium</th>
-              <th className="px-3 py-2.5 text-left font-medium">Expiry</th>
-              <th className="px-3 py-2.5 text-right font-medium w-12"></th>
+              <th className="px-4 py-3 text-left">Serial</th>
+              <th className="px-4 py-3 text-left">Policy No</th>
+              <th className="px-4 py-3 text-left">Customer</th>
+              <th className="px-4 py-3 text-left">Vehicle</th>
+              <th className="px-4 py-3 text-left">Ins. Company</th>
+              <th className="px-4 py-3 text-left">Status</th>
+              <th className="px-4 py-3 text-left">Payment</th>
+              <th className="px-4 py-3 text-right">Premium</th>
+              <th className="px-4 py-3 text-left">Expiry</th>
+              <th className="px-4 py-3 text-right w-12"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="space-y-3">
             {policies.map((policy) => (
-              <tr key={policy.id} className="hover:bg-gray-50/50 transition-colors">
-                <td className="px-3 py-2.5 text-gray-500 text-xs">{policy.serial_no || '-'}</td>
-                <td className="px-3 py-2.5">
+              <tr
+                key={policy.id}
+                className="bg-white shadow-sm hover:shadow-md rounded-2xl transition-all duration-200 group"
+              >
+                <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl text-gray-500 text-xs border-y border-l border-gray-100 group-hover:border-primary-100">
+                  {policy.serial_no || '-'}
+                </td>
+                <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl border-y border-gray-100 group-hover:border-primary-100">
                   <Link
                     href={`/policies/${policy.id}`}
-                    className="font-medium text-gray-900 hover:text-primary transition-colors"
+                    className="font-medium text-gray-900 group-hover:text-primary-600 transition-colors"
                   >
                     {policy.policy_no}
                   </Link>
                 </td>
-                <td className="px-3 py-2.5">
+                <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl border-y border-gray-100 group-hover:border-primary-100">
                   <div className="min-w-0">
-                    <p className="font-medium text-gray-900 truncate max-w-[180px]">
+                    <p className="font-medium text-gray-900 truncate max-w-[150px]">
                       {policy.customer}
                     </p>
                     <p className="text-xs text-gray-500">{policy.mobile_no || '-'}</p>
                   </div>
                 </td>
-                <td className="px-3 py-2.5 text-gray-700 font-mono text-xs">
+                <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl text-gray-700 font-mono text-xs border-y border-gray-100 group-hover:border-primary-100">
                   {policy.registration_number}
                 </td>
-                <td className="px-3 py-2.5">
-                  <span className="text-xs font-medium text-gray-600 uppercase">
+                <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl border-y border-gray-100 group-hover:border-primary-100">
+                  <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
                     {policy.ins_co_id || '-'}
                   </span>
                 </td>
-                <td className="px-3 py-2.5">
+                <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl border-y border-gray-100 group-hover:border-primary-100">
                   <span
                     className={clsx(
-                      'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
+                      'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium',
                       policy.ins_status === 'policy_done'
-                        ? 'bg-green-50 text-green-700'
-                        : 'bg-amber-50 text-amber-700'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                        : 'bg-amber-50 text-amber-700 border border-amber-100'
                     )}
                   >
                     {policy.ins_status === 'policy_done' ? 'Done' : policy.ins_status}
                   </span>
                 </td>
-                <td className="px-3 py-2.5">
+                <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl border-y border-gray-100 group-hover:border-primary-100">
                   <span
                     className={clsx(
-                      'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
+                      'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium',
                       policy.customer_payment_status === 'done'
-                        ? 'bg-green-50 text-green-700'
-                        : 'bg-amber-50 text-amber-700'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                        : 'bg-rose-50 text-rose-700 border border-rose-100'
                     )}
                   >
                     {policy.customer_payment_status === 'done' ? 'Paid' : 'Pending'}
                   </span>
                 </td>
-                <td className="px-3 py-2.5 text-right font-semibold text-gray-900 tabular-nums">
+                <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl text-right font-bold text-gray-900 tabular-nums border-y border-gray-100 group-hover:border-primary-100">
                   {formatCurrency(policy.net_premium ?? policy.premium_amount)}
                 </td>
-                <td className="px-3 py-2.5 text-gray-500 text-xs">
+                <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl text-gray-500 text-xs border-y border-gray-100 group-hover:border-primary-100">
                   {formatDate(policy.saod_end_date || policy.end_date)}
                 </td>
-                <td className="px-3 py-2.5 text-right">
+                <td className="px-4 py-3 first:rounded-l-2xl last:rounded-r-2xl text-right border-y border-r border-gray-100 group-hover:border-primary-100">
                   <ActionsMenu
                     policy={policy}
                     onDelete={onDelete}

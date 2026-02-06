@@ -76,62 +76,61 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={clsx(
-          'fixed lg:static inset-y-0 left-0 z-50 bg-[#2c3e50] text-white flex flex-col transition-all duration-300 ease-in-out',
+          'fixed lg:static inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 ease-in-out',
+          'bg-white text-gray-700 shadow-xl shadow-gray-200/50 border-r border-gray-100', // Light bg, subtle border
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-          isCollapsed ? 'w-20 lg:w-20' : 'w-64 lg:w-64'
+          isCollapsed ? 'w-20 lg:w-20' : 'w-64 lg:w-72',
+          'lg:rounded-2xl lg:h-full', // Floating pill shape on Desktop
+          'h-full' // Full height on mobile
         )}
       >
         {/* Logo / Header */}
         <div
           className={clsx(
-            'flex items-center justify-between p-4 border-b border-white/10 transition-all duration-300',
-            isCollapsed ? 'px-3' : 'px-6'
+            'flex items-center justify-between p-6 transition-all duration-300',
+            isCollapsed ? 'px-4 justify-center' : 'px-6'
           )}
         >
-          {!isCollapsed && (
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 relative flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="relative flex-shrink-0 cursor-pointer">
+              <div className="w-10 h-10 relative bg-primary-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary-500/30">
                 <Image
                   src="/logo.png"
-                  alt="AutoSecure Logo"
-                  width={32}
-                  height={32}
-                  className="rounded-full"
+                  alt="AutoSecure"
+                  width={24}
+                  height={24}
+                  className="rounded-lg bg-white/10"
                 />
               </div>
-              <h1 className="text-xl font-bold">AutoSecure</h1>
             </div>
-          )}
-          {isCollapsed && (
-            <div className="w-8 h-8 relative flex-shrink-0 mx-auto">
-              <Image
-                src="/logo.png"
-                alt="AutoSecure Logo"
-                width={32}
-                height={32}
-                className="rounded-full"
-              />
-            </div>
-          )}
+            {!isCollapsed && (
+              <div className="flex flex-col">
+                <h1 className="text-xl font-bold tracking-tight text-gray-900">AutoSecure</h1>
+                <span className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">
+                  Admin Panel
+                </span>
+              </div>
+            )}
+          </div>
 
-          {/* Collapse toggle - visible on lg+ screens */}
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex items-center justify-center p-1 hover:bg-white/10 rounded transition-colors ml-auto"
-            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            <ChevronLeftIcon
-              className={clsx(
-                'w-5 h-5 transition-transform duration-300',
-                isCollapsed ? 'rotate-180' : ''
-              )}
-            />
-          </button>
+          {!isCollapsed && (
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="hidden lg:flex items-center justify-center p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
+            >
+              <ChevronLeftIcon className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Separator */}
+        <div className="px-6 py-2">
+          <div className="h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent" />
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 overflow-y-auto">
-          <ul className="flex flex-col gap-2">
+        <nav className="flex-1 px-3 py-4 overflow-y-auto scrollbar-none">
+          <ul className="flex flex-col gap-1.5">
             {filteredNavigation.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               const Icon = item.icon;
@@ -142,23 +141,60 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     href={item.href}
                     onClick={onClose}
                     className={clsx(
-                      'flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors justify-center lg:justify-start',
+                      'group flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 relative overflow-hidden',
                       isActive
-                        ? 'bg-white/10 text-white'
-                        : 'hover:bg-white/5 text-white/80 hover:text-white',
-                      isCollapsed && 'px-3'
+                        ? 'bg-primary-50 text-primary-700 border border-primary-100'
+                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900',
+                      isCollapsed && 'justify-center px-0'
                     )}
                   >
+                    {/* Active Gradient Glow - Subtle for Light Mode */}
+                    {isActive && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary-50 to-white opacity-50 z-0" />
+                    )}
+
                     <Icon
-                      className={clsx('w-5 h-5 flex-shrink-0', isActive ? 'text-secondary' : '')}
+                      className={clsx(
+                        'w-6 h-6 flex-shrink-0 relative z-10 transition-transform duration-300',
+                        isActive
+                          ? 'text-primary-600 scale-110'
+                          : 'group-hover:text-primary-600 group-hover:scale-110'
+                      )}
                     />
-                    {!isCollapsed && <span className="text-sm font-medium">{item.name}</span>}
+
+                    {!isCollapsed && (
+                      <span
+                        className={clsx(
+                          'text-sm font-medium relative z-10',
+                          isActive ? 'text-primary-900' : ''
+                        )}
+                      >
+                        {item.name}
+                      </span>
+                    )}
+
+                    {/* Active Indicator Bar */}
+                    {isActive && !isCollapsed && (
+                      <div className="absolute right-0 w-1 h-6 bg-primary-500 rounded-l-full" />
+                    )}
                   </NavLink>
                 </li>
               );
             })}
           </ul>
         </nav>
+
+        {/* Toggle (Collapsed State) */}
+        {isCollapsed && (
+          <div className="p-4 flex justify-center border-t border-gray-100">
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="hidden lg:flex w-8 h-8 items-center justify-center bg-gray-50 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-900 transition-all"
+            >
+              <ChevronLeftIcon className="w-4 h-4 rotate-180" />
+            </button>
+          </div>
+        )}
       </aside>
     </>
   );

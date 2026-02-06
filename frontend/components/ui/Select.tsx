@@ -46,7 +46,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
             <Listbox.Button
               ref={ref}
               className={clsx(
-                'relative w-full cursor-pointer rounded-lg bg-white py-2 pl-3 pr-10 text-left border text-sm',
+                'relative w-full cursor-pointer rounded-lg bg-white py-2.5 pl-3 pr-10 text-left border text-sm',
                 'focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary',
                 'transition-colors duration-150',
                 disabled && 'bg-gray-100 cursor-not-allowed opacity-60',

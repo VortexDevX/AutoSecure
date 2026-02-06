@@ -64,24 +64,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gray-50 relative selection:bg-primary-100 selection:text-primary-900">
+      {/* Mesh Gradient Background */}
+      <div className="absolute inset-0 z-0 opacity-20 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-100/40 via-transparent to-transparent" />
+      <div className="absolute inset-0 z-0 opacity-10 pointer-events-none bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-cyan-100/40 via-transparent to-transparent" />
+
       <LoadingBar />
 
-      {/* Sidebar - will collapse on lg screens */}
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {/* Main Container - Added padding for 'floating' feel on large screens */}
+      <div className="flex w-full h-full relative z-10 lg:p-4 gap-4">
+        {/* Sidebar - Floating on LG screens */}
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Site Status Banner */}
-        <SiteStatusBanner />
+        {/* Content Area - Floating on LG screens */}
+        <div className="flex-1 flex flex-col overflow-hidden bg-white/50 lg:bg-transparent rounded-2xl">
+          {/* Site Status Banner */}
+          <SiteStatusBanner />
 
-        {/* Topbar */}
-        <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+          {/* Topbar */}
+          <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 
-        {/* Main area */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-4 lg:p-8">{children}</div>
-        </main>
+          {/* Main Scrollable Area */}
+          <main className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300">
+            <div className="p-4 lg:p-0 lg:pt-2 max-w-[1600px] mx-auto">{children}</div>
+          </main>
+        </div>
       </div>
     </div>
   );

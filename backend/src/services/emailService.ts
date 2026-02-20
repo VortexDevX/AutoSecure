@@ -663,11 +663,13 @@ export const emailService = {
    * Fetch file from R2 storage (for policies)
    */
   async fetchFileFromStorage(
-    policyNo: string,
+    folderId: string,
     fileName: string
   ): Promise<{ content: Buffer; mimeType: string } | null> {
     try {
-      const fileId = `${policyNo}/${fileName}`;
+      const normalizedFolderId = String(folderId || '').trim();
+      const normalizedFileName = String(fileName || '').trim();
+      const fileId = `${normalizedFolderId}/${normalizedFileName}`;
 
       const exists = await FileStorageService.fileExists(fileId);
       if (!exists) {
@@ -777,7 +779,7 @@ export const emailService = {
           console.log('📄 Fetching Aadhaar file from R2:', policy.adh_file.file_name);
 
           const fileData = await this.fetchFileFromStorage(
-            policy.policy_no,
+            policy.drive_folder_id || policy.policy_no,
             policy.adh_file.file_name
           );
 
@@ -794,7 +796,7 @@ export const emailService = {
           console.log('📄 Fetching PAN file from R2:', policy.pan_file.file_name);
 
           const fileData = await this.fetchFileFromStorage(
-            policy.policy_no,
+            policy.drive_folder_id || policy.policy_no,
             policy.pan_file.file_name
           );
 
@@ -814,7 +816,10 @@ export const emailService = {
           if (doc) {
             console.log(`📄 Fetching other doc [${index}] from R2:`, doc.file_name);
 
-            const fileData = await this.fetchFileFromStorage(policy.policy_no, doc.file_name);
+            const fileData = await this.fetchFileFromStorage(
+              policy.drive_folder_id || policy.policy_no,
+              doc.file_name
+            );
 
             if (fileData) {
               const ext = doc.mime_type.split('/')[1] || 'pdf';

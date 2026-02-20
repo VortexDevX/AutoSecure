@@ -325,6 +325,10 @@ export const createPolicy = asyncHandler(async (req: Request, res: Response) => 
   const policyData = { ...req.body };
   const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
 
+  if (typeof policyData.policy_no === 'string') {
+    policyData.policy_no = policyData.policy_no.trim();
+  }
+
   // ✅ Remove other_documents from policyData (we'll process it separately)
   delete policyData.other_documents;
 
@@ -485,6 +489,9 @@ export const updatePolicy = asyncHandler(async (req: Request, res: Response) => 
   if (!policy) {
     throw new NotFoundError('Policy not found');
   }
+
+  // Keep file folder keys normalized for all new uploads/lookups.
+  policy.drive_folder_id = String(policy.drive_folder_id || policy.policy_no || '').trim();
 
   // ✅ Remove other_documents from updateData (we'll process it separately)
   delete updateData.other_documents;

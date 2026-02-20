@@ -239,7 +239,7 @@ const PolicySchema = new Schema<IPolicy>(
     company_cheque_date: { type: Date },
 
     // System
-    drive_folder_id: { type: String, required: true, maxlength: 200 },
+    drive_folder_id: { type: String, required: true, trim: true, maxlength: 200 },
   },
   {
     timestamps: true,

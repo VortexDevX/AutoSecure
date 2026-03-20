@@ -34,9 +34,9 @@ const app = express();
 app.set('trust proxy', 1);
 
 // ✅ CORS - use environment variable
-const allowedOrigins = ['http://localhost:3000', process.env.FRONTEND_URL].filter(
-  Boolean
-) as string[];
+const allowedOrigins: string[] = ['http://localhost:3000', 'app://-', process.env.FRONTEND_URL].filter(
+  (origin): origin is string => Boolean(origin)
+);
 
 app.use(
   cors({

@@ -1,5 +1,4 @@
-```
-📁 autosecure/
+📁 AutoSecure/
 ├── 📁 backend/
 │   ├── 📁 src/
 │   │   ├── 📁 config/
@@ -51,6 +50,8 @@
 │   │   │   ├── 📄 initDb.ts
 │   │   │   ├── 📄 migrateLicenseUrls.ts
 │   │   │   ├── 📄 migratePolicyFields.ts
+│   │   │   ├── 📄 migratePolicyFolderWhitespace.ts
+│   │   │   ├── 📄 migratePolicyFolders.ts
 │   │   │   ├── 📄 seedEmailTemplate.ts
 │   │   │   ├── 📄 seedLicenseEmailTemplate.ts
 │   │   │   ├── 📄 seedMeta.ts
@@ -72,11 +73,96 @@
 │   │   │   └── 📄 validators.ts
 │   │   ├── 📄 server.ts
 │   │   └── 📄 test-services.ts
+│   ├── 📁 storage/
+│   │   └── 📁 branding/
+│   │       └── 📄 logo.png
 │   ├── 📄 nodemon.json
 │   ├── 📄 package.json
 │   ├── 📄 test-auth.http
-│   ├── 📄 tsconfig.json
-│   └── 📄 tsconfig.tsbuildinfo
+│   └── 📄 tsconfig.json
+├── 📁 electron-app/
+│   ├── 📁 release/
+│   │   ├── 📁 .icon-ico/
+│   │   │   └── 📄 icon.ico
+│   │   ├── 📁 win-unpacked/
+│   │   │   ├── 📁 locales/
+│   │   │   │   ├── 📄 af.pak
+│   │   │   │   ├── 📄 am.pak
+│   │   │   │   ├── 📄 ar.pak
+│   │   │   │   ├── 📄 bg.pak
+│   │   │   │   ├── 📄 bn.pak
+│   │   │   │   ├── 📄 ca.pak
+│   │   │   │   ├── 📄 cs.pak
+│   │   │   │   ├── 📄 da.pak
+│   │   │   │   ├── 📄 de.pak
+│   │   │   │   ├── 📄 el.pak
+│   │   │   │   ├── 📄 en-GB.pak
+│   │   │   │   ├── 📄 en-US.pak
+│   │   │   │   ├── 📄 es-419.pak
+│   │   │   │   ├── 📄 es.pak
+│   │   │   │   ├── 📄 et.pak
+│   │   │   │   ├── 📄 fa.pak
+│   │   │   │   ├── 📄 fi.pak
+│   │   │   │   ├── 📄 fil.pak
+│   │   │   │   ├── 📄 fr.pak
+│   │   │   │   ├── 📄 gu.pak
+│   │   │   │   ├── 📄 he.pak
+│   │   │   │   ├── 📄 hi.pak
+│   │   │   │   ├── 📄 hr.pak
+│   │   │   │   ├── 📄 hu.pak
+│   │   │   │   ├── 📄 id.pak
+│   │   │   │   ├── 📄 it.pak
+│   │   │   │   ├── 📄 ja.pak
+│   │   │   │   ├── 📄 kn.pak
+│   │   │   │   ├── 📄 ko.pak
+│   │   │   │   ├── 📄 lt.pak
+│   │   │   │   ├── 📄 lv.pak
+│   │   │   │   ├── 📄 ml.pak
+│   │   │   │   ├── 📄 mr.pak
+│   │   │   │   ├── 📄 ms.pak
+│   │   │   │   ├── 📄 nb.pak
+│   │   │   │   ├── 📄 nl.pak
+│   │   │   │   ├── 📄 pl.pak
+│   │   │   │   ├── 📄 pt-BR.pak
+│   │   │   │   ├── 📄 pt-PT.pak
+│   │   │   │   ├── 📄 ro.pak
+│   │   │   │   ├── 📄 ru.pak
+│   │   │   │   ├── 📄 sk.pak
+│   │   │   │   ├── 📄 sl.pak
+│   │   │   │   ├── 📄 sr.pak
+│   │   │   │   ├── 📄 sv.pak
+│   │   │   │   ├── 📄 sw.pak
+│   │   │   │   ├── 📄 ta.pak
+│   │   │   │   ├── 📄 te.pak
+│   │   │   │   ├── 📄 th.pak
+│   │   │   │   ├── 📄 tr.pak
+│   │   │   │   ├── 📄 uk.pak
+│   │   │   │   ├── 📄 ur.pak
+│   │   │   │   ├── 📄 vi.pak
+│   │   │   │   ├── 📄 zh-CN.pak
+│   │   │   │   └── 📄 zh-TW.pak
+│   │   │   ├── 📁 resources/
+│   │   │   │   ├── 📁 backend/
+│   │   │   │   │   └── 📄 package.json
+│   │   │   │   ├── 📁 frontend/
+│   │   │   │   └── 📄 app.asar
+│   │   │   ├── 📄 LICENSE.electron.txt
+│   │   │   ├── 📄 LICENSES.chromium.html
+│   │   │   ├── 📄 chrome_100_percent.pak
+│   │   │   ├── 📄 chrome_200_percent.pak
+│   │   │   ├── 📄 icudtl.dat
+│   │   │   ├── 📄 resources.pak
+│   │   │   ├── 📄 snapshot_blob.bin
+│   │   │   ├── 📄 v8_context_snapshot.bin
+│   │   │   └── 📄 vk_swiftshader_icd.json
+│   │   ├── 📄 AutoSecure Setup 1.0.0.exe.blockmap
+│   │   ├── 📄 builder-debug.yml
+│   │   └── 📄 builder-effective-config.yaml
+│   ├── 📄 icon.ico
+│   ├── 📄 logo.png
+│   ├── 📄 main.js
+│   ├── 📄 package.json
+│   └── 📄 splash.html
 ├── 📁 frontend/
 │   ├── 📁 app/
 │   │   ├── 📁 (auth)/
@@ -91,10 +177,6 @@
 │   │   │   │   │   └── 📄 page.tsx
 │   │   │   │   ├── 📁 email-templates/
 │   │   │   │   │   └── 📄 page.tsx
-│   │   │   │   ├── 📁 meta/
-│   │   │   │   │   └── 📄 page.tsx
-│   │   │   │   ├── 📁 settings/
-│   │   │   │   │   └── 📄 page.tsx
 │   │   │   │   └── 📁 users/
 │   │   │   │       └── 📄 page.tsx
 │   │   │   ├── 📁 dashboard/
@@ -105,7 +187,10 @@
 │   │   │   ├── 📁 licenses/
 │   │   │   │   ├── 📁 [id]/
 │   │   │   │   │   ├── 📁 edit/
+│   │   │   │   │   │   ├── 📄 ClientPage.tsx
 │   │   │   │   │   │   └── 📄 page.tsx
+│   │   │   │   │   ├── 📄 ClientPage.tsx
+│   │   │   │   │   ├── 📄 layout.tsx
 │   │   │   │   │   └── 📄 page.tsx
 │   │   │   │   ├── 📁 new/
 │   │   │   │   │   └── 📄 page.tsx
@@ -114,7 +199,10 @@
 │   │   │   ├── 📁 policies/
 │   │   │   │   ├── 📁 [id]/
 │   │   │   │   │   ├── 📁 edit/
+│   │   │   │   │   │   ├── 📄 ClientPage.tsx
 │   │   │   │   │   │   └── 📄 page.tsx
+│   │   │   │   │   ├── 📄 ClientPage.tsx
+│   │   │   │   │   ├── 📄 layout.tsx
 │   │   │   │   │   └── 📄 page.tsx
 │   │   │   │   ├── 📁 new/
 │   │   │   │   │   └── 📄 page.tsx
@@ -136,17 +224,22 @@
 │   │   │   ├── 📄 CreateUserModal.tsx
 │   │   │   ├── 📄 MetaOptionsTable.tsx
 │   │   │   └── 📄 UserTable.tsx
-│   │   ├── 📁 audit/
-│   │   ├── 📁 auth/
-│   │   ├── 📁 charts/
 │   │   ├── 📁 dashboard/
+│   │   │   ├── 📄 BranchPerformance.tsx
+│   │   │   ├── 📄 FinancialMetrics.tsx
+│   │   │   ├── 📄 LicenseAnalytics.tsx
 │   │   │   ├── 📄 MetricCard.tsx
+│   │   │   ├── 📄 MobileBlockScreen.tsx
 │   │   │   ├── 📄 MonthlyTrendChart.tsx
+│   │   │   ├── 📄 NotificationsCenter.tsx
+│   │   │   ├── 📄 PerformanceChart.tsx
 │   │   │   ├── 📄 PoliciesByStatusChart.tsx
 │   │   │   ├── 📄 PoliciesByTypeChart.tsx
 │   │   │   ├── 📄 QuickActions.tsx
-│   │   │   └── 📄 RecentActivity.tsx
-│   │   ├── 📁 exports/
+│   │   │   ├── 📄 QuickActionsPanel.tsx
+│   │   │   ├── 📄 RecentActivity.tsx
+│   │   │   ├── 📄 RenewalCalendar.tsx
+│   │   │   └── 📄 RevenueTrendChart.tsx
 │   │   ├── 📁 layout/
 │   │   │   ├── 📄 Sidebar.tsx
 │   │   │   ├── 📄 SiteStatusBanner.tsx
@@ -174,10 +267,12 @@
 │   │       ├── 📄 Card.tsx
 │   │       ├── 📄 Checkbox.tsx
 │   │       ├── 📄 DatePicker.tsx
+│   │       ├── 📄 DateRangeSelector.tsx
 │   │       ├── 📄 FileUpload.tsx
 │   │       ├── 📄 Input.tsx
 │   │       ├── 📄 LoadingBar.tsx
 │   │       ├── 📄 Modal.tsx
+│   │       ├── 📄 NavLink.tsx
 │   │       ├── 📄 PageLoader.tsx
 │   │       ├── 📄 PageTransition.tsx
 │   │       ├── 📄 Pagination.tsx
@@ -201,14 +296,19 @@
 │   │   │   └── 📄 users.ts
 │   │   ├── 📁 context/
 │   │   │   ├── 📄 AuthContext.tsx
-│   │   │   └── 📄 PolicyFormContext.tsx
+│   │   │   ├── 📄 NavigationContext.tsx
+│   │   │   ├── 📄 PolicyFormContext.tsx
+│   │   │   └── 📄 PrivacyContext.tsx
 │   │   ├── 📁 hooks/
 │   │   │   ├── 📄 useAnalytics.ts
 │   │   │   ├── 📄 useAuth.ts
 │   │   │   ├── 📄 useMeta.ts
 │   │   │   ├── 📄 usePolicies.ts
 │   │   │   ├── 📄 useRequireRole.ts
+│   │   │   ├── 📄 useRouteId.ts
 │   │   │   └── 📄 useToast.ts
+│   │   ├── 📁 theme/
+│   │   │   └── 📄 palettes.ts
 │   │   ├── 📁 types/
 │   │   │   ├── 📄 api.ts
 │   │   │   ├── 📄 auditLog.ts
@@ -221,12 +321,16 @@
 │   │       ├── 📄 constants.ts
 │   │       ├── 📄 exportFields.ts
 │   │       ├── 📄 formatters.ts
+│   │       ├── 📄 tokenStore.ts
 │   │       └── 📄 validators.ts
 │   ├── 📁 public/
 │   │   ├── 📄 logo-1024.png
 │   │   └── 📄 logo.png
-│   ├── 📄 .gitignore
+│   ├── 📄 build_log.txt
+│   ├── 📄 build_log_2.txt
+│   ├── 📄 build_log_3.txt
 │   ├── 📄 eslint.config.mjs
+│   ├── 📄 lint_output.txt
 │   ├── 📄 next-env.d.ts
 │   ├── 📄 next.config.js
 │   ├── 📄 package.json
@@ -238,10 +342,7 @@
 ├── 📄 .gitignore
 ├── 📄 .hintrc
 ├── 📄 .prettierrc
-├── 📄 FRONTEND.md
-├── 📄 Overview.md
+├── 📄 README.md
 ├── 📄 STRUCTURE.md
-├── 📄 SUMMARY.md
-├── 📄 nextprompt.md
+├── 📄 structure.json
 └── 📄 tsconfig.base.json
-```

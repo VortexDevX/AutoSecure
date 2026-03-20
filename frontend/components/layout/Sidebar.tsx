@@ -40,14 +40,12 @@ const navigation: NavItem[] = [
     roles: ['owner', 'admin'],
   },
   { name: 'Users', href: '/admin/users', icon: UsersIcon, roles: ['owner', 'admin'] },
-  { name: 'Meta Fields', href: '/admin/meta', icon: TagIcon, roles: ['owner', 'admin'] },
   {
     name: 'Email Templates',
     href: '/admin/email-templates',
     icon: EnvelopeIcon,
     roles: ['owner'], // ✅ Owner only
   },
-  { name: 'Settings', href: '/admin/settings', icon: Cog6ToothIcon, roles: ['owner'] },
 ];
 
 interface SidebarProps {
@@ -77,11 +75,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <aside
         className={clsx(
           'fixed lg:static inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 ease-in-out',
-          'bg-white text-gray-700 shadow-xl shadow-gray-200/50 border-r border-gray-100', // Light bg, subtle border
+          'bg-white text-slate-700 border-r border-slate-200', // Flat bg, thin border
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
           isCollapsed ? 'w-20 lg:w-20' : 'w-64 lg:w-72',
-          'lg:rounded-2xl lg:h-full', // Floating pill shape on Desktop
-          'h-full' // Full height on mobile
+          'h-full' // Full height flat
         )}
       >
         {/* Logo / Header */}
@@ -93,7 +90,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         >
           <div className="flex items-center gap-3">
             <div className="relative flex-shrink-0 cursor-pointer">
-              <div className="w-10 h-10 relative bg-primary-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary-500/30">
+              <div className="w-10 h-10 relative bg-primary rounded-xl flex items-center justify-center text-white shadow-sm">
                 <Image
                   src="/logo.png"
                   alt="AutoSecure"
@@ -105,8 +102,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
             {!isCollapsed && (
               <div className="flex flex-col">
-                <h1 className="text-xl font-bold tracking-tight text-gray-900">AutoSecure</h1>
-                <span className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">
+                <h1 className="text-lg font-semibold tracking-tight text-slate-900">AutoSecure</h1>
+                <span className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">
                   Admin Panel
                 </span>
               </div>
@@ -143,22 +140,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     className={clsx(
                       'group flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 relative overflow-hidden',
                       isActive
-                        ? 'bg-primary-50 text-primary-700 border border-primary-100'
-                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900',
+                        ? 'bg-primary/10 text-primary border border-transparent'
+                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900',
                       isCollapsed && 'justify-center px-0'
                     )}
                   >
-                    {/* Active Gradient Glow - Subtle for Light Mode */}
-                    {isActive && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary-50 to-white opacity-50 z-0" />
-                    )}
-
                     <Icon
                       className={clsx(
-                        'w-6 h-6 flex-shrink-0 relative z-10 transition-transform duration-300',
+                        'w-6 h-6 flex-shrink-0 relative z-10 transition-colors',
                         isActive
-                          ? 'text-primary-600 scale-110'
-                          : 'group-hover:text-primary-600 group-hover:scale-110'
+                          ? 'text-primary'
+                          : 'group-hover:text-primary'
                       )}
                     />
 
@@ -166,17 +158,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       <span
                         className={clsx(
                           'text-sm font-medium relative z-10',
-                          isActive ? 'text-primary-900' : ''
+                          isActive ? 'text-primary font-semibold' : ''
                         )}
                       >
                         {item.name}
                       </span>
                     )}
 
-                    {/* Active Indicator Bar */}
-                    {isActive && !isCollapsed && (
-                      <div className="absolute right-0 w-1 h-6 bg-primary-500 rounded-l-full" />
-                    )}
+                    {/* Active Indicator Bar - Disabled for minimalist flat look */}
                   </NavLink>
                 </li>
               );

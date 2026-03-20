@@ -24,43 +24,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Load user on mount - recover token via refresh if needed
+  // Load user on mount — recover auth state from localStorage
   useEffect(() => {
     const loadUser = async () => {
       try {
         const savedUser = localStorage.getItem(STORAGE_KEYS.USER);
+        const savedToken = localStorage.getItem('__autosecure_at');
 
-        if (savedUser) {
-          // Set user from localStorage for immediate UI
-          setUser(JSON.parse(savedUser));
+        // Ensure the in-memory token store is synced with localStorage
+        if (savedToken) {
+          setToken(savedToken);
+        }
 
-          // If no token in memory, try to get one via refresh
-          if (!hasToken()) {
-            try {
-              // Refresh token is in httpOnly cookie, this will recover access token
-              const refreshResponse = await authApi.refreshToken();
-              if (refreshResponse.access_token) {
-                setToken(refreshResponse.access_token);
-              }
-            } catch (error) {
-              // Refresh failed, clear user
-              localStorage.removeItem(STORAGE_KEYS.USER);
-              setUser(null);
-              return;
-            }
-          }
+        if (savedUser && savedToken) {
+          // Both user and token exist — restore session immediately
+          const parsedUser = JSON.parse(savedUser);
+          setUser(parsedUser);
 
-          // Verify user is still valid
+          // Background verify: check if the token is still valid.
+          // This is NON-DESTRUCTIVE: if verification fails due to a
+          // network error or transient issue, we KEEP the cached user
+          // instead of logging them out. Only clear on a definitive 401.
           try {
             const currentUser = await authApi.getCurrentUser();
             setUser(currentUser);
             localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
-          } catch (error) {
-            // Token invalid, clear everything
-            clearToken();
-            localStorage.removeItem(STORAGE_KEYS.USER);
-            setUser(null);
+          } catch (error: any) {
+            const status = error?.response?.status;
+            if (status === 401 || status === 403) {
+              // Token is definitively expired/invalid
+              clearToken();
+              localStorage.removeItem(STORAGE_KEYS.USER);
+              localStorage.removeItem('__autosecure_at');
+              setUser(null);
+            }
+            // For network errors, timeouts, 500s etc. — keep the cached user
+            // The user can still interact; API calls will fail individually
           }
+        } else {
+          // No saved session
+          clearToken();
+          localStorage.removeItem(STORAGE_KEYS.USER);
+          setUser(null);
         }
       } catch (error) {
         console.error('Failed to load user:', error);

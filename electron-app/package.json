@@ -1,0 +1,67 @@
+{
+  "name": "autosecure-desktop",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "electron": "^41.0.0",
+    "electron-builder": "^26.8.1",
+    "wait-on": "^9.0.4"
+  },
+  "build": {
+    "appId": "com.autosecure.desktop",
+    "productName": "AutoSecure",
+    "files": [
+      "main.js",
+      "splash.html",
+      "logo.png",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "icon.ico",
+      "uninstallerIcon": "icon.ico",
+      "installerHeaderIcon": "icon.ico"
+    },
+    "extraResources": [
+      {
+        "from": "../backend/dist",
+        "to": "backend/dist",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../backend/node_modules",
+        "to": "backend/node_modules",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../backend/.env",
+        "to": "backend/.env"
+      },
+      {
+        "from": "../backend/package.json",
+        "to": "backend/package.json"
+      },
+      {
+        "from": "../frontend/out",
+        "to": "frontend/out",
+        "filter": ["**/*"]
+      }
+    ]
+  },
+  "dependencies": {
+    "electron-serve": "^3.0.1"
+  }
+}

@@ -2,8 +2,9 @@
 
 import { Fragment } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { usePrivacy } from '@/lib/context/PrivacyContext';
 import { Menu, Transition } from '@headlessui/react';
-import { Bars3Icon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, ArrowRightOnRectangleIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 
@@ -25,6 +26,7 @@ const breadcrumbMap: Record<string, string> = {
 
 export function Topbar({ onMenuClick }: TopbarProps) {
   const { user, logout } = useAuth();
+  const { isPrivacyMode, togglePrivacyMode } = usePrivacy();
   const pathname = usePathname();
 
   // Get breadcrumb for current page
@@ -40,7 +42,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
   };
 
   return (
-    <header className="flex-shrink-0 bg-white/70 backdrop-blur-xl border-b border-gray-100/50 sticky top-0 z-40 px-4 lg:px-8 py-3 flex items-center justify-between shadow-sm">
+    <header className="flex-shrink-0 bg-white border-b border-slate-200 sticky top-0 z-40 px-4 lg:px-8 py-4 flex items-center justify-between shadow-sm">
       {/* Left: Mobile menu + Breadcrumbs */}
       <div className="flex items-center gap-4">
         {/* Mobile menu button */}
@@ -71,8 +73,21 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         </nav>
       </div>
 
-      {/* Right: User menu */}
+      {/* Right: User menu & Privacy */}
       <div className="flex items-center gap-4">
+        {/* Privacy Toggle */}
+        <button
+          onClick={togglePrivacyMode}
+          className="flex items-center justify-center p-2 text-slate-500 hover:text-primary transition-colors rounded-full hover:bg-slate-50"
+          title={isPrivacyMode ? "Disable Privacy Mode" : "Enable Privacy Mode"}
+        >
+          {isPrivacyMode ? (
+            <EyeSlashIcon className="w-5 h-5" />
+          ) : (
+            <EyeIcon className="w-5 h-5" />
+          )}
+        </button>
+
         {/* User dropdown */}
         <Menu as="div" className="relative">
           <Menu.Button className="flex items-center gap-3 hover:bg-white/50 rounded-full pl-1 pr-3 py-1 transition-all border border-transparent hover:border-gray-200">

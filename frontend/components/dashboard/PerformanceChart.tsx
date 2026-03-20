@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
+import { usePrivacy } from '@/lib/context/PrivacyContext';
 
 interface PerformanceData {
   _id: string;
@@ -61,6 +62,8 @@ export function PerformanceChart({
   emptyMessage = 'No data available',
   labelFormatter = defaultLabelFormatter,
 }: PerformanceChartProps) {
+  const { formatPrivacyValue } = usePrivacy();
+
   const formatCurrency = (value: number) => {
     if (value >= 10000000) {
       return `₹${(value / 10000000).toFixed(1)}Cr`;
@@ -90,13 +93,13 @@ export function PerformanceChart({
             <div className="flex justify-between">
               <span className="text-gray-600">Premium:</span>
               <span className="font-medium text-green-600">
-                {formatCurrency(item.total_premium)}
+                {formatPrivacyValue(formatCurrency(item.total_premium))}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Commission:</span>
               <span className="font-medium text-blue-600">
-                {formatCurrency(item.total_commission)}
+                {formatPrivacyValue(formatCurrency(item.total_commission))}
               </span>
             </div>
           </div>

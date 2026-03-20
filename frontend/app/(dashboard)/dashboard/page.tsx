@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useAnalytics } from '@/lib/hooks/useAnalytics';
+import { usePrivacy } from '@/lib/context/PrivacyContext';
 import { PoliciesByTypeChart } from '@/components/dashboard/PoliciesByTypeChart';
 import { PoliciesByStatusChart } from '@/components/dashboard/PoliciesByStatusChart';
 import { LicenseAnalytics } from '@/components/dashboard/LicenseAnalytics';
@@ -25,6 +26,7 @@ type PerformanceTab = 'branch' | 'company' | 'dealer' | 'executive';
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { formatPrivacyValue } = usePrivacy();
   const {
     overview,
     policyAnalytics,
@@ -218,69 +220,100 @@ export default function DashboardPage() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
-                <p className="text-xs font-medium text-blue-600 uppercase mb-1">Policies</p>
-                <p className="text-2xl font-bold text-gray-900">{overview?.policies.total || 0}</p>
-                <p className="text-xs text-gray-500">{overview?.policies.active || 0} active</p>
+              <div className="card p-5 flex flex-col gap-1">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Policies</p>
+                  <ChartBarIcon className="w-5 h-5 text-blue-500" />
+                </div>
+                <p className="text-2xl font-bold tracking-tight text-slate-900">{overview?.policies.total || 0}</p>
+                <div className="flex items-center mt-1">
+                  <span className="text-slate-400 text-[10px]">{overview?.policies.active || 0} active</span>
+                </div>
               </div>
 
-              <div className="bg-green-50 rounded-lg p-4 border border-green-100">
-                <p className="text-xs font-medium text-green-600 uppercase mb-1">Licenses</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {licenseAnalytics?.status_breakdown?.reduce(
-                    (sum: number, item) => sum + item.count,
-                    0
-                  ) || 0}
+              <div className="card p-5 flex flex-col gap-1">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Licenses</p>
+                  <BuildingOfficeIcon className="w-5 h-5 text-emerald-500" />
+                </div>
+                <p className="text-2xl font-bold tracking-tight text-slate-900">
+                  {licenseAnalytics?.status_breakdown?.reduce((sum: number, item) => sum + item.count, 0) || 0}
                 </p>
-                <p className="text-xs text-gray-500">
-                  {licenseAnalytics?.status_breakdown?.find((item) => item._id === 'active')
-                    ?.count || 0}{' '}
-                  active
-                </p>
+                <div className="flex items-center mt-1">
+                  <span className="text-slate-400 text-[10px]">
+                    {licenseAnalytics?.status_breakdown?.find((item) => item._id === 'active')?.count || 0} active
+                  </span>
+                </div>
               </div>
 
-              <div className="bg-rose-50 rounded-lg p-4 border border-rose-100">
-                <p className="text-xs font-medium text-rose-600 uppercase mb-1">Expiring</p>
-                <p className="text-2xl font-bold text-gray-900">
+              <div className="card p-5 flex flex-col gap-1">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Expiring</p>
+                  <ChartBarIcon className="w-5 h-5 text-rose-500" />
+                </div>
+                <p className="text-2xl font-bold tracking-tight text-slate-900">
                   {overview?.expiring_items?.total_count || 0}
                 </p>
-                <p className="text-xs text-gray-500">Policies & Licenses</p>
+                <div className="flex items-center mt-1">
+                  <span className="text-slate-400 text-[10px]">Policies & Licenses</span>
+                </div>
               </div>
 
-              <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-100">
-                <p className="text-xs font-medium text-emerald-600 uppercase mb-1">GST Premium</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {financialMetrics.rangeGST >= 10000000
-                    ? `₹${(financialMetrics.rangeGST / 10000000).toFixed(2)}Cr`
-                    : financialMetrics.rangeGST >= 100000
-                      ? `₹${(financialMetrics.rangeGST / 100000).toFixed(2)}L`
-                      : `₹${financialMetrics.rangeGST.toLocaleString('en-IN')}`}
+              <div className="card p-5 flex flex-col gap-1">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">GST Premium</p>
+                  <ChartBarIcon className="w-5 h-5 text-primary" />
+                </div>
+                <p className="text-2xl font-bold tracking-tight text-slate-900">
+                  {formatPrivacyValue(
+                    financialMetrics.rangeGST >= 10000000
+                      ? `₹${(financialMetrics.rangeGST / 10000000).toFixed(2)}Cr`
+                      : financialMetrics.rangeGST >= 100000
+                        ? `₹${(financialMetrics.rangeGST / 100000).toFixed(2)}L`
+                        : `₹${financialMetrics.rangeGST.toLocaleString('en-IN')}`
+                  )}
                 </p>
-                <p className="text-xs text-gray-500">{rangeLabel}</p>
+                <div className="flex items-center mt-1">
+                  <span className="text-slate-400 text-[10px]">{rangeLabel}</span>
+                </div>
               </div>
 
-              <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
-                <p className="text-xs font-medium text-indigo-600 uppercase mb-1">Commission</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {financialMetrics.rangeCommission >= 10000000
-                    ? `₹${(financialMetrics.rangeCommission / 10000000).toFixed(2)}Cr`
-                    : financialMetrics.rangeCommission >= 100000
-                      ? `₹${(financialMetrics.rangeCommission / 100000).toFixed(2)}L`
-                      : `₹${financialMetrics.rangeCommission.toLocaleString('en-IN')}`}
+              <div className="card p-5 flex flex-col gap-1">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Commission</p>
+                  <ChartBarIcon className="w-5 h-5 text-primary" />
+                </div>
+                <p className="text-2xl font-bold tracking-tight text-slate-900">
+                  {formatPrivacyValue(
+                    financialMetrics.rangeCommission >= 10000000
+                      ? `₹${(financialMetrics.rangeCommission / 10000000).toFixed(2)}Cr`
+                      : financialMetrics.rangeCommission >= 100000
+                        ? `₹${(financialMetrics.rangeCommission / 100000).toFixed(2)}L`
+                        : `₹${financialMetrics.rangeCommission.toLocaleString('en-IN')}`
+                  )}
                 </p>
-                <p className="text-xs text-gray-500">{rangeLabel}</p>
+                <div className="flex items-center mt-1">
+                  <span className="text-slate-400 text-[10px]">{rangeLabel}</span>
+                </div>
               </div>
 
-              <div className="bg-amber-50 rounded-lg p-4 border border-amber-100">
-                <p className="text-xs font-medium text-amber-600 uppercase mb-1">Profit</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {financialMetrics.rangeProfit >= 10000000
-                    ? `₹${(financialMetrics.rangeProfit / 10000000).toFixed(2)}Cr`
-                    : financialMetrics.rangeProfit >= 100000
-                      ? `₹${(financialMetrics.rangeProfit / 100000).toFixed(2)}L`
-                      : `₹${financialMetrics.rangeProfit.toLocaleString('en-IN')}`}
+              <div className="card p-5 flex flex-col gap-1">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Profit</p>
+                  <ChartBarIcon className="w-5 h-5 text-primary" />
+                </div>
+                <p className="text-2xl font-bold tracking-tight text-slate-900">
+                  {formatPrivacyValue(
+                    financialMetrics.rangeProfit >= 10000000
+                      ? `₹${(financialMetrics.rangeProfit / 10000000).toFixed(2)}Cr`
+                      : financialMetrics.rangeProfit >= 100000
+                        ? `₹${(financialMetrics.rangeProfit / 100000).toFixed(2)}L`
+                        : `₹${financialMetrics.rangeProfit.toLocaleString('en-IN')}`
+                  )}
                 </p>
-                <p className="text-xs text-gray-500">{rangeLabel}</p>
+                <div className="flex items-center mt-1">
+                  <span className="text-slate-400 text-[10px]">{rangeLabel}</span>
+                </div>
               </div>
             </div>
           </div>

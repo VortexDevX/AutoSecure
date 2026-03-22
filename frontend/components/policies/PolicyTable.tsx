@@ -13,6 +13,8 @@ import {
   TrashIcon,
   EnvelopeIcon,
   EllipsisVerticalIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 import { Menu, Transition } from '@headlessui/react';
 import clsx from 'clsx';
@@ -21,6 +23,9 @@ interface PolicyTableProps {
   policies: PolicyListItem[];
   onDelete: (id: string) => void;
   onSendEmail: (id: string) => void;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  onSort?: (field: string) => void;
 }
 
 // Menu item heights for position calculation
@@ -213,7 +218,7 @@ function ActionsMenu({
   );
 }
 
-export function PolicyTable({ policies, onDelete, onSendEmail }: PolicyTableProps) {
+export function PolicyTable({ policies, onDelete, onSendEmail, sortBy, sortOrder, onSort }: PolicyTableProps) {
   const { user } = useAuth();
 
   const canEdit = user?.role === 'owner' || user?.role === 'admin';
@@ -242,7 +247,28 @@ export function PolicyTable({ policies, onDelete, onSendEmail }: PolicyTableProp
               <th className="px-4 py-3 text-left">Status</th>
               <th className="px-4 py-3 text-left">Payment</th>
               <th className="px-4 py-3 text-right">Premium</th>
-              <th className="px-4 py-3 text-left">Expiry</th>
+              <th 
+                className="px-4 py-3 text-left cursor-pointer group hover:bg-gray-50 transition-colors"
+                onClick={() => onSort?.('saod_end_date')}
+              >
+                <div className="flex items-center gap-1">
+                  Expiry
+                  <span className="text-gray-400 group-hover:text-gray-600">
+                    {sortBy === 'saod_end_date' ? (
+                      sortOrder === 'asc' ? (
+                        <ChevronUpIcon className="w-4 h-4" />
+                      ) : (
+                        <ChevronDownIcon className="w-4 h-4" />
+                      )
+                    ) : (
+                      <div className="w-4 h-4 flex flex-col justify-center gap-0 opacity-50">
+                        <ChevronUpIcon className="w-3 h-3 -mb-1" />
+                        <ChevronDownIcon className="w-3 h-3 -mt-1" />
+                      </div>
+                    )}
+                  </span>
+                </div>
+              </th>
               <th className="px-4 py-3 text-right w-12"></th>
             </tr>
           </thead>

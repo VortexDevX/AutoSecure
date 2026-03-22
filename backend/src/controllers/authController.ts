@@ -248,3 +248,125 @@ export const getCurrentUser = asyncHandler(async (req: Request, res: Response) =
     },
   });
 });
+
+/**
+ * POST /api/v1/auth/forgot-password
+ * Request a password reset OTP
+ */
+export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  if (!email || !validateEmail(email)) {
+    throw new ValidationError('Valid email is required');
+  }
+
+  const user = (await User.findOne({ email: email.toLowerCase() })) as IUser | null;
+
+  // We return a generic success message even if the user isn't found
+  // to prevent email enumeration attacks.
+  if (!user || !user.active) {
+    return res.json({
+      status: 'success',
+      message: 'If that email address is in our database, we will send you an email to reset your password.',
+    });
+  }
+
+  // Generate 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Set expiration to 15 minutes from now
+  const expires = new Date();
+  expires.setMinutes(expires.getMinutes() + 15);
+
+  user.reset_password_otp = otp;
+  user.reset_password_expires = expires;
+  user.reset_password_attempts = 0;
+  await user.save();
+
+  // Send the email
+  const { emailService } = await import('../services/emailService');
+  await emailService.sendPasswordResetEmail(user.email, otp, user.full_name);
+
+  // Log audit
+  await AuditService.log({
+    user_id: user._id.toString(),
+    action: 'update', // generic action log
+    details: { event: 'forgot_password_requested' },
+    ip_address: req.ip,
+    user_agent: req.headers['user-agent'],
+  });
+
+  res.json({
+    status: 'success',
+    message: 'If that email address is in our database, we will send you an email to reset your password.',
+  });
+});
+
+/**
+ * POST /api/v1/auth/reset-password
+ * Reset password using OTP
+ */
+export const resetPassword = asyncHandler(async (req: Request, res: Response) => {
+  const { email, otp, newPassword } = req.body;
+
+  if (!email || !otp || !newPassword) {
+    throw new ValidationError('Email, OTP, and new password are required');
+  }
+
+  if (!validateMaxLength(newPassword, MAX_LENGTHS.password) || newPassword.length < 10) {
+    throw new ValidationError('Password must be between 10 and 100 characters');
+  }
+
+  const user = (await User.findOne({ email: email.toLowerCase() }).select(
+    '+reset_password_otp +reset_password_expires +reset_password_attempts'
+  )) as IUser | null;
+
+  if (!user || !user.active) {
+    throw new AuthenticationError('Invalid or expired password reset token');
+  }
+
+  // Check if OTP was requested
+  if (!user.reset_password_otp || !user.reset_password_expires) {
+    throw new AuthenticationError('No password reset requested for this account');
+  }
+
+  // Check attempts
+  if (user.reset_password_attempts && user.reset_password_attempts >= 5) {
+    throw new AuthenticationError('Too many failed attempts. Please request a new code.');
+  }
+
+  // Check expiration
+  if (user.reset_password_expires < new Date()) {
+    throw new AuthenticationError('Password reset code has expired. Please request a new one.');
+  }
+
+  // Verify OTP
+  if (user.reset_password_otp !== String(otp)) {
+    user.reset_password_attempts = (user.reset_password_attempts || 0) + 1;
+    await user.save();
+    throw new AuthenticationError('Invalid password reset code');
+  }
+
+  // Success - hash new password
+  user.password_hash = await PasswordService.hash(newPassword);
+  
+  // Clear reset fields
+  user.reset_password_otp = undefined;
+  user.reset_password_expires = undefined;
+  user.reset_password_attempts = 0;
+  
+  await user.save();
+
+  await AuditService.log({
+    user_id: user._id.toString(),
+    action: 'update',
+    details: { event: 'password_reset_success' },
+    ip_address: req.ip,
+    user_agent: req.headers['user-agent'],
+  });
+
+  res.json({
+    status: 'success',
+    message: 'Password successfully reset',
+  });
+});

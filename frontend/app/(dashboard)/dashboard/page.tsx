@@ -294,15 +294,13 @@ export default function DashboardPage() {
                   <ChartBarIcon className="w-5 h-5 text-indigo-500" />
                 </div>
                 <p className="text-2xl font-bold tracking-tight text-slate-900">
-                  {formatPrivacyValue(
-                    financialMetrics.rangeNetPremium >= 10000000
-                      ? `₹${(financialMetrics.rangeNetPremium / 10000000).toFixed(1)}Cr`
-                      : financialMetrics.rangeNetPremium >= 100000
-                        ? `₹${(financialMetrics.rangeNetPremium / 100000).toFixed(1)}L`
-                        : financialMetrics.rangeNetPremium >= 1000
-                          ? `₹${(financialMetrics.rangeNetPremium / 1000).toFixed(0)}K`
-                          : `₹${financialMetrics.rangeNetPremium.toLocaleString('en-IN')}`
-                  )}
+                  {financialMetrics.rangeNetPremium >= 10000000
+                    ? `₹${(financialMetrics.rangeNetPremium / 10000000).toFixed(1)}Cr`
+                    : financialMetrics.rangeNetPremium >= 100000
+                      ? `₹${(financialMetrics.rangeNetPremium / 100000).toFixed(1)}L`
+                      : financialMetrics.rangeNetPremium >= 1000
+                        ? `₹${(financialMetrics.rangeNetPremium / 1000).toFixed(0)}K`
+                        : `₹${financialMetrics.rangeNetPremium.toLocaleString('en-IN')}`}
                 </p>
                 <div className="flex items-center mt-1">
                   <span className="text-slate-400 text-[10px]">{rangeLabel}</span>

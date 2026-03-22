@@ -6,6 +6,7 @@ export const ROUTES = {
   // Auth
   LOGIN: '/login',
   VERIFY_TOTP: '/verify-totp',
+  FORGOT_PASSWORD: '/forgot-password',
 
   // Dashboard
   DASHBOARD: '/dashboard',

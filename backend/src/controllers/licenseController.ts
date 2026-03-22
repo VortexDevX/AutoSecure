@@ -22,6 +22,10 @@ export const getLicenses = asyncHandler(async (req: Request, res: Response) => {
   const expiringSoon = req.query.expiring_soon as string;
   const facelessType = req.query.faceless_type as string;
 
+  const sort_by = (req.query.sort_by as string) || 'createdAt';
+  const sort_order = (req.query.sort_order as string) || 'desc';
+  const sortObj: any = { [sort_by]: sort_order === 'asc' ? 1 : -1 };
+
   const query: Record<string, unknown> = {};
 
   if (search) {
@@ -54,9 +58,10 @@ export const getLicenses = asyncHandler(async (req: Request, res: Response) => {
   const [licenses, total] = await Promise.all([
     LicenseRecord.find(query)
       .populate('created_by', 'email full_name')
-      .sort({ createdAt: -1 })
+      .sort(sortObj)
       .skip(skip)
-      .limit(limit),
+      .limit(limit)
+      .lean(),
     LicenseRecord.countDocuments(query),
   ]);
 

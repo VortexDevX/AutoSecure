@@ -31,6 +31,8 @@ export const getLicenses = async (params?: {
   approved?: boolean;
   expiring_soon?: boolean;
   faceless_type?: string;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
 }): Promise<LicensesResponse['data']> => {
   const response = await apiClient.get<LicensesResponse>('/api/v1/licenses', { params });
   return response.data.data;

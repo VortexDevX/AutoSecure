@@ -226,6 +226,10 @@ export const getPolicies = asyncHandler(async (req: Request, res: Response) => {
   const branch_id = req.query.branch_id as string;
   const customer_payment_status = req.query.customer_payment_status as string;
   const expiringSoon = req.query.expiring_soon as string;
+  
+  const sort_by = (req.query.sort_by as string) || 'createdAt';
+  const sort_order = (req.query.sort_order as string) || 'desc';
+  const sortObj: any = { [sort_by]: sort_order === 'asc' ? 1 : -1 };
 
   // Build query
   const query: any = {};
@@ -276,12 +280,13 @@ export const getPolicies = asyncHandler(async (req: Request, res: Response) => {
   const [policies, total] = await Promise.all([
     Policy.find(query)
       .populate('created_by', 'email full_name')
-      .sort({ createdAt: -1 })
+      .sort(sortObj)
       .skip(skip)
       .limit(limit)
       .select(
         'serial_no policy_no customer email mobile_no registration_number ins_status ins_co_id customer_payment_status premium_amount net_premium start_date end_date saod_end_date created_by createdAt'
-      ),
+      )
+      .lean(),
     Policy.countDocuments(query),
   ]);
 

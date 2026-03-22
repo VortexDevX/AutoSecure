@@ -10,6 +10,9 @@ export interface IUser extends Document {
   totp_verified: boolean;
   active: boolean;
   full_name?: string;
+  reset_password_otp?: string;
+  reset_password_expires?: Date;
+  reset_password_attempts?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -59,6 +62,17 @@ const UserSchema = new Schema<IUser>(
       trim: true,
       maxlength: 100,
     },
+    reset_password_otp: {
+      type: String,
+      select: false,
+    },
+    reset_password_expires: {
+      type: Date,
+    },
+    reset_password_attempts: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
@@ -73,6 +87,7 @@ UserSchema.set('toJSON', {
   transform: function (doc, ret: any) {
     delete ret.password_hash;
     delete ret.totp_secret;
+    delete ret.reset_password_otp;
     return ret;
   },
 });

@@ -10,6 +10,8 @@ interface UsePoliciesParams {
   ins_status?: string;
   customer_payment_status?: string;
   expiring_soon?: boolean;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
 }
 
 export function usePolicies(params: UsePoliciesParams = {}) {
@@ -27,6 +29,9 @@ export function usePolicies(params: UsePoliciesParams = {}) {
   if (typeof params.expiring_soon === 'boolean') {
     queryParams.append('expiring_soon', params.expiring_soon.toString());
   }
+
+  if (params.sort_by) queryParams.append('sort_by', params.sort_by);
+  if (params.sort_order) queryParams.append('sort_order', params.sort_order);
 
   const url = `/api/v1/policies?${queryParams.toString()}`;
 

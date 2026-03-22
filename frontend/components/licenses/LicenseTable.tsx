@@ -6,13 +6,16 @@ import { createPortal } from 'react-dom';
 import { LicenseRecord } from '@/lib/types/license';
 import { formatDate, formatCurrency } from '@/lib/utils/formatters';
 import { useAuth } from '@/lib/hooks/useAuth';
-import { EyeIcon, PencilIcon, TrashIcon, EllipsisVerticalIcon } from '@heroicons/react/24/outline';
+import { EyeIcon, PencilIcon, TrashIcon, EllipsisVerticalIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { Menu, Transition } from '@headlessui/react';
 import clsx from 'clsx';
 
 interface LicenseTableProps {
   licenses: LicenseRecord[];
   onDelete: (id: string) => void;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  onSort?: (field: string) => void;
 }
 
 // Menu item heights for position calculation
@@ -182,7 +185,7 @@ function ActionsMenu({
   );
 }
 
-export function LicenseTable({ licenses, onDelete }: LicenseTableProps) {
+export function LicenseTable({ licenses, onDelete, sortBy, sortOrder, onSort }: LicenseTableProps) {
   const { user } = useAuth();
   const canEdit = user?.role === 'owner' || user?.role === 'admin';
 
@@ -204,7 +207,28 @@ export function LicenseTable({ licenses, onDelete }: LicenseTableProps) {
               <th className="px-4 py-3 text-left">License No</th>
               <th className="px-4 py-3 text-left">Customer</th>
               <th className="px-4 py-3 text-left">Mobile</th>
-              <th className="px-4 py-3 text-left">Expiry</th>
+              <th 
+                className="px-4 py-3 text-left cursor-pointer group hover:bg-gray-50 transition-colors"
+                onClick={() => onSort?.('expiry_date')}
+              >
+                <div className="flex items-center gap-1">
+                  Expiry
+                  <span className="text-gray-400 group-hover:text-gray-600">
+                    {sortBy === 'expiry_date' ? (
+                      sortOrder === 'asc' ? (
+                        <ChevronUpIcon className="w-4 h-4" />
+                      ) : (
+                        <ChevronDownIcon className="w-4 h-4" />
+                      )
+                    ) : (
+                      <div className="w-4 h-4 flex flex-col justify-center gap-0 opacity-50">
+                        <ChevronUpIcon className="w-3 h-3 -mb-1" />
+                        <ChevronDownIcon className="w-3 h-3 -mt-1" />
+                      </div>
+                    )}
+                  </span>
+                </div>
+              </th>
               <th className="px-4 py-3 text-left">Type</th>
               <th className="px-4 py-3 text-left">Approved</th>
               <th className="px-4 py-3 text-right">Fee</th>

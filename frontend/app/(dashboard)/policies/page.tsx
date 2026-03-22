@@ -35,6 +35,10 @@ export default function PoliciesPage() {
     expiring_soon?: boolean;
   }>({});
 
+  // Sorting state
+  const [sortBy, setSortBy] = useState<string>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
   // Email modal state
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
@@ -44,8 +48,24 @@ export default function PoliciesPage() {
     page,
     limit,
     search,
+    sort_by: sortBy,
+    sort_order: sortOrder,
     ...filters,
   });
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      if (sortOrder === 'asc') setSortOrder('desc');
+      else if (sortOrder === 'desc') {
+        setSortBy('createdAt');
+        setSortOrder('desc');
+      }
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+    setPage(1);
+  };
 
   // Running month's net premium from analytics endpoint (fallback to page calculation)
   const [monthNetPremium, setMonthNetPremium] = useState<number | null>(null);
@@ -355,7 +375,14 @@ export default function PoliciesPage() {
         </div>
       ) : (
         <>
-          <PolicyTable policies={policies} onDelete={handleDelete} onSendEmail={handleSendEmail} />
+          <PolicyTable 
+            policies={policies} 
+            onDelete={handleDelete} 
+            onSendEmail={handleSendEmail} 
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={handleSort}
+          />
 
           {/* Pagination */}
           {pagination && pagination.total > limit && (

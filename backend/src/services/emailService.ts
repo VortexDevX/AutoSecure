@@ -1042,4 +1042,54 @@ export const emailService = {
       .populate('sent_by', 'email role')
       .lean();
   },
+
+  /**
+   * Send password reset OTP email
+   */
+  async sendPasswordResetEmail(email: string, otp: string, name?: string): Promise<void> {
+    try {
+      const companyInfo = await this.getCompanyInfo();
+      const userName = name || 'User';
+
+      const subject = `Password Reset Code: ${otp}`;
+      const htmlBody = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; }
+          .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; padding: 30px; text-align: center; }
+          .code { font-size: 32px; font-weight: bold; letter-spacing: 4px; color: #3B82F6; padding: 15px; margin: 20px 0; background: #eef2ff; border-radius: 8px; }
+          .footer { margin-top: 30px; font-size: 12px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h2>Password Reset Request</h2>
+          <p>Hello ${userName},</p>
+          <p>We received a request to reset your password. Use the verification code below to proceed.</p>
+          <div class="code">${otp}</div>
+          <p>This code is valid for 15 minutes. If you didn't request a password reset, you can safely ignore this email.</p>
+          
+          <div class="footer">
+            <p>${companyInfo.company_name}</p>
+            <p>${companyInfo.company_address} | ${companyInfo.company_email}</p>
+          </div>
+        </div>
+      </body>
+      </html>
+      `;
+
+      await smtpService.sendEmail({
+        to: email,
+        subject,
+        html: htmlBody,
+      });
+
+      console.log(`✅ Password reset email sent to ${email}`);
+    } catch (error) {
+      console.error('❌ Failed to send password reset email:', error);
+      throw new AppError('Failed to send password reset email', 500);
+    }
+  },
 };

@@ -33,6 +33,10 @@ export default function LicensesPage() {
   const [facelessType, setFacelessType] = useState(searchParams.get('faceless_type') || '');
   const [expiringSoon, setExpiringSoon] = useState(searchParams.get('expiring_soon') === 'true');
 
+  // Sorting state
+  const [sortBy, setSortBy] = useState<string>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
   const fetchLicenses = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -45,6 +49,8 @@ export default function LicensesPage() {
       if (approved) params.approved = approved === 'true';
       if (facelessType) params.faceless_type = facelessType;
       if (expiringSoon) params.expiring_soon = true;
+      if (sortBy) params.sort_by = sortBy;
+      if (sortOrder) params.sort_order = sortOrder;
 
       const data = await getLicenses(params as Parameters<typeof getLicenses>[0]);
       setLicenses(data.licenses);
@@ -55,7 +61,21 @@ export default function LicensesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [pagination.page, pagination.limit, search, approved, facelessType, expiringSoon]);
+  }, [pagination.page, pagination.limit, search, approved, facelessType, expiringSoon, sortBy, sortOrder]);
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      if (sortOrder === 'asc') setSortOrder('desc');
+      else if (sortOrder === 'desc') {
+        setSortBy('createdAt');
+        setSortOrder('desc');
+      }
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+    setPagination(prev => ({ ...prev, page: 1 }));
+  };
 
   useEffect(() => {
     fetchLicenses();
@@ -149,7 +169,13 @@ export default function LicensesPage() {
         </div>
       ) : (
         <>
-          <LicenseTable licenses={licenses} onDelete={handleDelete} />
+          <LicenseTable 
+            licenses={licenses} 
+            onDelete={handleDelete} 
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={handleSort}
+          />
 
           {/* Pagination */}
           {pagination.pages > 1 && (

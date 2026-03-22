@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: 'export',
   // Suppress hydration warnings caused by browser extensions
   webpack: (config) => {
     config.infrastructureLogging = {

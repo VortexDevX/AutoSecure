@@ -1,0 +1,2 @@
+src/controllers/authController.ts(293,5): error TS2322: Type '"action"' is not assignable to type '"login" | "logout" | "create" | "update" | "delete" | "export" | "site_toggle" | "role_change"'.
+src/controllers/authController.ts(362,5): error TS2322: Type '"action"' is not assignable to type '"login" | "logout" | "create" | "update" | "delete" | "export" | "site_toggle" | "role_change"'.

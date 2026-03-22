@@ -83,4 +83,42 @@ export const authApi = {
       throw new Error(getErrorMessage(error));
     }
   },
+
+  /**
+   * Request password reset OTP
+   */
+  async requestPasswordReset(
+    email: string
+  ): Promise<{ success: boolean; message?: string; error?: string }> {
+    try {
+      const response = await apiClient.post<ApiResponse<null>>('/api/v1/auth/forgot-password', {
+        email,
+      });
+      const data = response.data;
+      return { success: true, message: data.message };
+    } catch (error: any) {
+      return { success: false, error: getErrorMessage(error) };
+    }
+  },
+
+  /**
+   * Reset password with OTP
+   */
+  async resetPassword(
+    email: string,
+    otp: string,
+    newPassword: string
+  ): Promise<{ success: boolean; message?: string; error?: string }> {
+    try {
+      const response = await apiClient.post<ApiResponse<null>>('/api/v1/auth/reset-password', {
+        email,
+        otp,
+        newPassword,
+      });
+      const data = response.data;
+      return { success: true, message: data.message };
+    } catch (error: any) {
+      return { success: false, error: getErrorMessage(error) };
+    }
+  },
 };

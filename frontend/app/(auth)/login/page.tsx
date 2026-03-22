@@ -83,10 +83,7 @@ export default function LoginPage() {
   };
 
   const handleForgotPassword = () => {
-    toast('Contact the system owner to reset your password.', {
-      duration: 5000,
-      icon: 'ℹ️',
-    });
+    router.push(ROUTES.FORGOT_PASSWORD);
   };
 
   return (

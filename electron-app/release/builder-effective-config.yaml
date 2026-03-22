@@ -1,0 +1,38 @@
+directories:
+  output: release
+  buildResources: build
+appId: com.autosecure.desktop
+productName: AutoSecure
+files:
+  - filter:
+      - main.js
+      - splash.html
+      - logo.png
+      - node_modules/**/*
+win:
+  target: nsis
+  icon: icons/win/icon.ico
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  installerIcon: icons/win/icon.ico
+  uninstallerIcon: icons/win/icon.ico
+  installerHeaderIcon: icons/win/icon.ico
+extraResources:
+  - from: ../backend/dist
+    to: backend/dist
+    filter:
+      - '**/*'
+  - from: ../backend/node_modules
+    to: backend/node_modules
+    filter:
+      - '**/*'
+  - from: ../backend/.env
+    to: backend/.env
+  - from: ../backend/package.json
+    to: backend/package.json
+  - from: ../frontend/out
+    to: frontend/out
+    filter:
+      - '**/*'
+electronVersion: 41.0.0

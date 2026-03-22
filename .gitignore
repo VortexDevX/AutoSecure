@@ -17,10 +17,6 @@ backend/.env.example
 backend/.env
 frontend/.env.local
 
-# Storage (local development only)
-backend/storage/policies/
-backend/storage/backups/
-
 # IDE
 .idea/
 .vscode/
@@ -50,4 +46,6 @@ coverage/
 security_audit.md
 
 # Electron
-./electron-app/release/*
+electron-app/release
+electron-app/icons
+electron-app/logo.png

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoSecure — Loading</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', -apple-system, sans-serif;
+      background: #f6f6f8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #1e293b;
+      -webkit-app-region: drag;
+      user-select: none;
+    }
+    .container {
+      text-align: center;
+      width: 380px;
+    }
+    .logo-wrap {
+      height: 80px;
+      margin: 0 auto 24px;
+      display: flex; align-items: center; justify-content: center;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .logo-wrap img { 
+      max-width: 200px; 
+      max-height: 80px; 
+      object-fit: contain; 
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+    h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+    .subtitle { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #94a3b8; font-weight: 600; margin-bottom: 36px; }
+    .progress-bar-track {
+      width: 100%; height: 6px;
+      background: #e2e8f0; border-radius: 999px;
+      overflow: hidden; margin-bottom: 16px;
+    }
+    .progress-bar-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, #135bec, #60a5fa);
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+    .status {
+      font-size: 13px; color: #64748b; font-weight: 500;
+      min-height: 20px;
+    }
+    .steps {
+      margin-top: 28px; text-align: left;
+      background: white; border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      padding: 16px 20px;
+    }
+    .step {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 0; font-size: 13px; color: #94a3b8;
+      transition: color 0.3s;
+    }
+    .step.active { color: #135bec; font-weight: 600; }
+    .step.done { color: #10b981; }
+    .step-icon {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid #e2e8f0; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; transition: all 0.3s;
+    }
+    .step.active .step-icon { border-color: #135bec; background: #eff6ff; }
+    .step.done .step-icon { border-color: #10b981; background: #ecfdf5; color: #10b981; }
+    .spinner {
+      width: 8px; height: 8px; border: 2px solid #135bec;
+      border-top-color: transparent; border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo-wrap">
+      <img src="logo.png" alt="AutoSecure" onerror="this.style.display='none'" />
+    </div>
+    <h1>AutoSecure</h1>
+    <p class="subtitle">Desktop Application</p>
+
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+    <p class="status" id="statusText">Initializing...</p>
+
+    <div class="steps">
+      <div class="step" id="step-init">
+        <div class="step-icon" id="icon-init"></div>
+        <span>Initializing application</span>
+      </div>
+      <div class="step" id="step-backend">
+        <div class="step-icon" id="icon-backend"></div>
+        <span>Starting backend server</span>
+      </div>
+      <div class="step" id="step-db">
+        <div class="step-icon" id="icon-db"></div>
+        <span>Connecting to database</span>
+      </div>
+      <div class="step" id="step-frontend">
+        <div class="step-icon" id="icon-frontend"></div>
+        <span>Loading user interface</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Listen for progress updates from main process via query params or IPC
+    // We use a simple polling approach — main process updates window title with progress info
+    const progressBar = document.getElementById('progressBar');
+    const statusText = document.getElementById('statusText');
+
+    function setProgress(percent, text, activeStep, doneSteps) {
+      progressBar.style.width = percent + '%';
+      statusText.textContent = text;
+
+      const steps = ['init', 'backend', 'db', 'frontend'];
+      steps.forEach(s => {
+        const el = document.getElementById('step-' + s);
+        const icon = document.getElementById('icon-' + s);
+        el.className = 'step';
+        icon.innerHTML = '';
+      });
+      doneSteps.forEach(s => {
+        const el = document.getElementById('step-' + s);
+        const icon = document.getElementById('icon-' + s);
+        el.className = 'step done';
+        icon.innerHTML = '✓';
+      });
+      if (activeStep) {
+        const el = document.getElementById('step-' + activeStep);
+        const icon = document.getElementById('icon-' + activeStep);
+        el.className = 'step active';
+        icon.innerHTML = '<div class="spinner"></div>';
+      }
+    }
+
+    // Poll for title changes from main process (simple IPC alternative)
+    setInterval(() => {
+      try {
+        const data = document.title.split('|');
+        if (data.length >= 4) {
+          const pct = parseInt(data[0]);
+          const text = data[1];
+          const active = data[2];
+          const done = data[3] ? data[3].split(',').filter(Boolean) : [];
+          setProgress(pct, text, active, done);
+        }
+      } catch(e) {}
+    }, 200);
+
+    // Initial state
+    setProgress(5, 'Initializing...', 'init', []);
+  </script>
+</body>
+</html>

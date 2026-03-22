@@ -86,3 +86,28 @@ export const updateUserStatus = async (userId: string, active: boolean): Promise
 export const deleteUser = async (userId: string): Promise<void> => {
   await apiClient.delete(`/api/v1/users/${userId}`);
 };
+
+/**
+ * Update current user profile
+ */
+export const updateProfile = async (data: { full_name: string }): Promise<User> => {
+  const response = await apiClient.patch('/api/v1/users/me', data);
+  const u = response.data.data.user;
+
+  return {
+    id: u.id,
+    email: u.email,
+    full_name: u.full_name,
+    role: u.role,
+    active: true,
+    totp_enabled: false,
+    created_at: new Date().toISOString(),
+  };
+};
+
+/**
+ * Change current user password
+ */
+export const changePassword = async (data: any): Promise<void> => {
+  await apiClient.patch('/api/v1/users/me/password', data);
+};

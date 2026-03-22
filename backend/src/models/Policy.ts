@@ -246,6 +246,56 @@ const PolicySchema = new Schema<IPolicy>(
   }
 );
 
+// Auto-calculate extra_amount and profit before saving
+PolicySchema.pre('save', function (next) {
+  const companyAmount = this.company_amount || 0;
+  const premiumAmount = this.premium_amount || 0;
+  const agentCommission = this.agent_commission || 0;
+
+  this.extra_amount = companyAmount - premiumAmount;
+  this.profit = agentCommission - this.extra_amount;
+  next();
+});
+
+// Also recalculate on findOneAndUpdate (PATCH)
+PolicySchema.pre('findOneAndUpdate', function (next) {
+  const update = this.getUpdate() as Record<string, unknown>;
+  if (!update) return next();
+
+  // Flatten $set if present
+  const data = (update.$set || update) as Record<string, unknown>;
+
+  // Only recalculate if any of the three inputs are being updated
+  const hasPremiumFields =
+    'company_amount' in data || 'premium_amount' in data || 'agent_commission' in data;
+
+  if (hasPremiumFields) {
+    // We need to merge with existing doc values for fields not in the update
+    // So we mark the fields to be recalculated in a post hook
+    // For safety, if all three are present we can calculate directly
+    const companyAmount =
+      data.company_amount !== undefined ? Number(data.company_amount) : undefined;
+    const premiumAmount =
+      data.premium_amount !== undefined ? Number(data.premium_amount) : undefined;
+    const agentCommission =
+      data.agent_commission !== undefined ? Number(data.agent_commission) : undefined;
+
+    // If all three values are available in the update, calculate immediately
+    if (companyAmount !== undefined && premiumAmount !== undefined && agentCommission !== undefined) {
+      const extraAmount = companyAmount - premiumAmount;
+      const profit = agentCommission - extraAmount;
+      if (update.$set) {
+        (update.$set as Record<string, unknown>).extra_amount = extraAmount;
+        (update.$set as Record<string, unknown>).profit = profit;
+      } else {
+        update.extra_amount = extraAmount;
+        update.profit = profit;
+      }
+    }
+  }
+  next();
+});
+
 // Indexes
 PolicySchema.index({ customer: 'text', email: 'text', registration_number: 'text' });
 PolicySchema.index({ created_by: 1 });

@@ -158,11 +158,11 @@ export default function LicensesPage() {
                 currentPage={pagination.page}
                 totalPages={pagination.pages}
                 onPageChange={handlePageChange}
-                itemsPerPage={0}
-                onItemsPerPageChange={function (limit: number): void {
-                  throw new Error('Function not implemented.');
+                itemsPerPage={pagination.limit}
+                onItemsPerPageChange={(limit) => {
+                  setPagination((prev) => ({ ...prev, limit, page: 1 }));
                 }}
-                totalItems={0}
+                totalItems={pagination.total}
               />
             </div>
           )}

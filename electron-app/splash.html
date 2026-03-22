@@ -22,18 +22,19 @@
       width: 380px;
     }
     .logo-wrap {
-      width: 80px; height: 80px;
+      height: 80px;
       margin: 0 auto 24px;
-      border-radius: 20px;
-      background: #135bec;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 24px rgba(19,91,236,0.18);
       animation: pulse 2s ease-in-out infinite;
     }
-    .logo-wrap img { width: 48px; height: 48px; border-radius: 8px; }
+    .logo-wrap img { 
+      max-width: 200px; 
+      max-height: 80px; 
+      object-fit: contain; 
+    }
     @keyframes pulse {
-      0%, 100% { transform: scale(1); box-shadow: 0 4px 24px rgba(19,91,236,0.18); }
-      50% { transform: scale(1.04); box-shadow: 0 8px 32px rgba(19,91,236,0.28); }
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
     }
     h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
     .subtitle { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #94a3b8; font-weight: 600; margin-bottom: 36px; }

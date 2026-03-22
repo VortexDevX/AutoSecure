@@ -16,19 +16,19 @@ export const getOverview = asyncHandler(async (req: Request, res: Response) => {
   // Total policies (all time)
   const totalPolicies = await Policy.countDocuments();
 
-  // Policies created today
+  // Policies issued today
   const policiesToday = await Policy.countDocuments({
-    createdAt: { $gte: startOfToday },
+    issue_date: { $gte: startOfToday },
   });
 
-  // Policies created this month
+  // Policies issued this month
   const policiesThisMonth = await Policy.countDocuments({
-    createdAt: { $gte: startOfMonth },
+    issue_date: { $gte: startOfMonth },
   });
 
-  // Policies created this year
+  // Policies issued this year
   const policiesThisYear = await Policy.countDocuments({
-    createdAt: { $gte: startOfYear },
+    issue_date: { $gte: startOfYear },
   });
 
   // Total premium collected (all time)
@@ -39,7 +39,8 @@ export const getOverview = asyncHandler(async (req: Request, res: Response) => {
         total_premium: { $sum: '$premium_amount' },
         total_commission: { $sum: '$agent_commission' },
         total_profit: { $sum: '$profit' },
-        total_gst: { $sum: '$total_premium_gst' },
+        total_premium_gst: { $sum: '$total_premium_gst' },
+        total_net_premium: { $sum: '$net_premium' },
       },
     },
   ]);
@@ -58,7 +59,9 @@ export const getOverview = asyncHandler(async (req: Request, res: Response) => {
   const totalCommission = premiumStats[0]?.total_commission || 0;
   const totalPolicyProfit = premiumStats[0]?.total_profit || 0;
   const totalLicenseProfit = licenseProfitStats[0]?.total_profit || 0;
-  const totalGST = premiumStats[0]?.total_gst || 0;
+  const totalPremiumGst = premiumStats[0]?.total_premium_gst || 0;
+  const totalNetPremium = premiumStats[0]?.total_net_premium || 0;
+  const totalGST = totalPremiumGst - totalNetPremium; // Actual GST = total_premium_gst - net_premium
   const totalProfit = totalPolicyProfit + totalLicenseProfit;
 
   // Premium this month (both premium_amount and net_premium) - using issue_date instead of createdAt
@@ -75,7 +78,7 @@ export const getOverview = asyncHandler(async (req: Request, res: Response) => {
         total_net_premium: { $sum: '$net_premium' },
         total_commission: { $sum: '$agent_commission' },
         total_profit: { $sum: '$profit' },
-        total_gst: { $sum: '$total_premium_gst' },
+        total_premium_gst: { $sum: '$total_premium_gst' },
       },
     },
   ]);
@@ -102,7 +105,8 @@ export const getOverview = asyncHandler(async (req: Request, res: Response) => {
   const monthPolicyProfit = premiumThisMonth[0]?.total_profit || 0;
   const monthLicenseProfit = licenseProfitThisMonth[0]?.total_profit || 0;
   const monthProfit = monthPolicyProfit + monthLicenseProfit;
-  const monthGST = premiumThisMonth[0]?.total_gst || 0;
+  const monthPremiumGst = premiumThisMonth[0]?.total_premium_gst || 0;
+  const monthGST = monthPremiumGst - monthNetPremium; // Actual GST = total_premium_gst - net_premium
 
   // Active vs Expired policies
   const activeVsExpired = await Policy.aggregate([
@@ -695,7 +699,8 @@ export const getTrends = asyncHandler(async (req: Request, res: Response) => {
         total_premium: { $sum: '$premium_amount' },
         total_commission: { $sum: '$agent_commission' },
         total_profit: { $sum: '$profit' },
-        total_gst: { $sum: '$total_premium_gst' },
+        total_premium_gst: { $sum: '$total_premium_gst' },
+        total_net_premium: { $sum: '$net_premium' },
       },
     },
     {
@@ -877,8 +882,9 @@ export const getBranchPerformance = asyncHandler(async (req: Request, res: Respo
       $group: {
         _id: '$branch_id',
         count: { $sum: 1 },
-        total_premium: { $sum: '$premium_amount' },
+        total_premium: { $sum: '$net_premium' },
         total_commission: { $sum: '$agent_commission' },
+        total_profit: { $sum: '$profit' },
       },
     },
     { $sort: { total_premium: -1 } },
@@ -914,8 +920,9 @@ export const getInsuranceCompanyPerformance = asyncHandler(async (req: Request, 
       $group: {
         _id: '$ins_co_id',
         count: { $sum: 1 },
-        total_premium: { $sum: '$premium_amount' },
+        total_premium: { $sum: '$net_premium' },
         total_commission: { $sum: '$agent_commission' },
+        total_profit: { $sum: '$profit' },
       },
     },
     { $sort: { total_premium: -1 } },
@@ -951,8 +958,9 @@ export const getInsuranceDealerPerformance = asyncHandler(async (req: Request, r
       $group: {
         _id: '$insurance_dealer',
         count: { $sum: 1 },
-        total_premium: { $sum: '$premium_amount' },
+        total_premium: { $sum: '$net_premium' },
         total_commission: { $sum: '$agent_commission' },
+        total_profit: { $sum: '$profit' },
       },
     },
     { $sort: { total_premium: -1 } },
@@ -988,8 +996,9 @@ export const getExecutivePerformance = asyncHandler(async (req: Request, res: Re
       $group: {
         _id: '$exicutive_name',
         count: { $sum: 1 },
-        total_premium: { $sum: '$premium_amount' },
+        total_premium: { $sum: '$net_premium' },
         total_commission: { $sum: '$agent_commission' },
+        total_profit: { $sum: '$profit' },
       },
     },
     { $sort: { total_premium: -1 } },

@@ -7,12 +7,13 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ROUTES } from '@/lib/utils/constants';
 import toast from 'react-hot-toast';
-import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import { ExclamationCircleIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { getErrorMessage } from '@/lib/api/client';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
@@ -46,7 +47,7 @@ export default function LoginPage() {
     }
 
     setIsLoading(true);
-    setErrors({}); // ✅ Clear previous errors
+    setErrors({});
 
     try {
       const result = await login(email, password);
@@ -58,10 +59,8 @@ export default function LoginPage() {
     } catch (error: any) {
       console.error('Login error:', error);
 
-      // ✅ IMPROVED: Show specific error messages
       const errorMessage = getErrorMessage(error);
 
-      // ✅ Show toast with specific styling based on error type
       if (errorMessage.includes('deactivated')) {
         toast.error(errorMessage, {
           duration: 5000,
@@ -73,7 +72,6 @@ export default function LoginPage() {
         });
       }
 
-      // ✅ Set form error for visual feedback
       setErrors({
         password: errorMessage.includes('deactivated')
           ? 'Account deactivated'
@@ -84,6 +82,13 @@ export default function LoginPage() {
     }
   };
 
+  const handleForgotPassword = () => {
+    toast('Contact the system owner to reset your password.', {
+      duration: 5000,
+      icon: 'ℹ️',
+    });
+  };
+
   return (
     <div>
       <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Sign In</h2>
@@ -92,7 +97,7 @@ export default function LoginPage() {
         <Input
           type="email"
           label="Email Address"
-          placeholder="owner@autosecure.local"
+          placeholder="user@example.com"
           value={email}
           onChange={(e) => {
             setEmail(e.target.value);
@@ -103,21 +108,52 @@ export default function LoginPage() {
           autoComplete="email"
         />
 
-        <Input
-          type="password"
-          label="Password"
-          placeholder="Enter your password"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-            setErrors({ ...errors, password: undefined });
-          }}
-          error={errors.password}
-          required
-          autoComplete="current-password"
-        />
+        {/* Password field with eye toggle */}
+        <div className="w-full">
+          <label className="label label-required">Password</label>
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setErrors({ ...errors, password: undefined });
+              }}
+              required
+              autoComplete="current-password"
+              className={`input w-full pr-10 ${errors.password ? 'input-error' : ''}`}
+              suppressHydrationWarning
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              tabIndex={-1}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? (
+                <EyeSlashIcon className="w-5 h-5" />
+              ) : (
+                <EyeIcon className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+          {errors.password && <p className="error-message">{errors.password}</p>}
+        </div>
 
-        {/* ✅ NEW: Error Alert Box */}
+        {/* Forgot Password link */}
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleForgotPassword}
+            className="text-sm text-primary-600 hover:text-primary-700 hover:underline transition-colors"
+          >
+            Forgot Password?
+          </button>
+        </div>
+
+        {/* Error Alert Box */}
         {errors.password && (
           <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
             <ExclamationCircleIcon className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />

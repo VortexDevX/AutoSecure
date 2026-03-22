@@ -48,3 +48,6 @@ coverage/
 .railway
 
 security_audit.md
+
+# Electron
+./electron-app/release/*

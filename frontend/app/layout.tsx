@@ -22,12 +22,12 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <NavigationProvider>
-          <PrivacyProvider>
-            <AuthProvider>
+          <AuthProvider>
+            <PrivacyProvider>
               {children}
               <Toaster position="top-right" />
-            </AuthProvider>
-          </PrivacyProvider>
+            </PrivacyProvider>
+          </AuthProvider>
         </NavigationProvider>
       </body>
     </html>

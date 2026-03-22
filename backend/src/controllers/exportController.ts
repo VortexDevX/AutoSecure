@@ -167,12 +167,12 @@ export const exportPolicies = asyncHandler(async (req: Request, res: Response) =
   if (date_range) {
     const { start, end } = date_range;
     if (start || end) {
-      query.createdAt = {} as Record<string, Date>;
-      if (start) (query.createdAt as Record<string, Date>).$gte = new Date(start);
+      query.issue_date = {} as Record<string, Date>;
+      if (start) (query.issue_date as Record<string, Date>).$gte = new Date(start);
       if (end) {
         const endDate = new Date(end);
         endDate.setHours(23, 59, 59, 999);
-        (query.createdAt as Record<string, Date>).$lte = endDate;
+        (query.issue_date as Record<string, Date>).$lte = endDate;
       }
     }
   }
@@ -306,12 +306,12 @@ export const getExportCount = asyncHandler(async (req: Request, res: Response) =
   if (date_range) {
     const { start, end } = date_range;
     if (start || end) {
-      query.createdAt = {} as Record<string, Date>;
-      if (start) (query.createdAt as Record<string, Date>).$gte = new Date(start);
+      query.issue_date = {} as Record<string, Date>;
+      if (start) (query.issue_date as Record<string, Date>).$gte = new Date(start);
       if (end) {
         const endDate = new Date(end);
         endDate.setHours(23, 59, 59, 999);
-        (query.createdAt as Record<string, Date>).$lte = endDate;
+        (query.issue_date as Record<string, Date>).$lte = endDate;
       }
     }
   }

@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useAnalytics } from '@/lib/hooks/useAnalytics';
 import { usePrivacy } from '@/lib/context/PrivacyContext';
+import { format } from 'date-fns';
 import { PoliciesByTypeChart } from '@/components/dashboard/PoliciesByTypeChart';
+// @ts-ignore
 import { PoliciesByStatusChart } from '@/components/dashboard/PoliciesByStatusChart';
 import { LicenseAnalytics } from '@/components/dashboard/LicenseAnalytics';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
@@ -21,12 +23,14 @@ import {
   TruckIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline';
+import { DateRangePicker, DateRangeValue } from '@/components/ui/DatePicker';
 
 type PerformanceTab = 'branch' | 'company' | 'dealer' | 'executive';
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { formatPrivacyValue } = usePrivacy();
+
   const {
     overview,
     policyAnalytics,
@@ -39,7 +43,9 @@ export default function DashboardPage() {
     calendarEvents,
     isLoading,
     error,
-    dateRange,
+    dateRange: selectedRange,
+    customRange,
+    setCustomRange,
     updateDateRange,
   } = useAnalytics();
 
@@ -56,12 +62,21 @@ export default function DashboardPage() {
         return 'monthly';
       case 'all':
         return 'yearly';
+      case 'custom':
+        // Rough estimation for label/period logic
+        return 'daily';
       default:
         return 'monthly';
     }
   };
 
   const getRangeLabel = (range: DateRangePreset): string => {
+    if (range === 'custom' && customRange.from) {
+      const fromStr = format(customRange.from, 'MMM d, yyyy');
+      const toStr = customRange.to ? format(customRange.to, 'MMM d, yyyy') : fromStr;
+      return `${fromStr} - ${toStr}`;
+    }
+
     switch (range) {
       case '7d':
         return 'Last 7 Days';
@@ -80,37 +95,41 @@ export default function DashboardPage() {
     }
   };
 
-  const rangeLabel = getRangeLabel(dateRange);
+  const rangeLabel = getRangeLabel(selectedRange);
 
   // Calculate financial metrics from trends data for the selected date range
   const calculateFinancialMetrics = () => {
     if (!trends?.trends || trends.trends.length === 0) {
       return {
+        rangePolicies: 0,
+        rangeLicenses: 0,
         rangePremium: 0,
+        rangeNetPremium: 0,
         rangeCommission: 0,
         rangeProfit: 0,
-        rangeGST: 0,
         totalPremium: overview?.financial?.total_premium || 0,
         totalCommission: overview?.financial?.total_commission || 0,
         totalProfit: overview?.financial?.total_profit || 0,
-        totalGST: overview?.financial?.total_gst || 0,
       };
     }
 
-    const rangePremium = trends.trends.reduce((sum, item) => sum + item.total_premium, 0);
-    const rangeCommission = trends.trends.reduce((sum, item) => sum + item.total_commission, 0);
-    const rangeProfit = trends.trends.reduce((sum, item) => sum + item.total_profit, 0);
-    const rangeGST = trends.trends.reduce((sum, item) => sum + item.total_gst, 0);
+    const rangePremium = trends.trends.reduce((sum: number, item: any) => sum + (item.total_premium || 0), 0);
+    const rangePolicies = trends.trends.reduce((sum: number, item: any) => sum + (item.count || 0), 0);
+    const rangeLicenses = licenseAnalytics?.status_breakdown?.reduce((sum: number, item: any) => sum + item.count, 0) || 0;
+    const rangeCommission = trends.trends.reduce((sum: number, item: any) => sum + (item.total_commission || 0), 0);
+    const rangeProfit = trends.trends.reduce((sum: number, item: any) => sum + (item.total_profit || 0), 0);
+    const rangeNetPremium = trends.trends.reduce((sum: number, item: any) => sum + (item.total_net_premium || 0), 0);
 
     return {
+      rangePolicies,
+      rangeLicenses,
       rangePremium,
+      rangeNetPremium,
       rangeCommission,
       rangeProfit,
-      rangeGST,
       totalPremium: overview?.financial?.total_premium || 0,
       totalCommission: overview?.financial?.total_commission || 0,
       totalProfit: overview?.financial?.total_profit || 0,
-      totalGST: overview?.financial?.total_gst || 0,
     };
   };
 
@@ -126,15 +145,15 @@ export default function DashboardPage() {
   const getActivePerformanceData = () => {
     switch (activePerformanceTab) {
       case 'branch':
-        return branchPerformance;
+        return branchPerformance || [];
       case 'company':
-        return companyPerformance;
+        return companyPerformance || [];
       case 'dealer':
-        return dealerPerformance;
+        return dealerPerformance || [];
       case 'executive':
-        return executivePerformance;
+        return executivePerformance || [];
       default:
-        return null;
+        return [];
     }
   };
 
@@ -186,11 +205,23 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="flex items-center gap-4">
-              <DateRangeSelector
-                selectedRange={dateRange}
-                onRangeChange={updateDateRange}
-                className="w-48"
-              />
+              <div className="flex flex-col items-end gap-2">
+                <DateRangeSelector
+                  selectedRange={selectedRange}
+                  onRangeChange={updateDateRange}
+                  className="w-48"
+                />
+                {selectedRange === 'custom' && (
+                  <div className="flex items-center gap-2">
+                    <DateRangePicker
+                      value={customRange}
+                      onChange={(range) => range && setCustomRange(range)}
+                      className="w-64"
+                      showPresets={false}
+                    />
+                  </div>
+                )}
+              </div>
               <NotificationsCenter
                 expiringPolicies={overview?.expiring_items?.policies || []}
                 expiringLicenses={overview?.expiring_items?.licenses || []}
@@ -225,9 +256,9 @@ export default function DashboardPage() {
                   <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Policies</p>
                   <ChartBarIcon className="w-5 h-5 text-blue-500" />
                 </div>
-                <p className="text-2xl font-bold tracking-tight text-slate-900">{overview?.policies.total || 0}</p>
+                <p className="text-2xl font-bold tracking-tight text-slate-900">{financialMetrics.rangePolicies}</p>
                 <div className="flex items-center mt-1">
-                  <span className="text-slate-400 text-[10px]">{overview?.policies.active || 0} active</span>
+                  <span className="text-slate-400 text-[10px]">In selected period</span>
                 </div>
               </div>
 
@@ -237,12 +268,10 @@ export default function DashboardPage() {
                   <BuildingOfficeIcon className="w-5 h-5 text-emerald-500" />
                 </div>
                 <p className="text-2xl font-bold tracking-tight text-slate-900">
-                  {licenseAnalytics?.status_breakdown?.reduce((sum: number, item) => sum + item.count, 0) || 0}
+                  {financialMetrics.rangeLicenses}
                 </p>
                 <div className="flex items-center mt-1">
-                  <span className="text-slate-400 text-[10px]">
-                    {licenseAnalytics?.status_breakdown?.find((item) => item._id === 'active')?.count || 0} active
-                  </span>
+                  <span className="text-slate-400 text-[10px]">In selected period</span>
                 </div>
               </div>
 
@@ -259,18 +288,20 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="card p-5 flex flex-col gap-1">
+              <div className="card p-5 flex border-t-4 border-indigo-500 flex-col gap-1">
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">GST Premium</p>
-                  <ChartBarIcon className="w-5 h-5 text-primary" />
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Net Premium</p>
+                  <ChartBarIcon className="w-5 h-5 text-indigo-500" />
                 </div>
                 <p className="text-2xl font-bold tracking-tight text-slate-900">
                   {formatPrivacyValue(
-                    financialMetrics.rangeGST >= 10000000
-                      ? `₹${(financialMetrics.rangeGST / 10000000).toFixed(2)}Cr`
-                      : financialMetrics.rangeGST >= 100000
-                        ? `₹${(financialMetrics.rangeGST / 100000).toFixed(2)}L`
-                        : `₹${financialMetrics.rangeGST.toLocaleString('en-IN')}`
+                    financialMetrics.rangeNetPremium >= 10000000
+                      ? `₹${(financialMetrics.rangeNetPremium / 10000000).toFixed(1)}Cr`
+                      : financialMetrics.rangeNetPremium >= 100000
+                        ? `₹${(financialMetrics.rangeNetPremium / 100000).toFixed(1)}L`
+                        : financialMetrics.rangeNetPremium >= 1000
+                          ? `₹${(financialMetrics.rangeNetPremium / 1000).toFixed(0)}K`
+                          : `₹${financialMetrics.rangeNetPremium.toLocaleString('en-IN')}`
                   )}
                 </p>
                 <div className="flex items-center mt-1">
@@ -286,10 +317,12 @@ export default function DashboardPage() {
                 <p className="text-2xl font-bold tracking-tight text-slate-900">
                   {formatPrivacyValue(
                     financialMetrics.rangeCommission >= 10000000
-                      ? `₹${(financialMetrics.rangeCommission / 10000000).toFixed(2)}Cr`
+                      ? `₹${(financialMetrics.rangeCommission / 10000000).toFixed(1)}Cr`
                       : financialMetrics.rangeCommission >= 100000
-                        ? `₹${(financialMetrics.rangeCommission / 100000).toFixed(2)}L`
-                        : `₹${financialMetrics.rangeCommission.toLocaleString('en-IN')}`
+                        ? `₹${(financialMetrics.rangeCommission / 100000).toFixed(1)}L`
+                        : financialMetrics.rangeCommission >= 1000
+                          ? `₹${(financialMetrics.rangeCommission / 1000).toFixed(0)}K`
+                          : `₹${financialMetrics.rangeCommission.toLocaleString('en-IN')}`
                   )}
                 </p>
                 <div className="flex items-center mt-1">
@@ -305,10 +338,12 @@ export default function DashboardPage() {
                 <p className="text-2xl font-bold tracking-tight text-slate-900">
                   {formatPrivacyValue(
                     financialMetrics.rangeProfit >= 10000000
-                      ? `₹${(financialMetrics.rangeProfit / 10000000).toFixed(2)}Cr`
+                      ? `₹${(financialMetrics.rangeProfit / 10000000).toFixed(1)}Cr`
                       : financialMetrics.rangeProfit >= 100000
-                        ? `₹${(financialMetrics.rangeProfit / 100000).toFixed(2)}L`
-                        : `₹${financialMetrics.rangeProfit.toLocaleString('en-IN')}`
+                        ? `₹${(financialMetrics.rangeProfit / 100000).toFixed(1)}L`
+                        : financialMetrics.rangeProfit >= 1000
+                          ? `₹${(financialMetrics.rangeProfit / 1000).toFixed(0)}K`
+                          : `₹${financialMetrics.rangeProfit.toLocaleString('en-IN')}`
                   )}
                 </p>
                 <div className="flex items-center mt-1">
@@ -321,7 +356,7 @@ export default function DashboardPage() {
 
         {/* Revenue Trend Chart - Full Width */}
         <div className="mb-8">
-          <RevenueTrendChart data={trends?.trends || null} period={getPeriodFromRange(dateRange)} />
+          <RevenueTrendChart data={trends?.trends || null} period={getPeriodFromRange(selectedRange)} />
         </div>
 
         {/* Performance Breakdown Section */}

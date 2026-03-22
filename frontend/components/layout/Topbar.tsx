@@ -4,8 +4,8 @@ import { Fragment } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { usePrivacy } from '@/lib/context/PrivacyContext';
 import { Menu, Transition } from '@headlessui/react';
-import { Bars3Icon, ArrowRightOnRectangleIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import { usePathname } from 'next/navigation';
+import { Bars3Icon, ArrowRightOnRectangleIcon, EyeIcon, EyeSlashIcon, UserIcon } from '@heroicons/react/24/outline';
+import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
 
 interface TopbarProps {
@@ -22,12 +22,14 @@ const breadcrumbMap: Record<string, string> = {
   '/admin/meta': 'Meta Fields',
   '/admin/email-templates': 'Email Templates',
   '/admin/settings': 'Settings',
+  '/profile': 'Profile Settings',
 };
 
 export function Topbar({ onMenuClick }: TopbarProps) {
   const { user, logout } = useAuth();
-  const { isPrivacyMode, togglePrivacyMode } = usePrivacy();
+  const { isPrivacyMode, togglePrivacyMode, canTogglePrivacy } = usePrivacy();
   const pathname = usePathname();
+  const router = useRouter();
 
   // Get breadcrumb for current page
   const getBreadcrumb = () => {
@@ -75,18 +77,20 @@ export function Topbar({ onMenuClick }: TopbarProps) {
 
       {/* Right: User menu & Privacy */}
       <div className="flex items-center gap-4">
-        {/* Privacy Toggle */}
-        <button
-          onClick={togglePrivacyMode}
-          className="flex items-center justify-center p-2 text-slate-500 hover:text-primary transition-colors rounded-full hover:bg-slate-50"
-          title={isPrivacyMode ? "Disable Privacy Mode" : "Enable Privacy Mode"}
-        >
-          {isPrivacyMode ? (
-            <EyeSlashIcon className="w-5 h-5" />
-          ) : (
-            <EyeIcon className="w-5 h-5" />
-          )}
-        </button>
+        {/* Privacy Toggle - Only visible to owner */}
+        {canTogglePrivacy && (
+          <button
+            onClick={togglePrivacyMode}
+            className="flex items-center justify-center p-2 text-slate-500 hover:text-primary transition-colors rounded-full hover:bg-slate-50"
+            title={isPrivacyMode ? "Disable Privacy Mode" : "Enable Privacy Mode"}
+          >
+            {isPrivacyMode ? (
+              <EyeSlashIcon className="w-5 h-5" />
+            ) : (
+              <EyeIcon className="w-5 h-5" />
+            )}
+          </button>
+        )}
 
         {/* User dropdown */}
         <Menu as="div" className="relative">
@@ -120,6 +124,21 @@ export function Topbar({ onMenuClick }: TopbarProps) {
               </div>
 
               <div className="py-1">
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      onClick={() => router.push('/profile')}
+                      className={clsx(
+                        'flex items-center gap-2 w-full px-3 py-2 text-sm rounded-lg transition-colors',
+                        active ? 'bg-primary-50 text-primary-700' : 'text-gray-700'
+                      )}
+                    >
+                      <UserIcon className="w-4 h-4" />
+                      Profile Settings
+                    </button>
+                  )}
+                </Menu.Item>
+
                 <Menu.Item>
                   {({ active }) => (
                     <button

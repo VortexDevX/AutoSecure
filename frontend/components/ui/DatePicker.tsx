@@ -26,7 +26,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 // Default year range
 const currentYear = getYear(new Date());
 const DEFAULT_MIN_YEAR = 1900;
-const DEFAULT_MAX_YEAR = currentYear + 15;
+const DEFAULT_MAX_YEAR = currentYear + 50;
 
 // Generate year options
 const generateYears = (minYear: number, maxYear: number) => {
@@ -243,7 +243,7 @@ export type DatePreset =
   | 'lastYear'
   | 'custom';
 
-interface DateRangeValue {
+export interface DateRangeValue {
   from: Date | null;
   to: Date | null;
 }

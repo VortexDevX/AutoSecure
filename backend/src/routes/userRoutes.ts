@@ -5,6 +5,8 @@ import {
   changeUserRole,
   toggleUserStatus,
   deleteUser,
+  updateMe,
+  changePassword,
 } from '../controllers/userController';
 import { requireAuth, requireAdmin, requireOwner } from '../middleware/authMiddleware';
 
@@ -12,6 +14,10 @@ const router = Router();
 
 // All routes require authentication
 router.use(requireAuth);
+
+// Profile routes (User themselves)
+router.patch('/me', updateMe);
+router.patch('/me/password', changePassword);
 
 // Admin/Owner routes
 router.post('/', requireAdmin, createUser);

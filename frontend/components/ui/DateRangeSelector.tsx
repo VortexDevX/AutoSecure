@@ -11,7 +11,8 @@ export type DateRangePreset =
   | 'last_month'
   | 'last_year'
   | 'this_year'
-  | 'all';
+  | 'all'
+  | 'custom';
 
 export interface DateRangeOption {
   key: DateRangePreset;
@@ -26,6 +27,7 @@ const DATE_RANGE_OPTIONS: DateRangeOption[] = [
   { key: 'this_year', label: 'This Year', description: 'Current year' },
   { key: 'last_year', label: 'Last Year', description: 'Previous year' },
   { key: 'all', label: 'All Time', description: 'Complete history' },
+  { key: 'custom', label: 'Custom Range', description: 'Select start & end' },
 ];
 
 interface DateRangeSelectorProps {

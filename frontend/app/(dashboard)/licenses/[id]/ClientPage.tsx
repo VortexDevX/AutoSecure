@@ -58,8 +58,8 @@ export default function LicenseDetailPage() {
   const [docToDelete, setDocToDelete] = useState<{ index: number; label: string } | null>(null);
   const [isDeletingDoc, setIsDeletingDoc] = useState(false);
 
-  // Use state for permissions to avoid hydration mismatch
-  const [permissions] = useState({ canEdit: true, canDelete: true });
+  // Role-based permissions — only owner/admin can delete
+  const canDelete = user?.role === 'owner' || user?.role === 'admin';
 
   // Fetch license details
   const {
@@ -197,10 +197,12 @@ export default function LicenseDetailPage() {
             </Button>
           </Link>
           {/* Delete Button - Only for admin/owner */}
-          <Button variant="danger" onClick={() => setShowDeleteModal(true)}>
-            <TrashIcon className="w-4 h-4 mr-2" />
-            Delete
-          </Button>
+          {canDelete && (
+            <Button variant="danger" onClick={() => setShowDeleteModal(true)}>
+              <TrashIcon className="w-4 h-4 mr-2" />
+              Delete
+            </Button>
+          )}
         </div>
       </div>
 
@@ -424,7 +426,7 @@ export default function LicenseDetailPage() {
                       )}
                     </button>
                     {/* Delete Button - Only for admin/owner */}
-                    {permissions.canDelete && (
+                    {canDelete && (
                       <button
                         onClick={() => handleDeleteDocClick(index, doc.label || doc.file_name)}
                         className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"

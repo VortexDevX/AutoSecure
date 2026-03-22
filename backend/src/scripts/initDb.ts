@@ -13,7 +13,7 @@ const initializeDatabase = async () => {
     console.log('\n🔧 Initializing database...\n');
 
     // 1. Create owner account (if not exists)
-    const ownerEmail = process.env.OWNER_EMAIL || 'owner@autosecure.local';
+    const ownerEmail = process.env.OWNER_EMAIL;
     const ownerPassword = process.env.OWNER_PASSWORD || 'Owner@12345';
 
     let owner = await User.findOne({ email: ownerEmail });

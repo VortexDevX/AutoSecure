@@ -10,6 +10,7 @@
     "cross-env": "^10.1.0",
     "electron": "^41.0.0",
     "electron-builder": "^26.8.1",
+    "electron-icon-maker": "^0.0.5",
     "wait-on": "^9.0.4"
   },
   "build": {
@@ -26,25 +27,29 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "icon.ico"
+      "icon": "icons/win/icon.ico"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": "icon.ico",
-      "uninstallerIcon": "icon.ico",
-      "installerHeaderIcon": "icon.ico"
+      "installerIcon": "icons/win/icon.ico",
+      "uninstallerIcon": "icons/win/icon.ico",
+      "installerHeaderIcon": "icons/win/icon.ico"
     },
     "extraResources": [
       {
         "from": "../backend/dist",
         "to": "backend/dist",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       },
       {
         "from": "../backend/node_modules",
         "to": "backend/node_modules",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       },
       {
         "from": "../backend/.env",
@@ -57,7 +62,9 @@
       {
         "from": "../frontend/out",
         "to": "frontend/out",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ]
   },

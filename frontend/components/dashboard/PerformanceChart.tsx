@@ -18,6 +18,7 @@ interface PerformanceData {
   count: number;
   total_premium: number;
   total_commission: number;
+  total_profit?: number;
 }
 
 interface PerformanceChartProps {
@@ -91,7 +92,7 @@ export function PerformanceChart({
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Premium:</span>
+              <span className="text-gray-600">Net Premium:</span>
               <span className="font-medium text-green-600">
                 {formatPrivacyValue(formatCurrency(item.total_premium))}
               </span>
@@ -102,6 +103,14 @@ export function PerformanceChart({
                 {formatPrivacyValue(formatCurrency(item.total_commission))}
               </span>
             </div>
+            {item.total_profit !== undefined && (
+              <div className="flex justify-between mt-1 pt-1 border-t border-gray-100">
+                <span className="text-gray-600 font-medium">Profit:</span>
+                <span className="font-bold text-emerald-600">
+                  {formatPrivacyValue(formatCurrency(item.total_profit))}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       );

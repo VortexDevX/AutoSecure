@@ -243,3 +243,81 @@ export const deleteUser = asyncHandler(async (req: Request, res: Response) => {
     message: 'User deleted successfully',
   });
 });
+
+/**
+ * PATCH /api/v1/users/me
+ * Update current user profile
+ */
+export const updateMe = asyncHandler(async (req: Request, res: Response) => {
+  const { full_name } = req.body;
+
+  const user = (await User.findById(req.user!.userId)) as IUser | null;
+  if (!user) {
+    throw new NotFoundError('User not found');
+  }
+
+  if (full_name !== undefined) {
+    user.full_name = full_name;
+  }
+
+  await user.save();
+
+  // Audit log
+  await AuditService.logUpdate(req.user!.userId, 'user', user._id.toString(), {
+    full_name,
+  });
+
+  res.json({
+    status: 'success',
+    message: 'Profile updated successfully',
+    data: {
+      user: {
+        id: user._id.toString(),
+        email: user.email,
+        full_name: user.full_name,
+        role: user.role,
+      },
+    },
+  });
+});
+
+/**
+ * PATCH /api/v1/users/me/password
+ * Change current user password
+ */
+export const changePassword = asyncHandler(async (req: Request, res: Response) => {
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword || !newPassword) {
+    throw new ValidationError('Old and new passwords are required');
+  }
+
+  // Find user with password hash
+  const user = (await User.findById(req.user!.userId).select('+password_hash')) as IUser | null;
+  if (!user) {
+    throw new NotFoundError('User not found');
+  }
+
+  // Verify old password
+  const isPasswordValid = await PasswordService.compare(oldPassword, user.password_hash);
+  if (!isPasswordValid) {
+    throw new ValidationError('Invalid current password');
+  }
+
+  // Hash new password
+  const passwordHash = await PasswordService.hash(newPassword);
+
+  // Update password
+  user.password_hash = passwordHash;
+  await user.save();
+
+  // Audit log
+  await AuditService.logUpdate(req.user!.userId, 'user', user._id.toString(), {
+    action: 'password_change',
+  });
+
+  res.json({
+    status: 'success',
+    message: 'Password changed successfully',
+  });
+});

@@ -28,10 +28,19 @@ export function useAnalytics() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<DateRangePreset>('this_month');
+  const [customRange, setCustomRange] = useState<{ from: Date | null; to: Date | null }>({ from: null, to: null });
 
   // Calculate start and end dates based on range preset
   const calculateDates = (range: DateRangePreset): { start: Date; end: Date } | null => {
     if (range === 'all') return null;
+    
+    if (range === 'custom') {
+      if (!customRange.from) return null;
+      return { 
+        start: customRange.from, 
+        end: customRange.to || customRange.from 
+      };
+    }
 
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
@@ -76,6 +85,15 @@ export function useAnalytics() {
         return 'monthly';
       case 'all':
         return 'yearly';
+      case 'custom':
+        // If range > 90 days, return monthly, else daily
+        const dates = calculateDates('custom');
+        if (dates) {
+          const diffChars = dates.end.getTime() - dates.start.getTime();
+          const diffDays = diffChars / (1000 * 3600 * 24);
+          return diffDays > 90 ? 'monthly' : 'daily';
+        }
+        return 'daily';
       default:
         return 'monthly';
     }
@@ -94,6 +112,8 @@ export function useAnalytics() {
         return 12;
       case 'all':
         return 60;
+      case 'custom':
+        return 12; // Fallback
       default:
         return 6;
     }
@@ -101,14 +121,14 @@ export function useAnalytics() {
 
   const fetchAnalytics = useCallback(async () => {
     try {
+      if (dateRange === 'custom' && !customRange.from) return;
+
       setIsLoading(true);
       setError(null);
 
       const dates = calculateDates(dateRange);
       const startDate = dates?.start.toISOString();
       const endDate = dates?.end.toISOString();
-
-      console.log('Fetching with dates:', { dateRange, startDate, endDate });
 
       const [
         overviewData,
@@ -141,33 +161,33 @@ export function useAnalytics() {
     } finally {
       setIsLoading(false);
     }
-  }, [dateRange]);
+  }, [dateRange, customRange]);
 
   const fetchTrends = useCallback(async () => {
     try {
+      if (dateRange === 'custom' && !customRange.from) return;
+
       const period = getTrendsPeriod(dateRange);
       const months = getTrendsMonths(dateRange);
       const dates = calculateDates(dateRange);
       const startDate = dates?.start.toISOString();
       const endDate = dates?.end.toISOString();
 
-      console.log('Fetching trends:', { dateRange, period, months, startDate, endDate });
       const trendsData = await analyticsApi.getTrends(period, months, startDate, endDate);
       setTrends(trendsData);
     } catch (err) {
       console.error('Trends fetch error:', err);
       setError((err as Error).message || 'Failed to fetch trends');
     }
-  }, [dateRange]);
+  }, [dateRange, customRange]);
 
   const fetchCalendarEvents = useCallback(async () => {
     try {
-      // Fetch calendar events for current month + 2 months ahead
       const start = new Date();
-      start.setDate(1); // Start of current month
+      start.setDate(1); 
       const end = new Date();
       end.setMonth(end.getMonth() + 3);
-      end.setDate(0); // End of month 2 months ahead
+      end.setDate(0); 
 
       const calendarData = await analyticsApi.getCalendarEvents(
         start.toISOString(),
@@ -220,6 +240,8 @@ export function useAnalytics() {
     isLoading,
     error,
     dateRange,
+    customRange,
+    setCustomRange,
     updateDateRange,
     refetch,
   };

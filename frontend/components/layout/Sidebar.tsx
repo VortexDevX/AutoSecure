@@ -129,7 +129,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <nav className="flex-1 px-3 py-4 overflow-y-auto scrollbar-none">
           <ul className="flex flex-col gap-1.5">
             {filteredNavigation.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+              const isActive = 
+                item.href === '/dashboard' 
+                  ? pathname === '/dashboard'
+                  : item.href === '/policies' 
+                    ? pathname === '/policies' || (pathname.startsWith('/policies/') && !pathname.startsWith('/policies/new'))
+                    : pathname === item.href || pathname.startsWith(item.href + '/');
               const Icon = item.icon;
 
               return (

@@ -19,6 +19,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { AccessDenied } from '@/components/admin/AccessDenied';
 import toast from 'react-hot-toast';
 import apiClient from '@/lib/api/client';
+import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 function EditPolicyFormContent({ policyId }: { policyId: string }) {
   const [currentStep, setCurrentStep] = useState(1);
@@ -26,13 +27,14 @@ function EditPolicyFormContent({ policyId }: { policyId: string }) {
   const [isInitialized, setIsInitialized] = useState(false);
   const { formData, updateFormData, resetForm } = usePolicyForm();
   const router = useRouter();
+  const { user } = useAuth();
 
   // Fetch existing policy
   const {
     data: policy,
     error,
     isLoading,
-  } = useSWR(`/api/v1/policies/${policyId}`, () => getPolicyById(policyId));
+  } = useSWR(user && policyId ? `/api/v1/policies/${policyId}` : null, () => getPolicyById(policyId));
 
   // Pre-fill form with existing data
   useEffect(() => {
@@ -313,21 +315,24 @@ function EditPolicyFormContent({ policyId }: { policyId: string }) {
     }
   };
 
-  if (isLoading) {
+  if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Spinner size="lg" />
+      <div className="text-center py-12">
+        <ExclamationCircleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Failed to load policy</h2>
+        <p className="text-gray-600 mb-6">The policy may have been deleted or you don't have access.</p>
+        <p className="text-xs text-red-700 bg-red-100 font-mono p-2 rounded max-w-lg mx-auto break-words mb-6">{error?.message || String(error)}</p>
+        <Button variant="secondary" onClick={() => router.push('/policies')} className="mt-4">
+          ← Back to Policies
+        </Button>
       </div>
     );
   }
 
-  if (error || !policy) {
+  if (isLoading || !policy) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-600">Failed to load policy</p>
-        <Button variant="ghost" onClick={() => router.push('/policies')} className="mt-4">
-          ← Back to Policies
-        </Button>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Spinner size="lg" />
       </div>
     );
   }

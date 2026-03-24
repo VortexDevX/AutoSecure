@@ -225,11 +225,10 @@ export default function PoliciesPage() {
         <Link href="/policies/new">
           <Button
             variant="primary"
-            size="lg"
-            className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-shadow"
+            className="flex px-4 py-2 text-sm items-center gap-2 shadow-sm hover:shadow-md transition-shadow"
           >
             <PlusIcon className="w-5 h-5" />
-            Create New Policy
+            New Policy
           </Button>
         </Link>
       </div>

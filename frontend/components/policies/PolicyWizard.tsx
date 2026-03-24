@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import { CheckIcon } from '@heroicons/react/24/solid';
@@ -22,61 +21,67 @@ const steps: Step[] = [
 
 interface PolicyWizardProps {
   currentStep: number;
+  onStepClick?: (step: number) => void;
   children: React.ReactNode;
 }
 
-export function PolicyWizard({ currentStep, children }: PolicyWizardProps) {
+export function PolicyWizard({ currentStep, onStepClick, children }: PolicyWizardProps) {
   return (
-    <div className="max-w-5xl mx-auto">
-      {/* Progress Steps */}
-      <div className="mb-8">
+    <div className="flex flex-col lg:flex-row gap-8">
+      {/* Sidebar Progress Steps */}
+      <div className="w-full lg:w-64 flex-shrink-0">
         <nav aria-label="Progress">
-          <ol className="flex items-center justify-between">
+          <ol className="overflow-hidden">
             {steps.map((step, stepIdx) => (
               <li
                 key={step.id}
-                className={clsx(
-                  'relative',
-                  stepIdx !== steps.length - 1 ? 'pr-8 sm:pr-20 flex-1' : ''
-                )}
+                className={clsx('relative', stepIdx !== steps.length - 1 ? 'pb-10' : '')}
               >
                 {/* Connector Line */}
                 {stepIdx !== steps.length - 1 && (
-                  <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                  <div className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-slate-200" aria-hidden="true">
                     <div
                       className={clsx(
-                        'h-0.5 w-full',
-                        currentStep > step.id ? 'bg-primary' : 'bg-gray-200'
+                        'w-full transition-all duration-300',
+                        currentStep > step.id ? 'bg-primary h-full' : 'bg-transparent h-0'
                       )}
                     />
                   </div>
                 )}
 
-                {/* Step Circle */}
-                <div className="relative flex flex-col items-center group">
-                  <span
-                    className={clsx(
-                      'w-10 h-10 flex items-center justify-center rounded-full border-2 transition-colors',
-                      currentStep > step.id
-                        ? 'bg-primary border-primary'
-                        : currentStep === step.id
-                          ? 'bg-white border-primary text-primary'
-                          : 'bg-white border-gray-300 text-gray-500'
-                    )}
-                  >
-                    {currentStep > step.id ? (
-                      <CheckIcon className="w-6 h-6 text-white" />
-                    ) : (
-                      <span className="text-sm font-medium">{step.id}</span>
-                    )}
+                {/* Step Circle & Text */}
+                <div 
+                  className={clsx("relative flex items-start group", onStepClick && "cursor-pointer")}
+                  onClick={() => onStepClick && onStepClick(step.id)}
+                >
+                  <span className="h-9 flex items-center">
+                    <span
+                      className={clsx(
+                        'relative z-10 w-8 h-8 flex items-center justify-center rounded-full border-2 transition-all duration-200',
+                        currentStep > step.id
+                          ? 'bg-primary border-primary'
+                          : currentStep === step.id
+                            ? 'bg-primary border-primary shadow-[0_0_0_4px_rgba(var(--color-primary),0.1)]'
+                            : 'bg-white border-slate-300 group-hover:border-slate-400'
+                      )}
+                    >
+                      {currentStep > step.id ? (
+                        <CheckIcon className="w-5 h-5 text-white" />
+                      ) : (
+                        <span className={clsx("text-xs font-semibold", currentStep === step.id ? 'text-white' : 'text-slate-500 group-hover:text-slate-700')}>{step.id}</span>
+                      )}
+                    </span>
                   </span>
-                  <span
-                    className={clsx(
-                      'mt-2 text-xs font-medium text-center',
-                      currentStep >= step.id ? 'text-primary' : 'text-gray-500'
-                    )}
-                  >
-                    {step.title}
+                  <span className="ml-4 min-w-0 flex flex-col">
+                    <span
+                      className={clsx(
+                        'text-sm font-semibold uppercase tracking-tight transition-colors',
+                        currentStep >= step.id ? 'text-primary' : 'text-slate-500 group-hover:text-slate-700'
+                      )}
+                    >
+                      {step.title}
+                    </span>
+                    <span className="text-sm text-slate-500">{step.description}</span>
                   </span>
                 </div>
               </li>
@@ -85,21 +90,21 @@ export function PolicyWizard({ currentStep, children }: PolicyWizardProps) {
         </nav>
       </div>
 
-      {/* Form Content */}
-      <div className="bg-white rounded-lg shadow-md">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900">{steps[currentStep - 1]?.title}</h2>
-          <p className="text-sm text-gray-600 mt-1">{steps[currentStep - 1]?.description}</p>
+      {/* Main Form Content */}
+      <div className="flex-1 min-w-0 bg-white rounded-2xl shadow-sm border border-slate-200">
+        <div className="p-6 border-b border-slate-100">
+          <h2 className="text-xl font-bold text-slate-900">{steps[currentStep - 1]?.title}</h2>
+          <p className="text-sm text-slate-500 mt-1">{steps[currentStep - 1]?.description}</p>
         </div>
 
         <div className="p-6">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.15 }}
             >
               {children}
             </motion.div>

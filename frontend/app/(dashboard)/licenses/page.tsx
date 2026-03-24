@@ -13,10 +13,12 @@ import { Spinner } from '@/components/ui/Spinner';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { deleteLicense } from '@/lib/api/licenses';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 export default function LicensesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, isLoading: isAuthLoading } = useAuth();
 
   const [licenses, setLicenses] = useState<LicenseRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,6 +40,8 @@ export default function LicensesPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const fetchLicenses = useCallback(async () => {
+    if (isAuthLoading || !user) return; // Prevent raw fetching when auth is not ready
+    
     try {
       setIsLoading(true);
       const params: Record<string, unknown> = {
@@ -61,7 +65,7 @@ export default function LicensesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [pagination.page, pagination.limit, search, approved, facelessType, expiringSoon, sortBy, sortOrder]);
+  }, [pagination.page, pagination.limit, search, approved, facelessType, expiringSoon, sortBy, sortOrder, isAuthLoading, user]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {

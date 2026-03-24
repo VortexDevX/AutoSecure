@@ -78,11 +78,11 @@ export default function PolicyDetailPage() {
     error,
     isLoading,
     mutate,
-  } = useSWR(`/api/v1/policies/${policyId}`, () => getPolicyById(policyId));
+  } = useSWR(user && policyId ? `/api/v1/policies/${policyId}` : null, () => getPolicyById(policyId));
 
   // Fetch email logs
   const { data: emailLogs, mutate: mutateEmailLogs } = useSWR(
-    showEmailLogsModal ? `/api/v1/emails/logs/${policyId}` : null,
+    user && policyId && showEmailLogsModal ? `/api/v1/emails/logs/${policyId}` : null,
     () => getEmailLogs(policyId)
   );
 
@@ -156,26 +156,27 @@ export default function PolicyDetailPage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-
-  if (error || !policy) {
+  if (error) {
     return (
       <div className="text-center py-12">
         <DocumentTextIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-        <p className="text-red-600 font-medium">Failed to load policy details</p>
-        <p className="text-gray-500 text-sm mt-1">
-          The policy may have been deleted or you don't have access.
-        </p>
+          <h2 className="text-xl font-bold text-red-800 mb-2">Failed to load policy details</h2>
+          <p className="text-red-600 mt-2">The policy may have been deleted or you don't have access.</p>
+          <p className="text-xs text-red-700 bg-red-100 font-mono p-2 rounded mt-3 max-w-lg mx-auto break-words">{error?.message || String(error)}</p>
+          <div className="mt-8">
         <Button variant="secondary" onClick={() => router.push('/policies')} className="mt-4">
           <ArrowLeftIcon className="w-4 h-4 mr-2" />
           Back to Policies
         </Button>
+      </div>
+      </div>
+    );
+  }
+
+  if (isLoading || !policy) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Spinner size="lg" />
       </div>
     );
   }

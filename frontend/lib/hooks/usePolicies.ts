@@ -1,5 +1,6 @@
 import useSWR from 'swr';
 import apiClient from '../api/client';
+import { useAuth } from './useAuth';
 import { PolicyListItem } from '../types/policy';
 
 interface UsePoliciesParams {
@@ -35,15 +36,23 @@ export function usePolicies(params: UsePoliciesParams = {}) {
 
   const url = `/api/v1/policies?${queryParams.toString()}`;
 
-  const { data, error, isLoading, mutate } = useSWR(url, async (url: string) => {
-    const response = await apiClient.get(url);
-    return response.data.data;
-  });
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const { data, error, isLoading, mutate } = useSWR(
+    user ? url : null,
+    async (url: string) => {
+      const response = await apiClient.get(url);
+      return response.data.data;
+    },
+    {
+      revalidateOnFocus: true,
+      errorRetryCount: 2,
+    }
+  );
 
   return {
     policies: (data?.policies || []) as PolicyListItem[],
     pagination: data?.pagination,
-    isLoading,
+    isLoading: isLoading || (!data && !error) || isAuthLoading,
     error: error?.message,
     mutate,
   };

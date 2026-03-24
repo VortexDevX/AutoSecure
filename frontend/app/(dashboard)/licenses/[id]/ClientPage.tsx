@@ -67,11 +67,11 @@ export default function LicenseDetailPage() {
     error,
     isLoading,
     mutate,
-  } = useSWR<LicenseRecord>(`/api/v1/licenses/${licenseId}`, () => getLicenseById(licenseId));
+  } = useSWR<LicenseRecord>(user && licenseId ? `/api/v1/licenses/${licenseId}` : null, () => getLicenseById(licenseId));
 
   // Fetch email logs when modal is open
   const { data: emailLogs, mutate: mutateEmailLogs } = useSWR(
-    showEmailLogsModal ? `/api/v1/emails/license-logs/${licenseId}` : null,
+    user && licenseId && showEmailLogsModal ? `/api/v1/emails/license-logs/${licenseId}` : null,
     () => getLicenseEmailLogs(licenseId)
   );
 
@@ -144,23 +144,22 @@ export default function LicenseDetailPage() {
     }
   };
 
-  // Show loading while auth is being checked
-  if (isLoading || isAuthLoading) {
+  if (error) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Spinner size="lg" />
+      <div className="text-center py-12">
+        <DocumentIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-red-800 mb-2">Failed to load license details</h2>
+        <Link href="/licenses" className="text-primary hover:underline mt-2 inline-block">
+          Back to licenses
+        </Link>
       </div>
     );
   }
 
-  if (error || !license) {
+  if (isLoading || isAuthLoading || !license) {
     return (
-      <div className="text-center py-20">
-        <DocumentIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-        <p className="text-gray-500">License not found</p>
-        <Link href="/licenses" className="text-primary hover:underline mt-2 inline-block">
-          Back to licenses
-        </Link>
+      <div className="flex items-center justify-center py-20">
+        <Spinner size="lg" />
       </div>
     );
   }

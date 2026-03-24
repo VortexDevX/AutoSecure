@@ -206,7 +206,7 @@ function NewPolicyFormContent() {
         <p className="text-gray-600 mt-1">Step {currentStep} of 6</p>
       </div>
 
-      <PolicyWizard currentStep={currentStep}>
+      <PolicyWizard currentStep={currentStep} onStepClick={setCurrentStep}>
         {renderStep()}
 
         {/* Navigation Buttons */}
@@ -228,20 +228,20 @@ function NewPolicyFormContent() {
               Cancel
             </Button>
 
-            {currentStep < 6 ? (
-              <Button variant="primary" onClick={handleNext}>
+            {currentStep < 6 && (
+              <Button variant="secondary" onClick={handleNext}>
                 Next →
               </Button>
-            ) : (
-              <Button
-                variant="primary"
-                onClick={handleSubmit}
-                isLoading={isSubmitting}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Creating Policy...' : 'Create Policy'}
-              </Button>
             )}
+
+            <Button
+              variant="primary"
+              onClick={handleSubmit}
+              isLoading={isSubmitting}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Saving...' : 'Save Policy'}
+            </Button>
           </div>
         </div>
       </PolicyWizard>

@@ -1,0 +1,1 @@
+app/(dashboard)/policies/[id]/edit/ClientPage.tsx(325,17): error TS2322: Type '"outline"' is not assignable to type '"danger" | "primary" | "secondary" | "ghost" | undefined'.

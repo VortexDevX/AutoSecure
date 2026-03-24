@@ -190,18 +190,7 @@ export function PolicyFilters({
             </select>
           </div>
 
-          {/* Expiring Soon Checkbox */}
-          <div className="flex items-end">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={localFilters.expiring_soon || false}
-                onChange={(e) => handleFilterChange('expiring_soon', e.target.checked)}
-                className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
-              />
-              <span className="text-sm font-medium text-gray-700">Expiring Soon (30 days)</span>
-            </label>
-          </div>
+          {/* Expiring Soon Checkbox Removed */}
         </div>
       )}
 
@@ -245,17 +234,7 @@ export function PolicyFilters({
               </button>
             </span>
           )}
-          {localFilters.expiring_soon && (
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
-              Expiring Soon
-              <button
-                onClick={() => handleFilterChange('expiring_soon', false)}
-                className="hover:bg-primary/20 rounded-full p-0.5"
-              >
-                <XMarkIcon className="w-3.5 h-3.5" />
-              </button>
-            </span>
-          )}
+
         </div>
       )}
     </div>

@@ -247,28 +247,7 @@ export function PolicyTable({ policies, onDelete, onSendEmail, sortBy, sortOrder
               <th className="px-4 py-3 text-left">Status</th>
               <th className="px-4 py-3 text-left">Payment</th>
               <th className="px-4 py-3 text-right">Premium</th>
-              <th 
-                className="px-4 py-3 text-left cursor-pointer group hover:bg-gray-50 transition-colors"
-                onClick={() => onSort?.('saod_end_date')}
-              >
-                <div className="flex items-center gap-1">
-                  Expiry
-                  <span className="text-gray-400 group-hover:text-gray-600">
-                    {sortBy === 'saod_end_date' ? (
-                      sortOrder === 'asc' ? (
-                        <ChevronUpIcon className="w-4 h-4" />
-                      ) : (
-                        <ChevronDownIcon className="w-4 h-4" />
-                      )
-                    ) : (
-                      <div className="w-4 h-4 flex flex-col justify-center gap-0 opacity-50">
-                        <ChevronUpIcon className="w-3 h-3 -mb-1" />
-                        <ChevronDownIcon className="w-3 h-3 -mt-1" />
-                      </div>
-                    )}
-                  </span>
-                </div>
-              </th>
+              <th className="px-4 py-3 text-left">Expiry</th>
               <th className="px-4 py-3 text-right w-12"></th>
             </tr>
           </thead>

@@ -346,7 +346,7 @@ function EditPolicyFormContent({ policyId }: { policyId: string }) {
         </p>
       </div>
 
-      <PolicyWizard currentStep={currentStep}>
+      <PolicyWizard currentStep={currentStep} onStepClick={setCurrentStep}>
         {renderStep()}
 
         <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
@@ -366,20 +366,20 @@ function EditPolicyFormContent({ policyId }: { policyId: string }) {
               Cancel
             </Button>
 
-            {currentStep < 6 ? (
-              <Button variant="primary" onClick={handleNext}>
+            {currentStep < 6 && (
+              <Button variant="secondary" onClick={handleNext}>
                 Next →
               </Button>
-            ) : (
-              <Button
-                variant="primary"
-                onClick={handleSubmit}
-                isLoading={isSubmitting}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Updating Policy...' : 'Update Policy'}
-              </Button>
             )}
+
+            <Button
+              variant="primary"
+              onClick={handleSubmit}
+              isLoading={isSubmitting}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Updating Policy...' : 'Update Policy'}
+            </Button>
           </div>
         </div>
       </PolicyWizard>

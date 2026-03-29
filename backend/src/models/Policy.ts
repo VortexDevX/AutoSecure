@@ -96,7 +96,7 @@ export interface IPolicy extends Document {
   premium_amount: number;
   customer_payment_type?: string;
   customer_payment_status: 'pending' | 'done';
-  voucher_no?: number;
+  voucher_no?: string;
   payment_details: IPaymentDetail[];
   extra_amount?: number; // ✅ Now auto-calculated
   profit?: number; // ✅ NEW: Auto-calculated field
@@ -226,7 +226,7 @@ const PolicySchema = new Schema<IPolicy>(
     premium_amount: { type: Number, required: true, min: 0 },
     customer_payment_type: { type: String, maxlength: 50 },
     customer_payment_status: { type: String, enum: ['pending', 'done'], required: true },
-    voucher_no: { type: Number },
+    voucher_no: { type: String, trim: true, maxlength: 500 },
     payment_details: [PaymentDetailSchema],
     extra_amount: { type: Number },
     profit: { type: Number },

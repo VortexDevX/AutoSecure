@@ -105,11 +105,11 @@ export function Step5PaymentDetails() {
           </div>
 
           <Input
-            label="Voucher Number"
-            type="number"
-            placeholder="Voucher number (optional)"
+            label="REMARK"
+            type="text"
+            placeholder="Add remark (optional)"
             value={formData.voucher_no || ''}
-            onChange={(e) => updateFormData({ voucher_no: parseInt(e.target.value) || undefined })}
+            onChange={(e) => updateFormData({ voucher_no: e.target.value || undefined })}
           />
         </div>
       </div>

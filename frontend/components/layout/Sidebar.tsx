@@ -14,7 +14,6 @@ import {
   UsersIcon,
   TagIcon,
   ClipboardDocumentListIcon,
-  Cog6ToothIcon,
   EnvelopeIcon,
   ChevronLeftIcon,
 } from '@heroicons/react/24/outline';
@@ -39,6 +38,7 @@ const navigation: NavItem[] = [
     icon: ClipboardDocumentListIcon,
     roles: ['owner', 'admin'],
   },
+  { name: 'Meta Fields', href: '/admin/meta', icon: TagIcon, roles: ['owner', 'admin'] },
   { name: 'Users', href: '/admin/users', icon: UsersIcon, roles: ['owner', 'admin'] },
   {
     name: 'Email Templates',

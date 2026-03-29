@@ -74,6 +74,7 @@ const ALL_EXPORT_FIELDS = [
   'customer_payment_type',
   'customer_payment_status',
   'voucher_no',
+  'payment_details',
 
   // Company Payment
   'company_payment_mode',
@@ -143,7 +144,8 @@ const FIELD_LABELS: Record<string, string> = {
   premium_amount: 'Premium Amount',
   customer_payment_type: 'Payment Type',
   customer_payment_status: 'Payment Status',
-  voucher_no: 'Voucher Number',
+  voucher_no: 'REMARK',
+  payment_details: 'Payment Details',
   company_payment_mode: 'Company Payment Mode',
   company_bank_name: 'Company Bank Name',
   company_cheque_no: 'Cheque/UTR/Transaction No',
@@ -205,6 +207,22 @@ export const exportPolicies = asyncHandler(async (req: Request, res: Response) =
       // Handle special fields
       if (field === 'addon_coverage' && Array.isArray(value)) {
         value = value.join(', ');
+      } else if (field === 'payment_details' && Array.isArray(value)) {
+        value = value
+          .map((detail: any, index: number) => {
+            const mode =
+              typeof detail?.payment_mode === 'string'
+                ? detail.payment_mode.replace(/[_-]+/g, ' ')
+                : '';
+            const amount =
+              detail?.collect_amount !== undefined && detail?.collect_amount !== null
+                ? String(detail.collect_amount)
+                : '';
+            const remark = detail?.collect_remark ? String(detail.collect_remark) : '';
+
+            return `#${index + 1}: Mode=${mode || '-'}, Amount=${amount || '-'}, Remark=${remark || '-'}`;
+          })
+          .join(' | ');
       } else if (field === 'createdAt' || field === 'updatedAt') {
         value = value ? new Date(value as string).toLocaleString('en-IN') : '';
       } else if (
@@ -223,7 +241,7 @@ export const exportPolicies = asyncHandler(async (req: Request, res: Response) =
 
       // Convert coded string values like "two_wheeler" or "commercial-vehicle" into Title Case
       // but only for short, single-token codes (no spaces) to avoid touching addresses/emails.
-      if (typeof value === 'string') {
+      if (typeof value === 'string' && field !== 'voucher_no' && field !== 'payment_details') {
         const codeLike = /^[a-z0-9_-]+$/;
         if (codeLike.test(value) && !value.includes(' ') && value.length <= 50) {
           value = value

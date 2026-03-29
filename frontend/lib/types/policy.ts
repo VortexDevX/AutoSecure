@@ -96,7 +96,7 @@ export interface Policy {
   premium_amount: number;
   customer_payment_type?: string;
   customer_payment_status: 'pending' | 'done';
-  voucher_no?: number;
+  voucher_no?: string;
   payment_details: PaymentDetail[];
   extra_amount?: number;
   profit?: number;
@@ -197,7 +197,7 @@ export interface PolicyFormData {
   premium_amount: number;
   customer_payment_type?: string;
   customer_payment_status: 'pending' | 'done';
-  voucher_no?: number;
+  voucher_no?: string;
   payment_details: PaymentDetail[];
   extra_amount?: number;
   profit?: number;

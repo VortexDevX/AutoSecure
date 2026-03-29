@@ -107,7 +107,8 @@ export const EXPORT_FIELD_CATEGORIES: FieldCategory[] = [
       { key: 'premium_amount', label: 'Premium Amount', category: 'payment' },
       { key: 'customer_payment_type', label: 'Payment Type', category: 'payment' },
       { key: 'customer_payment_status', label: 'Payment Status', category: 'payment' },
-      { key: 'voucher_no', label: 'Voucher Number', category: 'payment' },
+      { key: 'voucher_no', label: 'REMARK', category: 'payment' },
+      { key: 'payment_details', label: 'Payment Details', category: 'payment' },
     ],
   },
   {
@@ -168,6 +169,7 @@ export const DEFAULT_SELECTED_FIELDS: string[] = [
   'extra_amount',
   // Payment Status
   'customer_payment_status',
+  'payment_details',
 ];
 
 // Get all field keys

@@ -6,15 +6,17 @@ import { useAuth } from '@/lib/hooks/useAuth';
 interface PrivacyContextType {
   isPrivacyMode: boolean;
   togglePrivacyMode: () => void;
-  formatPrivacyValue: (value: string | number | undefined | null) => string | number | undefined | null;
+  formatPrivacyValue: (
+    value: string | number | undefined | null
+  ) => string | number | undefined | null;
   canTogglePrivacy: boolean;
 }
 
 const PrivacyContext = createContext<PrivacyContextType | undefined>(undefined);
-const DEFAULT_PRIVACY_MODE = false;
+const DEFAULT_PRIVACY_MODE = true;
 
 export function PrivacyProvider({ children }: { children: ReactNode }) {
-  const { user, authSessionVersion } = useAuth();
+  const { user, isLoading, authSessionVersion } = useAuth();
   const isOwner = user?.role === 'owner';
   const isAdmin = user?.role === 'admin';
   const isPrivileged = isOwner || isAdmin;
@@ -31,7 +33,7 @@ export function PrivacyProvider({ children }: { children: ReactNode }) {
     ownerPrivacyState.sessionKey === privacySessionKey
       ? ownerPrivacyState.value
       : DEFAULT_PRIVACY_MODE;
-  const isPrivacyMode = isPrivileged ? ownerPrivacyMode : true;
+  const isPrivacyMode = isLoading ? false : isPrivileged ? ownerPrivacyMode : user?.role === 'user';
 
   const togglePrivacyMode = () => {
     if (isPrivileged) {
@@ -55,7 +57,14 @@ export function PrivacyProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <PrivacyContext.Provider value={{ isPrivacyMode, togglePrivacyMode, formatPrivacyValue, canTogglePrivacy: isPrivileged }}>
+    <PrivacyContext.Provider
+      value={{
+        isPrivacyMode,
+        togglePrivacyMode,
+        formatPrivacyValue,
+        canTogglePrivacy: !isLoading && isPrivileged,
+      }}
+    >
       {children}
     </PrivacyContext.Provider>
   );

@@ -53,7 +53,7 @@ export function Step1PolicyDetails() {
           required
           // Make read-only when editing (drive_folder_id exists)
           readOnly={!!formData.drive_folder_id}
-          className={formData.drive_folder_id ? 'bg-gray-100 cursor-not-allowed' : ''}
+          className={formData.drive_folder_id ? '!bg-slate-100/80 cursor-not-allowed text-slate-500' : ''}
           title={formData.drive_folder_id ? 'Policy number cannot be changed after creation' : ''}
         />
 

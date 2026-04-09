@@ -6,14 +6,6 @@ import { usePolicyForm } from '@/lib/context/PolicyFormContext';
 import { usePolicyFormMeta } from '@/lib/hooks/useMeta';
 import { useMemo } from 'react';
 
-// Add formatter for MM/YYYY
-const formatManufacturingDate = (value: string) => {
-  // Remove non-digits
-  const digits = value.replace(/\D/g, '');
-  if (digits.length <= 2) return digits;
-  return `${digits.slice(0, 2)}/${digits.slice(2, 6)}`;
-};
-
 export function Step3VehicleDetails() {
   const { formData, updateFormData } = usePolicyForm();
   const { vehicleProducts, manufacturers, fuelTypes, isLoading } = usePolicyFormMeta();
@@ -23,12 +15,6 @@ export function Step3VehicleDetails() {
     if (!formData.product) return [];
     return manufacturers.filter((m) => m.parent_value === formData.product);
   }, [formData.product, manufacturers]);
-
-  // Handle manufacturing date input
-  const handleMfgDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatManufacturingDate(e.target.value);
-    updateFormData({ mfg_date: formatted });
-  };
 
   return (
     <div className="space-y-6">
@@ -125,10 +111,9 @@ export function Step3VehicleDetails() {
         <Input
           label="Manufacturing Date"
           type="text"
-          placeholder="MM/YYYY (e.g., 01/2024)"
+          placeholder="Enter manufacturer date"
           value={formData.mfg_date || ''}
-          onChange={handleMfgDateChange}
-          maxLength={7}
+          onChange={(e) => updateFormData({ mfg_date: e.target.value })}
         />
 
         {/* Engine Number */}
@@ -138,6 +123,22 @@ export function Step3VehicleDetails() {
           placeholder="Engine number (optional)"
           value={formData.engine_no || ''}
           onChange={(e) => updateFormData({ engine_no: e.target.value.toUpperCase() })}
+        />
+
+        <Input
+          label="Cubic Capacity"
+          type="text"
+          placeholder="e.g., 1197 CC"
+          value={formData.cubic_capacity || ''}
+          onChange={(e) => updateFormData({ cubic_capacity: e.target.value })}
+        />
+
+        <Input
+          label="Seater / STR"
+          type="text"
+          placeholder="e.g., 5 seater or 2 STR"
+          value={formData.seater_or_str || ''}
+          onChange={(e) => updateFormData({ seater_or_str: e.target.value })}
         />
 
         {/* Chassis Number */}
@@ -171,9 +172,9 @@ export function Step3VehicleDetails() {
       </div>
 
       {/* Info Box */}
-      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-900">
-          <strong>💡 Tip:</strong> Select <strong>Product</strong> first to see relevant
+      <div className="rounded-[18px] border border-slate-200/70 bg-sky-50/70 p-4">
+        <p className="text-sm text-slate-700">
+          <strong>Tip:</strong> Select <strong>Product</strong> first to see relevant
           manufacturers. Model name can be entered manually.
         </p>
       </div>

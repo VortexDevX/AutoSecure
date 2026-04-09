@@ -19,9 +19,9 @@ export default function NewLicensePage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="mx-auto max-w-4xl">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="mb-6 flex items-center gap-4">
         <Link href="/licenses">
           <Button variant="ghost" size="sm">
             <ArrowLeftIcon className="w-4 h-4 mr-2" />
@@ -29,8 +29,7 @@ export default function NewLicensePage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">New License</h1>
-          <p className="text-gray-600">Create a new driving license record</p>
+          <h1 className="text-2xl font-bold text-slate-900">New License</h1>
         </div>
       </div>
 

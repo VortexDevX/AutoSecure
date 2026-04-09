@@ -14,6 +14,8 @@ import {
   getYear,
   getMonth,
   parseISO,
+  parse,
+  isValid,
 } from 'date-fns';
 import {
   CalendarIcon,
@@ -70,6 +72,73 @@ interface SingleDatePickerProps {
   isClearable?: boolean;
 }
 
+interface SingleDateInputButtonProps {
+  value?: string;
+  onClick?: () => void;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
+  error?: boolean;
+  placeholder: string;
+  isClearable: boolean;
+  onClear: () => void;
+}
+
+const SingleDateInputButton = forwardRef<HTMLInputElement, SingleDateInputButtonProps>(
+  (
+    { value: displayValue, onClick, onChange, disabled, error, placeholder, isClearable, onClear },
+    ref
+  ) => (
+    <div className="relative w-full">
+      <CalendarIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <input
+        ref={ref}
+        type="text"
+        value={displayValue || ''}
+        onClick={onClick}
+        onChange={onChange}
+        disabled={disabled}
+        placeholder={placeholder}
+        className={`
+          input w-full pl-10 pr-10
+          ${disabled ? 'cursor-not-allowed !bg-[rgba(232,238,248,0.62)] text-slate-400' : ''}
+          ${error ? 'input-error' : ''}
+        `}
+      />
+      {displayValue && isClearable && !disabled && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onClear();
+          }}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700"
+        >
+          <XMarkIcon className="h-4 w-4" />
+        </button>
+      )}
+    </div>
+  )
+);
+
+SingleDateInputButton.displayName = 'SingleDateInputButton';
+
+const parseManualDate = (rawValue: string): Date | null => {
+  const value = rawValue.trim();
+  if (!value) return null;
+
+  const supportedFormats = ['dd/MM/yyyy', 'd/M/yyyy', 'dd-MM-yyyy', 'd-M-yyyy', 'yyyy-MM-dd'];
+
+  for (const formatString of supportedFormats) {
+    const parsedDate = parse(value, formatString, new Date());
+    if (isValid(parsedDate)) {
+      return parsedDate;
+    }
+  }
+
+  return null;
+};
+
 export function SingleDatePicker({
   value,
   onChange,
@@ -118,51 +187,22 @@ export function SingleDatePicker({
     onChange(normalizedDate);
   };
 
-  const CustomInput = forwardRef<HTMLButtonElement, { value?: string; onClick?: () => void }>(
-    ({ value: displayValue, onClick }, ref) => (
-      <button
-        type="button"
-        ref={ref}
-        onClick={onClick}
-        disabled={disabled}
-        className={`
-          w-full flex items-center justify-between px-3 py-2 
-          border rounded-lg text-left text-sm
-          transition-colors duration-150
-          ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white cursor-pointer hover:border-gray-400'}
-          ${error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20'}
-        `}
-      >
-        <div className="flex items-center gap-2">
-          <CalendarIcon className="w-4 h-4 text-gray-400" />
-          <span className={displayValue ? 'text-gray-900' : 'text-gray-400'}>
-            {displayValue || placeholder}
-          </span>
-        </div>
-        <div className="flex items-center gap-1">
-          {displayValue && isClearable && !disabled && (
-            <XMarkIcon
-              className="w-4 h-4 text-gray-400 hover:text-gray-600"
-              onClick={(e) => {
-                e.stopPropagation();
-                onChange(null);
-              }}
-            />
-          )}
-        </div>
-      </button>
-    )
-  );
-  CustomInput.displayName = 'CustomInput';
-
   return (
     <div className={`relative ${className}`}>
-      {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
+      {label && <label className="label mb-2 block">{label}</label>}
       <ReactDatePicker
         selected={dateValue}
         onChange={handleDateChange}
-        customInput={<CustomInput />}
-        dateFormat="dd MMM yyyy"
+        customInput={
+          <SingleDateInputButton
+            disabled={disabled}
+            error={Boolean(error)}
+            placeholder={placeholder}
+            isClearable={isClearable}
+            onClear={() => onChange(null)}
+          />
+        }
+        dateFormat="dd/MM/yyyy"
         minDate={minDate}
         maxDate={maxDate}
         disabled={disabled}
@@ -170,6 +210,18 @@ export function SingleDatePicker({
         popperClassName="date-picker-popper"
         calendarClassName="date-picker-calendar"
         wrapperClassName="w-full"
+        onChangeRaw={(event) => {
+          const rawValue = (event.target as HTMLInputElement).value;
+          if (!rawValue.trim()) {
+            onChange(null);
+            return;
+          }
+
+          const parsedDate = parseManualDate(rawValue);
+          if (parsedDate) {
+            handleDateChange(parsedDate);
+          }
+        }}
         renderCustomHeader={({
           date,
           changeYear,
@@ -184,16 +236,16 @@ export function SingleDatePicker({
               type="button"
               onClick={decreaseMonth}
               disabled={prevMonthButtonDisabled}
-              className="p-1 hover:bg-gray-100 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-md p-1 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <ChevronLeftIcon className="w-4 h-4 text-gray-600" />
+              <ChevronLeftIcon className="h-4 w-4 text-slate-600" />
             </button>
 
             <div className="flex items-center gap-1">
               <select
                 value={getMonth(date)}
                 onChange={({ target: { value } }) => changeMonth(Number(value))}
-                className="text-sm font-medium bg-transparent border-none cursor-pointer focus:ring-0 pr-1"
+                className="cursor-pointer border-none bg-transparent pr-1 text-sm font-medium text-slate-700 focus:ring-0"
               >
                 {MONTHS.map((month, index) => (
                   <option key={month} value={index}>
@@ -205,7 +257,7 @@ export function SingleDatePicker({
               <select
                 value={getYear(date)}
                 onChange={({ target: { value } }) => changeYear(Number(value))}
-                className="text-sm font-medium bg-transparent border-none cursor-pointer focus:ring-0"
+                className="cursor-pointer border-none bg-transparent text-sm font-medium text-slate-700 focus:ring-0"
               >
                 {years.map((year) => (
                   <option key={year} value={year}>
@@ -219,9 +271,9 @@ export function SingleDatePicker({
               type="button"
               onClick={increaseMonth}
               disabled={nextMonthButtonDisabled}
-              className="p-1 hover:bg-gray-100 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-md p-1 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <ChevronRightIcon className="w-4 h-4 text-gray-600" />
+              <ChevronRightIcon className="h-4 w-4 text-slate-600" />
             </button>
           </div>
         )}
@@ -308,12 +360,6 @@ export function DateRangePicker({
   }, []);
 
   useEffect(() => {
-    if (value) {
-      setTempRange(value);
-    }
-  }, [value]);
-
-  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
@@ -387,30 +433,34 @@ export function DateRangePicker({
   };
 
   return (
-    <div className={`relative ${className}`} ref={containerRef}>
-      {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
+    <div className={`relative z-[120] ${className}`} ref={containerRef}>
+      {label && <label className="label mb-2 block">{label}</label>}
 
       <button
         type="button"
-        onClick={() => !disabled && setIsOpen(!isOpen)}
+        onClick={() => {
+          if (disabled) return;
+          if (!isOpen) {
+            setTempRange(value || { from: null, to: null });
+          }
+          setIsOpen(!isOpen);
+        }}
         disabled={disabled}
         className={`
-          w-full flex items-center justify-between px-3 py-2 
-          border rounded-lg text-left text-sm
-          transition-colors duration-150
-          ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white cursor-pointer hover:border-gray-400'}
-          ${error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-primary'}
-          ${isOpen ? 'ring-2 ring-primary/20 border-primary' : ''}
+          input flex w-full items-center justify-between text-left
+          ${disabled ? 'cursor-not-allowed !bg-slate-100/80 text-slate-400' : 'cursor-pointer'}
+          ${error ? 'input-error' : ''}
+          ${isOpen ? '!border-slate-400/60 ring-2 ring-slate-300/40' : ''}
         `}
       >
         <div className="flex items-center gap-2">
-          <CalendarIcon className="w-4 h-4 text-gray-400" />
-          <span className={value?.from ? 'text-gray-900' : 'text-gray-400'}>{formatRange()}</span>
+          <CalendarIcon className="h-4 w-4 text-slate-400" />
+          <span className={value?.from ? 'text-slate-900' : 'text-slate-400'}>{formatRange()}</span>
         </div>
         <div className="flex items-center gap-1">
           {value?.from && !disabled && (
             <XMarkIcon
-              className="w-4 h-4 text-gray-400 hover:text-gray-600"
+              className="h-4 w-4 text-slate-400 hover:text-slate-600"
               onClick={handleClear}
             />
           )}
@@ -423,7 +473,7 @@ export function DateRangePicker({
         <div
           ref={dropdownRef}
           className={`
-            absolute z-50 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg
+            absolute z-[125] mt-1 rounded-[18px] border border-slate-200/80 bg-[rgba(239,245,253,0.98)] shadow-[0_16px_32px_rgba(74,96,129,0.12)]
             ${isMobile ? 'left-0 right-0 mx-auto w-[calc(100vw-2rem)] max-w-sm' : 'right-0'}
           `}
           style={
@@ -443,7 +493,7 @@ export function DateRangePicker({
             <div className="flex flex-col max-h-[80vh] overflow-auto">
               {/* Presets - Horizontal scroll on mobile */}
               {showPresets && (
-                <div className="border-b border-gray-200 p-3">
+                <div className="border-b border-slate-200 p-3">
                   <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
                     {PRESETS.map((preset) => (
                       <button
@@ -455,8 +505,8 @@ export function DateRangePicker({
                           transition-colors duration-150 whitespace-nowrap
                           ${
                             activePreset === preset.value
-                              ? 'bg-primary text-white'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              ? 'bg-slate-800 text-white'
+                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                           }
                         `}
                       >
@@ -493,16 +543,16 @@ export function DateRangePicker({
                         type="button"
                         onClick={decreaseMonth}
                         disabled={prevMonthButtonDisabled}
-                        className="p-1 hover:bg-gray-100 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="rounded-md p-1 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                       >
-                        <ChevronLeftIcon className="w-4 h-4 text-gray-600" />
+                        <ChevronLeftIcon className="h-4 w-4 text-slate-600" />
                       </button>
 
                       <div className="flex items-center gap-1">
                         <select
                           value={getMonth(date)}
                           onChange={({ target: { value } }) => changeMonth(Number(value))}
-                          className="text-xs font-medium bg-transparent border-none cursor-pointer focus:ring-0 p-0 pr-4"
+                          className="cursor-pointer border-none bg-transparent p-0 pr-4 text-xs font-medium text-slate-700 focus:ring-0"
                         >
                           {MONTHS.map((month, index) => (
                             <option key={month} value={index}>
@@ -514,7 +564,7 @@ export function DateRangePicker({
                         <select
                           value={getYear(date)}
                           onChange={({ target: { value } }) => changeYear(Number(value))}
-                          className="text-xs font-medium bg-transparent border-none cursor-pointer focus:ring-0 p-0"
+                          className="cursor-pointer border-none bg-transparent p-0 text-xs font-medium text-slate-700 focus:ring-0"
                         >
                           {years.map((year) => (
                             <option key={year} value={year}>
@@ -528,9 +578,9 @@ export function DateRangePicker({
                         type="button"
                         onClick={increaseMonth}
                         disabled={nextMonthButtonDisabled}
-                        className="p-1 hover:bg-gray-100 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="rounded-md p-1 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                       >
-                        <ChevronRightIcon className="w-4 h-4 text-gray-600" />
+                        <ChevronRightIcon className="h-4 w-4 text-slate-600" />
                       </button>
                     </div>
                   )}
@@ -538,14 +588,14 @@ export function DateRangePicker({
               </div>
 
               {/* Close button for mobile */}
-              <div className="border-t border-gray-200 p-3">
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="w-full py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-                >
-                  Close
-                </button>
+                <div className="border-t border-slate-200 p-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsOpen(false)}
+                    className="w-full rounded-[14px] bg-slate-100 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
+                  >
+                    Close
+                  </button>
               </div>
             </div>
           ) : (
@@ -553,7 +603,7 @@ export function DateRangePicker({
             <div className="flex">
               {/* Presets - Compact */}
               {showPresets && (
-                <div className="border-r border-gray-200 p-2 w-28 shrink-0">
+                <div className="w-28 shrink-0 border-r border-slate-200 p-2">
                   <div className="space-y-0.5">
                     {PRESETS.map((preset) => (
                       <button
@@ -565,8 +615,8 @@ export function DateRangePicker({
                           transition-colors duration-150
                           ${
                             activePreset === preset.value
-                              ? 'bg-primary text-white'
-                              : 'text-gray-700 hover:bg-gray-100'
+                              ? 'bg-slate-800 text-white'
+                              : 'text-slate-700 hover:bg-slate-100'
                           }
                         `}
                       >
@@ -605,9 +655,9 @@ export function DateRangePicker({
                           type="button"
                           onClick={decreaseMonth}
                           disabled={prevMonthButtonDisabled}
-                          className="p-1 hover:bg-gray-100 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="rounded-md p-1 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          <ChevronLeftIcon className="w-4 h-4 text-gray-600" />
+                          <ChevronLeftIcon className="h-4 w-4 text-slate-600" />
                         </button>
                       ) : (
                         <div className="w-6" />
@@ -617,7 +667,7 @@ export function DateRangePicker({
                         <select
                           value={getMonth(date)}
                           onChange={({ target: { value } }) => changeMonth(Number(value))}
-                          className="text-xs font-medium bg-transparent border-none cursor-pointer focus:ring-0 p-0 pr-4"
+                          className="cursor-pointer border-none bg-transparent p-0 pr-4 text-xs font-medium text-slate-700 focus:ring-0"
                         >
                           {MONTHS.map((month, index) => (
                             <option key={month} value={index}>
@@ -629,7 +679,7 @@ export function DateRangePicker({
                         <select
                           value={getYear(date)}
                           onChange={({ target: { value } }) => changeYear(Number(value))}
-                          className="text-xs font-medium bg-transparent border-none cursor-pointer focus:ring-0 p-0"
+                          className="cursor-pointer border-none bg-transparent p-0 text-xs font-medium text-slate-700 focus:ring-0"
                         >
                           {years.map((year) => (
                             <option key={year} value={year}>
@@ -644,9 +694,9 @@ export function DateRangePicker({
                           type="button"
                           onClick={increaseMonth}
                           disabled={nextMonthButtonDisabled}
-                          className="p-1 hover:bg-gray-100 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="rounded-md p-1 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          <ChevronRightIcon className="w-4 h-4 text-gray-600" />
+                          <ChevronRightIcon className="h-4 w-4 text-slate-600" />
                         </button>
                       ) : (
                         <div className="w-6" />
@@ -662,7 +712,7 @@ export function DateRangePicker({
 
       {/* Mobile backdrop */}
       {isOpen && isMobile && (
-        <div className="fixed inset-0 bg-black/20 z-40" onClick={() => setIsOpen(false)} />
+        <div className="fixed inset-0 z-[115] bg-black/20" onClick={() => setIsOpen(false)} />
       )}
     </div>
   );

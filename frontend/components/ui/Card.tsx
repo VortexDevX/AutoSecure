@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { ReactNode } from 'react';
 
 interface CardProps {
@@ -7,11 +8,13 @@ interface CardProps {
 }
 
 export function Card({ children, className = '', onClick }: CardProps) {
-  const baseClasses = 'bg-white rounded-lg shadow-sm border border-gray-200';
-  const interactiveClasses = onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : '';
+  const baseClasses = 'glass-panel rounded-[22px]';
+  const interactiveClasses = onClick
+    ? 'cursor-pointer transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_36px_rgba(74,96,129,0.12)]'
+    : '';
 
   return (
-    <div className={`${baseClasses} ${interactiveClasses} ${className}`} onClick={onClick}>
+    <div className={clsx(baseClasses, interactiveClasses, className)} onClick={onClick}>
       {children}
     </div>
   );
@@ -23,7 +26,11 @@ interface CardHeaderProps {
 }
 
 export function CardHeader({ children, className = '' }: CardHeaderProps) {
-  return <div className={`px-6 py-4 border-b border-gray-200 ${className}`}>{children}</div>;
+  return (
+    <div className={clsx('border-b border-white/45 px-4 py-4 text-slate-900', className)}>
+      {children}
+    </div>
+  );
 }
 
 interface CardBodyProps {
@@ -32,7 +39,7 @@ interface CardBodyProps {
 }
 
 export function CardBody({ children, className = '' }: CardBodyProps) {
-  return <div className={`px-6 py-4 ${className}`}>{children}</div>;
+  return <div className={clsx('px-4 py-4', className)}>{children}</div>;
 }
 
 interface CardFooterProps {
@@ -42,7 +49,14 @@ interface CardFooterProps {
 
 export function CardFooter({ children, className = '' }: CardFooterProps) {
   return (
-    <div className={`px-6 py-4 border-t border-gray-200 bg-gray-50 ${className}`}>{children}</div>
+    <div
+      className={clsx(
+        'border-t border-slate-200/70 bg-[rgba(239,245,253,0.68)] px-4 py-4 backdrop-blur-sm',
+        className
+      )}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -52,7 +66,11 @@ interface CardTitleProps {
 }
 
 export function CardTitle({ children, className = '' }: CardTitleProps) {
-  return <h3 className={`text-lg font-semibold text-gray-900 ${className}`}>{children}</h3>;
+  return (
+    <h3 className={clsx('text-lg font-semibold tracking-[-0.02em] text-slate-900', className)}>
+      {children}
+    </h3>
+  );
 }
 
 interface CardDescriptionProps {
@@ -61,7 +79,7 @@ interface CardDescriptionProps {
 }
 
 export function CardDescription({ children, className = '' }: CardDescriptionProps) {
-  return <p className={`text-sm text-gray-600 mt-1 ${className}`}>{children}</p>;
+  return <p className={clsx('mt-1 text-sm text-slate-500', className)}>{children}</p>;
 }
 
 // Export all card components

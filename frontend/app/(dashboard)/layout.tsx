@@ -12,22 +12,20 @@ import { MobileBlockScreen } from '@/components/dashboard/MobileBlockScreen';
 import { ROUTES } from '@/lib/utils/constants';
 
 function useIsMobile(breakpoint: number = 1024) {
-  const [isMobile, setIsMobile] = useState(false);
-  const [isClient, setIsClient] = useState(false);
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < breakpoint : false
+  );
 
   useEffect(() => {
-    setIsClient(true);
-
-    const checkMobile = () => {
+    const onResize = () => {
       setIsMobile(window.innerWidth < breakpoint);
     };
 
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, [breakpoint]);
 
-  return { isMobile, isClient };
+  return isMobile;
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -35,9 +33,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isMobile, isClient } = useIsMobile();
+  const isMobile = useIsMobile();
 
-  // Only block mobile on dashboard page itself
   const isDashboardPage = pathname === '/dashboard';
 
   useEffect(() => {
@@ -58,35 +55,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return null;
   }
 
-  // Show mobile block screen only on dashboard page for small screens
-  if (isClient && isMobile && isDashboardPage) {
+  if (isMobile && isDashboardPage) {
     return <MobileBlockScreen />;
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 relative selection:bg-primary-100 selection:text-primary-900">
-      {/* Mesh Gradient Background */}
-      <div className="absolute inset-0 z-0 opacity-20 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-100/40 via-transparent to-transparent" />
-      <div className="absolute inset-0 z-0 opacity-10 pointer-events-none bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-cyan-100/40 via-transparent to-transparent" />
-
+    <div className="app-shell selection:bg-primary/20 selection:text-slate-900">
+      <div className="mesh-background absolute inset-0 opacity-80" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.24),_transparent_62%)]" />
       <LoadingBar />
-
-      {/* Main Container - Added padding for 'floating' feel on large screens */}
-      <div className="flex w-full h-full relative z-10 lg:p-4 gap-4">
-        {/* Sidebar - Floating on LG screens */}
+      <div className="relative z-10 flex min-h-screen w-full">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-        {/* Content Area - Floating on LG screens */}
-        <div className="flex-1 flex flex-col overflow-hidden bg-white/50 lg:bg-transparent rounded-2xl">
-          {/* Site Status Banner */}
+        <div className="flex min-w-0 flex-1 flex-col lg:pl-[5.5rem]">
           <SiteStatusBanner />
-
-          {/* Topbar */}
           <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-
-          {/* Main Scrollable Area */}
-          <main className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300">
-            <div className="p-4 lg:p-0 lg:pt-2 max-w-[1600px] mx-auto">{children}</div>
+          <main className="flex-1 overflow-y-auto px-3 pb-4 pt-2 sm:px-4 lg:px-5 lg:pb-6">
+            <div className="mx-auto max-w-[1560px]">{children}</div>
           </main>
         </div>
       </div>

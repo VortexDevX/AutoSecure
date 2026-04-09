@@ -83,6 +83,8 @@ export const policyFormSchema = z.object({
   manufacturer: z.string().optional(),
   model_name: z.string().optional(),
   hypothecation: z.string().optional(),
+  cubic_capacity: z.string().optional(),
+  seater_or_str: z.string().optional(),
   sum_insured: z.number().optional(),
   ncb: z.string().optional(),
   agent_commission: z.number().optional(),

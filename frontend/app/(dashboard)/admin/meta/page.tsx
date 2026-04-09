@@ -2,16 +2,21 @@
 
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
+import toast from 'react-hot-toast';
 import { getMetaByCategory, getMetaCategories } from '@/lib/api/meta';
 import { useRequireAdmin } from '@/lib/hooks/useRequireRole';
 import { AccessDenied } from '@/components/admin/AccessDenied';
 import { MetaOptionsTable } from '@/components/admin/MetaOptionsTable';
 import { CreateMetaModal } from '@/components/admin/CreateMetaModal';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
-import { PlusIcon } from '@heroicons/react/24/outline';
-import toast from 'react-hot-toast';
+import {
+  PlusIcon,
+  Squares2X2Icon,
+  CheckBadgeIcon,
+  NoSymbolIcon,
+  ArrowPathIcon,
+} from '@heroicons/react/24/outline';
 
 const formatCategoryLabel = (category: string): string =>
   category
@@ -54,7 +59,6 @@ export default function MetaManagementPage() {
     () => (options || []).filter((option) => option.active).length,
     [options]
   );
-
   const inactiveCount = useMemo(
     () => (options || []).filter((option) => !option.active).length,
     [options]
@@ -70,9 +74,9 @@ export default function MetaManagementPage() {
     setShowCreateModal(false);
   };
 
-  if (isCheckingAuth) {
+  if (isCheckingAuth || categoriesLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex min-h-[400px] items-center justify-center">
         <Spinner size="lg" />
       </div>
     );
@@ -82,18 +86,10 @@ export default function MetaManagementPage() {
     return <AccessDenied message="Only administrators and owners can manage meta options." />;
   }
 
-  if (categoriesLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-
   if (categoriesError) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-600">Failed to load meta categories</p>
+      <div className="glass-panel rounded-[24px] p-8 text-center text-rose-800">
+        Failed to load meta categories
       </div>
     );
   }
@@ -101,105 +97,137 @@ export default function MetaManagementPage() {
   if (!categories || categories.length === 0) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Meta Fields</h1>
-          <p className="text-gray-600 mt-1">No categories found yet.</p>
+        <section className="glass-panel-strong rounded-[24px] px-4 py-4 sm:px-5">
+          <p className="section-label">Meta Registry</p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
+            Meta fields
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
+            No categories were found. Seed the dropdown data first, then return here to manage it.
+          </p>
+        </section>
+        <div className="glass-panel rounded-[22px] p-8 text-center">
+          <Button variant="secondary" onClick={handleRefresh}>
+            Refresh
+          </Button>
         </div>
-        <Card>
-          <div className="p-8 text-center">
-            <p className="text-gray-600 mb-4">Seed meta data first to start managing dropdowns.</p>
-            <Button variant="secondary" onClick={handleRefresh}>
-              Refresh
-            </Button>
-          </div>
-        </Card>
       </div>
     );
   }
 
+  const stats = [
+    {
+      label: 'Categories',
+      value: categories.length,
+      icon: Squares2X2Icon,
+      iconBg: 'bg-sky-100 text-sky-600',
+      accent: 'from-sky-100 via-white to-white',
+    },
+    {
+      label: 'Active options',
+      value: activeCount,
+      icon: CheckBadgeIcon,
+      iconBg: 'bg-emerald-100 text-emerald-600',
+      accent: 'from-emerald-100 via-white to-white',
+    },
+    {
+      label: 'Inactive options',
+      value: inactiveCount,
+      icon: NoSymbolIcon,
+      iconBg: 'bg-amber-100 text-amber-600',
+      accent: 'from-amber-100 via-white to-white',
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Meta Fields</h1>
-          <p className="text-gray-600 mt-1">Manage dropdown options used across policy and license forms</p>
+      <section className="glass-panel-strong rounded-[24px] px-4 py-4 sm:px-5">
+        <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+          <div className="max-w-2xl">
+            <p className="section-label">Meta Registry</p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
+              Meta fields
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
+              Maintain the dropdown system used across policy and license creation flows.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Button variant="ghost" onClick={handleRefresh}>
+              <ArrowPathIcon className="mr-2 h-4 w-4" />
+              Refresh
+            </Button>
+            <Button variant="primary" onClick={() => setShowCreateModal(true)} disabled={!currentCategory}>
+              <PlusIcon className="mr-2 h-5 w-5" />
+              Add Option
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="ghost" onClick={handleRefresh}>
-            Refresh
-          </Button>
-          <Button variant="primary" onClick={() => setShowCreateModal(true)} disabled={!currentCategory}>
-            <PlusIcon className="w-5 h-5 mr-2" />
-            Add Option
-          </Button>
-        </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <div className="p-6">
-            <p className="text-sm text-gray-600">Categories</p>
-            <p className="text-2xl font-bold text-gray-900">{categories.length}</p>
-          </div>
-        </Card>
-        <Card>
-          <div className="p-6">
-            <p className="text-sm text-gray-600">Active Options</p>
-            <p className="text-2xl font-bold text-green-600">{activeCount}</p>
-          </div>
-        </Card>
-        <Card>
-          <div className="p-6">
-            <p className="text-sm text-gray-600">Inactive Options</p>
-            <p className="text-2xl font-bold text-amber-600">{inactiveCount}</p>
-          </div>
-        </Card>
-      </div>
-
-      <Card>
-        <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
-            <div className="border border-gray-200 rounded-lg p-3 h-fit">
-              <p className="text-sm font-semibold text-gray-700 mb-3">Categories</p>
-              <div className="space-y-1 max-h-[520px] overflow-y-auto">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    type="button"
-                    onClick={() => setSelectedCategory(category)}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                      currentCategory === category
-                        ? 'bg-primary/10 text-primary font-semibold'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    {formatCategoryLabel(category)}
-                    <p className="text-xs text-gray-500 mt-0.5">{category}</p>
-                  </button>
-                ))}
+      <section className="glass-panel rounded-[22px] px-5 py-4">
+        <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
+          {stats.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div key={item.label} className="flex items-center justify-between gap-3 border-b border-slate-200/70 pb-3 last:border-b-0 md:border-b-0 md:pb-0 xl:col-span-2">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    {item.label}
+                  </p>
+                  <p className="mt-2 text-xl font-semibold tracking-[-0.04em] text-slate-900">
+                    {item.value}
+                  </p>
+                </div>
+                <div className={`flex h-10 w-10 items-center justify-center rounded-[14px] ${item.iconBg}`}>
+                  <Icon className="h-[18px] w-[18px]" />
+                </div>
               </div>
-            </div>
-
-            <div>
-              {optionsLoading ? (
-                <div className="flex items-center justify-center min-h-[320px]">
-                  <Spinner size="lg" />
-                </div>
-              ) : optionsError ? (
-                <div className="text-center py-12">
-                  <p className="text-red-600">Failed to load options for this category</p>
-                </div>
-              ) : (
-                <MetaOptionsTable
-                  category={currentCategory}
-                  options={options || []}
-                  onUpdate={() => mutateOptions()}
-                />
-              )}
-            </div>
-          </div>
+            );
+          })}
         </div>
-      </Card>
+      </section>
+
+      <section className="grid grid-cols-1 gap-5 lg:grid-cols-[18rem_minmax(0,1fr)]">
+        <aside className="glass-panel rounded-[22px] p-4 lg:sticky lg:top-4 lg:self-start">
+          <p className="section-label">Categories</p>
+          <div className="mt-4 space-y-2">
+            {categories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                onClick={() => setSelectedCategory(category)}
+                className={`w-full rounded-[16px] border px-4 py-3 text-left transition ${
+                  currentCategory === category
+                    ? 'border-slate-800 bg-slate-800 text-white'
+                    : 'border-slate-200 bg-[rgba(239,245,253,0.82)] text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <p className="font-medium tracking-[-0.02em]">{formatCategoryLabel(category)}</p>
+                <p className={`mt-1 text-xs uppercase tracking-[0.18em] ${currentCategory === category ? 'text-slate-300' : 'text-slate-400'}`}>{category}</p>
+              </button>
+            ))}
+          </div>
+        </aside>
+
+        <div className="glass-panel rounded-[22px] p-5">
+          {optionsLoading ? (
+            <div className="flex min-h-[320px] items-center justify-center">
+              <Spinner size="lg" />
+            </div>
+          ) : optionsError ? (
+            <div className="rounded-[20px] border border-rose-200 bg-rose-50/80 p-8 text-center text-rose-700">
+              Failed to load options for this category
+            </div>
+          ) : (
+            <MetaOptionsTable
+              category={currentCategory}
+              options={options || []}
+              onUpdate={() => mutateOptions()}
+            />
+          )}
+        </div>
+      </section>
 
       {currentCategory && (
         <CreateMetaModal

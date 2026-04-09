@@ -76,7 +76,7 @@ export function Modal({
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        className="fixed inset-0 bg-slate-950/28 backdrop-blur-sm transition-opacity"
         onClick={handleBackdropClick}
       />
 
@@ -84,7 +84,7 @@ export function Modal({
       <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
         <div
           className={`
-            relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl 
+            glass-panel-strong relative transform overflow-hidden rounded-[24px] text-left shadow-xl 
             transition-all w-full
             ${sizeClasses[size]}
             ${className}
@@ -92,20 +92,20 @@ export function Modal({
         >
           {/* Header */}
           {(title || showCloseButton) && (
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between border-b border-white/45 px-6 py-4">
               <div className="flex-1">
                 {title && (
-                  <h3 id="modal-title" className="text-lg font-semibold text-gray-900">
+                  <h3 id="modal-title" className="text-lg font-semibold text-slate-900">
                     {title}
                   </h3>
                 )}
-                {description && <p className="mt-1 text-sm text-gray-600">{description}</p>}
+                {description && <p className="mt-1 text-sm text-slate-600">{description}</p>}
               </div>
               {showCloseButton && (
                 <button
                   type="button"
                   onClick={onClose}
-                  className="ml-4 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="ml-4 text-slate-400 transition-colors hover:text-slate-700"
                 >
                   <span className="sr-only">Close</span>
                   <XMarkIcon className="h-6 w-6" aria-hidden="true" />
@@ -162,13 +162,13 @@ export function ConfirmModal({
       showCloseButton={!isLoading}
     >
       <div className="space-y-4">
-        <p className="text-gray-700">{message}</p>
+        <p className="text-slate-700">{message}</p>
         <div className="flex gap-3 justify-end pt-4">
           <button
             type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-[14px] border border-slate-200 bg-[rgba(239,245,253,0.92)] px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {cancelText}
           </button>
@@ -220,11 +220,11 @@ export function AlertModal({ isOpen, onClose, title, message, variant = 'info' }
       <div className="text-center space-y-4">
         <div className="text-5xl">{icons[variant]}</div>
         <h3 className={`text-lg font-semibold ${colors[variant]}`}>{title}</h3>
-        <p className="text-gray-700">{message}</p>
+        <p className="text-slate-700">{message}</p>
         <button
           type="button"
           onClick={onClose}
-          className="w-full px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          className="btn btn-primary w-full"
         >
           OK
         </button>

@@ -2,48 +2,47 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { getUsers, deleteUser } from '@/lib/api/users';
+import toast from 'react-hot-toast';
+import { deleteUser, getUsers } from '@/lib/api/users';
 import { useRequireAdmin } from '@/lib/hooks/useRequireRole';
 import { AccessDenied } from '@/components/admin/AccessDenied';
 import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { ConfirmModal } from '@/components/ui/Modal';
 import { UserTable } from '@/components/admin/UserTable';
 import { CreateUserModal } from '@/components/admin/CreateUserModal';
-import { PlusIcon } from '@heroicons/react/24/outline';
-import toast from 'react-hot-toast';
+import {
+  PlusIcon,
+  UsersIcon,
+  CheckBadgeIcon,
+  NoSymbolIcon,
+  ShieldCheckIcon,
+} from '@heroicons/react/24/outline';
 
 export default function UserManagementPage() {
-  // ✅ Role-based access control
   const { isAuthorized, isCheckingAuth, user: currentUser } = useRequireAdmin();
-
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Fetch all users (only if authorized)
-  const {
-    data: users,
-    error,
-    isLoading,
-    mutate,
-  } = useSWR(isAuthorized ? '/api/v1/users' : null, getUsers, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-  });
+  const { data: users, error, isLoading, mutate } = useSWR(
+    isAuthorized ? '/api/v1/users' : null,
+    getUsers,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  );
 
-  // ✅ Show loading while checking auth
   if (isCheckingAuth) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex min-h-[400px] items-center justify-center">
         <Spinner size="lg" />
       </div>
     );
   }
 
-  // ✅ Show access denied if not authorized
   if (!isAuthorized || !currentUser) {
     return <AccessDenied message="Only administrators and owners can manage users." />;
   }
@@ -63,8 +62,8 @@ export default function UserManagementPage() {
       toast.success('User deleted successfully');
       setDeleteUserId(null);
       mutate();
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Failed to delete user');
+    } catch (deleteError: any) {
+      toast.error(deleteError?.response?.data?.message || 'Failed to delete user');
     } finally {
       setIsDeleting(false);
     }
@@ -72,7 +71,7 @@ export default function UserManagementPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex min-h-[400px] items-center justify-center">
         <Spinner size="lg" />
       </div>
     );
@@ -80,92 +79,96 @@ export default function UserManagementPage() {
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-600">Failed to load users</p>
+      <div className="glass-panel rounded-[24px] p-8 text-center text-rose-800">
+        Failed to load users
       </div>
     );
   }
 
   const activeUsers = users?.filter((u) => u.active).length || 0;
   const inactiveUsers = users?.filter((u) => !u.active).length || 0;
+  const ownerUsers = users?.filter((u) => u.role === 'owner').length || 0;
+  const stats = [
+    {
+      label: 'Total users',
+      value: users?.length || 0,
+      icon: UsersIcon,
+      iconBg: 'bg-sky-100 text-sky-600',
+      accent: 'from-sky-100 via-white to-white',
+    },
+    {
+      label: 'Active',
+      value: activeUsers,
+      icon: CheckBadgeIcon,
+      iconBg: 'bg-emerald-100 text-emerald-600',
+      accent: 'from-emerald-100 via-white to-white',
+    },
+    {
+      label: 'Inactive',
+      value: inactiveUsers,
+      icon: NoSymbolIcon,
+      iconBg: 'bg-amber-100 text-amber-600',
+      accent: 'from-amber-100 via-white to-white',
+    },
+    {
+      label: 'Owners',
+      value: ownerUsers,
+      icon: ShieldCheckIcon,
+      iconBg: 'bg-violet-100 text-violet-600',
+      accent: 'from-violet-100 via-white to-white',
+    },
+  ];
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-          <p className="text-gray-600 mt-1">Manage system users and their permissions</p>
+      <section className="glass-panel-strong rounded-[24px] px-4 py-4 sm:px-5">
+        <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+          <div className="max-w-2xl">
+            <p className="section-label">Admin Control</p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
+              User management
+            </h1>
+          </div>
+          <Button variant="primary" onClick={() => setShowCreateModal(true)} className="px-5">
+            <PlusIcon className="mr-2 h-5 w-5" />
+            Add User
+          </Button>
         </div>
-        <Button variant="primary" onClick={() => setShowCreateModal(true)}>
-          <PlusIcon className="w-5 h-5 mr-2" />
-          Add User
-        </Button>
-      </div>
+      </section>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <div className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Users</p>
-                <p className="text-2xl font-bold text-gray-900">{users?.length || 0}</p>
-              </div>
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <span className="text-2xl">👥</span>
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {stats.map((item) => {
+          const Icon = item.icon;
+          return (
+            <div
+              key={item.label}
+              className="rounded-[22px] border border-slate-200/80 bg-[rgba(239,245,253,0.82)] p-5 shadow-[0_18px_36px_rgba(148,163,184,0.10)]"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
+                    {item.label}
+                  </p>
+                  <p className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-slate-900">
+                    {item.value}
+                  </p>
+                </div>
+                <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${item.iconBg}`}>
+                  <Icon className="h-5 w-5" />
+                </div>
               </div>
             </div>
-          </div>
-        </Card>
+          );
+        })}
+      </section>
 
-        <Card>
-          <div className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Active</p>
-                <p className="text-2xl font-bold text-green-600">{activeUsers}</p>
-              </div>
-              <div className="p-3 bg-green-100 rounded-lg">
-                <span className="text-2xl">✅</span>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Inactive</p>
-                <p className="text-2xl font-bold text-amber-600">{inactiveUsers}</p>
-              </div>
-              <div className="p-3 bg-amber-100 rounded-lg">
-                <span className="text-2xl">🚫</span>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Owners</p>
-                <p className="text-2xl font-bold text-purple-600">
-                  {users?.filter((u) => u.role === 'owner').length || 0}
-                </p>
-              </div>
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <span className="text-2xl">👑</span>
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Users Table */}
-      <Card>
+      <Card className="rounded-[22px]">
+        <div className="border-b border-white/50 px-6 py-5">
+          <p className="section-label">Account Directory</p>
+          <h2 className="mt-2 text-xl font-semibold tracking-[-0.03em] text-slate-900">
+            Workspace users
+          </h2>
+        </div>
         <div className="p-6">
           <UserTable
             users={users || []}
@@ -176,7 +179,6 @@ export default function UserManagementPage() {
         </div>
       </Card>
 
-      {/* Create User Modal */}
       <CreateUserModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
@@ -184,7 +186,6 @@ export default function UserManagementPage() {
         currentUserRole={currentUser.role}
       />
 
-      {/* Delete Confirmation Modal */}
       <ConfirmModal
         isOpen={!!deleteUserId}
         onClose={() => setDeleteUserId(null)}

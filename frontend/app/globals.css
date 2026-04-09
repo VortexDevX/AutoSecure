@@ -2,165 +2,274 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Base styles */
+:root {
+  color-scheme: light;
+  --app-bg: #e6edf7;
+  --panel-fill: rgba(241, 246, 255, 0.78);
+  --panel-fill-strong: rgba(235, 242, 252, 0.9);
+  --panel-stroke: rgba(183, 198, 219, 0.72);
+  --panel-shadow: 0 12px 28px rgba(74, 96, 129, 0.08), 0 2px 8px rgba(122, 142, 171, 0.05);
+  --text-primary: #0f172a;
+  --text-secondary: #5c6b7f;
+  --input-fill: rgba(239, 245, 253, 0.94);
+  --input-stroke: rgba(160, 181, 208, 0.32);
+}
+
 @layer base {
+  html {
+    @apply min-h-full scroll-smooth;
+  }
+
   body {
-    @apply bg-[#f6f6f8] text-slate-900 antialiased font-sans;
+    min-height: 100vh;
+    color: var(--text-primary);
+    background:
+      radial-gradient(circle at top left, rgba(167, 196, 235, 0.18), transparent 28%),
+      radial-gradient(circle at 82% 14%, rgba(192, 214, 239, 0.14), transparent 26%),
+      radial-gradient(circle at 18% 88%, rgba(214, 225, 242, 0.16), transparent 18%),
+      linear-gradient(180deg, #f2f6fb 0%, #e8eef7 44%, #dfe7f3 100%);
+    @apply antialiased font-sans;
+  }
+
+  * {
+    @apply border-white/20;
   }
 
   *:focus-visible {
-    @apply outline-none ring-2 ring-primary ring-offset-2;
+    @apply outline-none ring-2 ring-primary/40 ring-offset-2 ring-offset-transparent;
   }
 
-  /* Thin Scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  ::selection {
+    @apply bg-primary/20 text-slate-900;
   }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
   ::-webkit-scrollbar-track {
     background: transparent;
   }
+
   ::-webkit-scrollbar-thumb {
-    @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
+    background: linear-gradient(180deg, rgba(129, 140, 248, 0.45), rgba(148, 163, 184, 0.48));
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(99, 102, 241, 0.55), rgba(100, 116, 139, 0.56));
   }
 }
 
-/* Custom utility classes */
 @layer components {
-  /* Card - Flat, high contrast, thin border */
+  .app-shell {
+    @apply relative min-h-screen overflow-hidden;
+  }
+
+  .mesh-background {
+    background:
+      radial-gradient(circle at 10% 10%, rgba(181, 204, 234, 0.2), transparent 22%),
+      radial-gradient(circle at 85% 15%, rgba(205, 222, 244, 0.16), transparent 24%),
+      radial-gradient(circle at 78% 80%, rgba(190, 211, 237, 0.15), transparent 18%),
+      radial-gradient(circle at 18% 78%, rgba(227, 235, 247, 0.22), transparent 15%);
+  }
+
+  .glass-panel {
+    background: var(--panel-fill);
+    border: 1px solid var(--panel-stroke);
+    box-shadow: var(--panel-shadow);
+    backdrop-filter: blur(14px) saturate(108%);
+    -webkit-backdrop-filter: blur(14px) saturate(108%);
+    @apply rounded-[20px];
+  }
+
+  .glass-panel-strong {
+    background: var(--panel-fill-strong);
+    border: 1px solid rgba(191, 205, 226, 0.78);
+    box-shadow:
+      0 16px 34px rgba(74, 96, 129, 0.08),
+      0 4px 12px rgba(122, 142, 171, 0.05);
+    backdrop-filter: blur(18px) saturate(108%);
+    -webkit-backdrop-filter: blur(18px) saturate(108%);
+    @apply rounded-[22px];
+  }
+
+  .section-label {
+    @apply text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500;
+  }
+
   .card {
-    @apply bg-white rounded-xl border border-slate-200 shadow-sm p-6;
+    @apply glass-panel p-4;
   }
 
   .card-hover {
-    @apply transition-all duration-300 hover:shadow-md hover:border-slate-300;
+    @apply transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_30px_70px_rgba(129,140,248,0.14)];
   }
 
-  /* Button base styles - Flat Typography */
   .btn {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold tracking-wide
-           transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2
-           disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none shadow-sm active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded-full border px-3.5 py-2 text-sm font-semibold tracking-[0.01em] transition duration-200 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-primary {
-    @apply btn bg-primary text-white hover:bg-primary-600 focus:ring-primary-500 border border-transparent;
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.96), rgba(30, 41, 59, 0.94));
+    box-shadow:
+      0 12px 24px rgba(51, 65, 85, 0.16),
+      inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    @apply border-slate-700/40 text-white hover:-translate-y-0.5 hover:brightness-105;
   }
 
   .btn-secondary {
-    @apply btn bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:text-slate-900 focus:ring-slate-200 shadow-none;
+    background: rgba(237, 244, 253, 0.9);
+    @apply border-slate-200/90 text-slate-700 shadow-[0_6px_14px_rgba(74,96,129,0.06)] hover:-translate-y-0.5 hover:bg-[rgba(244,248,255,0.96)];
   }
 
   .btn-danger {
-    @apply btn bg-danger-600 text-white hover:bg-danger-700 focus:ring-danger-500 border border-transparent;
+    background: linear-gradient(135deg, rgba(251, 113, 133, 0.94), rgba(225, 29, 72, 0.9));
+    box-shadow:
+      0 14px 28px rgba(244, 63, 94, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    @apply border-danger/30 text-white hover:-translate-y-0.5 hover:brightness-105;
   }
 
   .btn-ghost {
-    @apply btn bg-transparent text-slate-600 hover:bg-slate-50 hover:text-primary focus:ring-slate-200 shadow-none;
+    @apply border-transparent bg-transparent text-slate-600 hover:bg-slate-100/80 hover:text-slate-900;
   }
 
-  /* Input base styles - Flat */
   .input {
-    @apply block w-full rounded-lg border-slate-200 bg-white shadow-sm
-           focus:border-primary focus:ring-primary/20
-           disabled:bg-slate-50 disabled:cursor-not-allowed transition-all duration-200;
+    background: var(--input-fill);
+    border: 1px solid var(--input-stroke);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+    @apply block w-full rounded-[16px] px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition duration-200;
+  }
+
+  .input:hover {
+    @apply border-slate-300/50 bg-[rgba(245,249,255,0.98)];
+  }
+
+  .input:focus {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.86),
+      0 0 0 4px rgba(148, 163, 184, 0.12);
+    @apply border-slate-400/45 bg-[rgba(243,248,255,0.98)];
+  }
+
+  .input:disabled {
+    @apply cursor-not-allowed bg-slate-100/70 text-slate-400;
   }
 
   .input-error {
-    @apply border-danger-300 focus:border-danger-500 focus:ring-danger-500/20 bg-danger-50/10;
+    @apply border-danger/40 bg-danger-50/60;
   }
 
-  /* Label */
   .label {
-    @apply block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5 ml-0.5;
+    @apply mb-2 block text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500;
   }
 
   .label-required::after {
-    @apply text-danger ml-1;
     content: '*';
+    @apply ml-1 text-danger;
   }
 
-  /* Error message */
   .error-message {
-    @apply text-xs text-danger mt-1 font-medium;
+    @apply mt-2 text-xs font-medium text-danger-700;
   }
 
-  /* Badge */
   .badge {
-    @apply inline-flex items-center px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-tighter;
+    @apply inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em];
   }
 
   .badge-primary {
-    @apply badge bg-primary/10 text-primary;
+    @apply border-primary/20 bg-primary/10 text-primary-700;
   }
 
   .badge-success {
-    @apply badge bg-emerald-100 text-emerald-700;
+    @apply border-emerald-200/60 bg-emerald-50/80 text-emerald-700;
   }
 
   .badge-warning {
-    @apply badge bg-amber-100 text-amber-700;
+    @apply border-amber-200/70 bg-amber-50/85 text-amber-700;
   }
 
   .badge-danger {
-    @apply badge bg-rose-100 text-rose-700;
+    @apply border-rose-200/70 bg-rose-50/85 text-rose-700;
   }
 
   .badge-gray {
-    @apply badge bg-slate-100 text-slate-700;
+    @apply border-slate-200/70 bg-slate-100/80 text-slate-600;
   }
 
-  /* Table - High contrast flat styling */
   .table {
-    @apply min-w-full divide-y divide-slate-100;
+    @apply min-w-full border-separate border-spacing-y-3;
   }
 
   .table-header {
-    @apply bg-slate-50 border-b border-slate-200;
+    @apply bg-transparent;
   }
 
   .table-header-cell {
-    @apply px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider;
+    @apply px-4 pb-1 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400;
   }
 
   .table-body {
-    @apply bg-white divide-y divide-slate-100;
+    @apply bg-transparent;
   }
 
   .table-row {
-    @apply hover:bg-slate-50 transition-colors;
+    background: rgba(241, 246, 255, 0.82);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      0 6px 14px rgba(74, 96, 129, 0.05);
+    @apply transition duration-200 hover:-translate-y-0.5;
+  }
+
+  .table-row:hover {
+    background: rgba(246, 250, 255, 0.94);
   }
 
   .table-cell {
-    @apply px-4 py-3 whitespace-nowrap text-sm text-slate-900;
+    @apply px-4 py-3 text-sm text-slate-700;
   }
 
-  /* Modal backdrop */
+  .table-row td:first-child {
+    @apply rounded-l-[22px];
+  }
+
+  .table-row td:last-child {
+    @apply rounded-r-[22px];
+  }
+
   .modal-backdrop {
-    @apply fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40;
+    @apply fixed inset-0 z-40 bg-slate-900/18 backdrop-blur-md;
   }
 
-  /* Modal content */
   .modal-content {
     @apply fixed inset-0 z-50 flex items-center justify-center p-4;
   }
 
   .modal-panel {
-    @apply bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto;
+    @apply glass-panel-strong max-h-[90vh] w-full max-w-2xl overflow-y-auto p-0;
   }
 
-  /* Spinner */
   .spinner {
-    @apply animate-spin rounded-full border-2 border-gray-200 border-t-primary;
+    border-color: rgba(203, 213, 225, 0.5);
+    border-top-color: rgba(99, 102, 241, 0.92);
+    @apply animate-spin rounded-full border-[3px];
   }
 
-  /* Skeleton loader */
   .skeleton {
-    @apply animate-pulse bg-gray-200 rounded;
+    background: linear-gradient(
+      90deg,
+      rgba(226, 232, 240, 0.56),
+      rgba(255, 255, 255, 0.85),
+      rgba(226, 232, 240, 0.56)
+    );
+    background-size: 220% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+    @apply rounded-[18px];
   }
 }
 
-/* Fix for dropdown menus in tables */
 .table-dropdown-fix tbody {
   position: relative;
 }
@@ -173,20 +282,30 @@
   position: fixed !important;
 }
 
-/* ============================================
-   React DatePicker Custom Styles
-   ============================================ */
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
 
-/* Base calendar styles */
+  to {
+    background-position: -200% 0;
+  }
+}
+
 .react-datepicker {
   font-family: inherit !important;
-  border: none !important;
-  border-radius: 0.5rem !important;
-  background-color: white !important;
+  background: rgba(248, 250, 252, 0.96) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  border-radius: 1.1rem !important;
+  box-shadow:
+    0 16px 34px rgba(100, 116, 139, 0.12),
+    0 6px 16px rgba(148, 163, 184, 0.08) !important;
+  backdrop-filter: blur(14px) saturate(115%);
+  -webkit-backdrop-filter: blur(14px) saturate(115%);
 }
 
 .react-datepicker__header {
-  background-color: white !important;
+  background: transparent !important;
   border-bottom: none !important;
   padding: 0 !important;
 }
@@ -194,15 +313,16 @@
 .react-datepicker__day-names {
   display: flex !important;
   justify-content: space-around !important;
-  margin-bottom: 0.25rem !important;
-  border-top: 1px solid #e5e7eb !important;
-  padding-top: 0.5rem !important;
+  margin-bottom: 0.35rem !important;
+  border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
+  padding-top: 0.75rem !important;
 }
 
 .react-datepicker__day-name {
-  color: #6b7280 !important;
-  font-size: 0.7rem !important;
-  font-weight: 500 !important;
+  color: #94a3b8 !important;
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em;
   width: 2rem !important;
   line-height: 2rem !important;
   margin: 0 !important;
@@ -210,7 +330,7 @@
 
 .react-datepicker__month {
   margin: 0 !important;
-  padding: 0.125rem !important;
+  padding: 0.5rem !important;
 }
 
 .react-datepicker__week {
@@ -219,81 +339,46 @@
 }
 
 .react-datepicker__day {
-  width: 2rem !important;
-  height: 2rem !important;
-  line-height: 2rem !important;
-  margin: 0.0625rem !important;
-  border-radius: 0.25rem !important;
-  color: #374151 !important;
-  font-size: 0.8rem !important;
+  width: 2.1rem !important;
+  height: 2.1rem !important;
+  line-height: 2.1rem !important;
+  margin: 0.08rem !important;
+  border-radius: 9999px !important;
+  color: #334155 !important;
+  font-size: 0.82rem !important;
   transition: all 0.15s ease !important;
 }
 
-.react-datepicker__day:hover {
-  background-color: #f3f4f6 !important;
-  border-radius: 0.25rem !important;
-}
-
+.react-datepicker__day:hover,
 .react-datepicker__day--today {
-  font-weight: 600 !important;
-  background-color: #f3f4f6 !important;
+  background-color: rgba(99, 102, 241, 0.08) !important;
 }
 
 .react-datepicker__day--selected,
-.react-datepicker__day--keyboard-selected {
-  background-color: #3b82f6 !important;
+.react-datepicker__day--keyboard-selected,
+.react-datepicker__day--range-start,
+.react-datepicker__day--range-end {
+  background: linear-gradient(135deg, #818cf8, #6366f1) !important;
   color: white !important;
-  font-weight: 500 !important;
+  font-weight: 700 !important;
 }
 
-.react-datepicker__day--selected:hover,
-.react-datepicker__day--keyboard-selected:hover {
-  background-color: #2563eb !important;
+.react-datepicker__day--in-range,
+.react-datepicker__day--in-selecting-range {
+  background-color: rgba(224, 231, 255, 0.88) !important;
+  color: #4338ca !important;
+  border-radius: 9999px !important;
 }
 
-.react-datepicker__day--outside-month {
-  color: #d1d5db !important;
-}
-
+.react-datepicker__day--outside-month,
 .react-datepicker__day--disabled {
-  color: #d1d5db !important;
-  cursor: not-allowed !important;
+  color: #cbd5e1 !important;
 }
 
 .react-datepicker__day--disabled:hover {
   background-color: transparent !important;
 }
 
-/* Range selection styles */
-.react-datepicker__day--in-range {
-  background-color: #dbeafe !important;
-  color: #1e40af !important;
-  border-radius: 0 !important;
-}
-
-.react-datepicker__day--in-selecting-range {
-  background-color: #dbeafe !important;
-  color: #1e40af !important;
-  border-radius: 0 !important;
-}
-
-.react-datepicker__day--range-start {
-  background-color: #3b82f6 !important;
-  color: white !important;
-  border-radius: 0.25rem 0 0 0.25rem !important;
-}
-
-.react-datepicker__day--range-end {
-  background-color: #3b82f6 !important;
-  color: white !important;
-  border-radius: 0 0.25rem 0.25rem 0 !important;
-}
-
-.react-datepicker__day--range-start.react-datepicker__day--range-end {
-  border-radius: 0.25rem !important;
-}
-
-/* Multiple months - compact */
 .react-datepicker__month-container {
   float: none !important;
   display: inline-block !important;
@@ -302,50 +387,29 @@
 .date-picker-calendar-range
   .react-datepicker__month-container
   + .react-datepicker__month-container {
-  margin-left: 0.75rem !important;
-  padding-left: 0.75rem !important;
-  border-left: 1px solid #e5e7eb !important;
+  margin-left: 0.9rem !important;
+  padding-left: 0.9rem !important;
+  border-left: 1px solid rgba(226, 232, 240, 0.85) !important;
 }
 
-/* Popper styles */
 .date-picker-popper {
   z-index: 50 !important;
 }
 
-.date-picker-popper .react-datepicker {
-  box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
-  border: 1px solid #e5e7eb !important;
-}
-
-/* Inline calendar (for range picker) */
-.react-datepicker--inline {
+.react-datepicker--inline,
+.react-datepicker__triangle,
+.react-datepicker__navigation,
+.react-datepicker__current-month {
   border: none !important;
   box-shadow: none !important;
-}
-
-/* Triangle arrow removal */
-.react-datepicker__triangle {
   display: none !important;
 }
 
-/* Navigation buttons (hidden - we use custom) */
-.react-datepicker__navigation {
-  display: none !important;
-}
-
-/* Current month label (hidden - we use custom) */
-.react-datepicker__current-month {
-  display: none !important;
-}
-
-/* Month/Year dropdown styling */
 .react-datepicker select {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
   background-position: right 0 center;
   background-repeat: no-repeat;
-  background-size: 1.25em 1.25em;
+  background-size: 1.2em 1.2em;
   padding-right: 1.25rem;
 }

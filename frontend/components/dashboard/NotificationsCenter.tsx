@@ -54,10 +54,10 @@ export function NotificationsCenter({
       {/* Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative p-2 rounded-lg transition-colors ${
+        className={`relative rounded-full p-2 transition-colors ${
           isOpen
-            ? 'bg-gray-100 text-gray-900'
-            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+            ? 'bg-slate-100 text-slate-900'
+            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
         }`}
         aria-label="Notifications"
       >
@@ -77,26 +77,26 @@ export function NotificationsCenter({
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-96 bg-white rounded-xl border border-gray-200 shadow-xl z-50 overflow-hidden">
+        <div className="glass-panel-strong absolute right-0 top-full z-[120] mt-2 w-96 overflow-hidden rounded-[20px]">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <div className="flex items-center justify-between border-b border-slate-200/80 bg-[rgba(239,245,253,0.7)] px-4 py-3">
             <div className="flex items-center gap-2">
               <ClockIcon className="w-5 h-5 text-amber-500" />
-              <h3 className="font-semibold text-gray-900">Expiring Soon</h3>
+              <h3 className="font-semibold text-slate-900">Expiring Soon</h3>
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1 hover:bg-gray-200 rounded-lg transition-colors"
+              className="rounded-lg p-1 transition-colors hover:bg-slate-200"
             >
-              <XMarkIcon className="w-4 h-4 text-gray-500" />
+              <XMarkIcon className="w-4 h-4 text-slate-500" />
             </button>
           </div>
 
           {/* Content */}
           <div className="max-h-96 overflow-y-auto">
             {!hasNotifications ? (
-              <div className="px-4 py-8 text-center text-gray-500">
-                <BellIcon className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+              <div className="px-4 py-8 text-center text-slate-500">
+                <BellIcon className="mx-auto mb-2 h-12 w-12 text-slate-300" />
                 <p>No expiring items</p>
               </div>
             ) : (
@@ -105,7 +105,7 @@ export function NotificationsCenter({
                 {expiringPolicies.length > 0 && (
                   <div className="px-4 py-3">
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                         Policies ({policiesCount})
                       </h4>
                       <Link
@@ -121,15 +121,15 @@ export function NotificationsCenter({
                         <Link
                           key={policy._id}
                           href={`/policies/${policy._id}`}
-                          className="flex items-start gap-3 p-2 rounded-lg hover:bg-amber-50 transition-colors"
+                          className="flex items-start gap-3 rounded-[14px] p-2 transition-colors hover:bg-amber-50/70"
                           onClick={() => setIsOpen(false)}
                         >
                           <div className="w-2 h-2 mt-2 rounded-full bg-amber-500 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
+                            <p className="truncate text-sm font-medium text-slate-900">
                               {policy.policy_no}
                             </p>
-                            <p className="text-xs text-gray-500 truncate">
+                            <p className="truncate text-xs text-slate-500">
                               {policy.customer} • {policy.registration_number}
                             </p>
                             <p className="text-xs text-amber-600 font-medium">
@@ -145,14 +145,14 @@ export function NotificationsCenter({
 
                 {/* Divider */}
                 {expiringPolicies.length > 0 && expiringLicenses.length > 0 && (
-                  <div className="border-t border-gray-100" />
+                  <div className="border-t border-slate-200/70" />
                 )}
 
                 {/* Licenses */}
                 {expiringLicenses.length > 0 && (
                   <div className="px-4 py-3">
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                         Licenses ({licensesCount})
                       </h4>
                       <Link
@@ -168,15 +168,15 @@ export function NotificationsCenter({
                         <Link
                           key={license._id}
                           href={`/licenses/${license._id}`}
-                          className="flex items-start gap-3 p-2 rounded-lg hover:bg-orange-50 transition-colors"
+                          className="flex items-start gap-3 rounded-[14px] p-2 transition-colors hover:bg-orange-50/70"
                           onClick={() => setIsOpen(false)}
                         >
                           <div className="w-2 h-2 mt-2 rounded-full bg-orange-500 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
+                            <p className="truncate text-sm font-medium text-slate-900">
                               {license.lic_no}
                             </p>
-                            <p className="text-xs text-gray-500 truncate">
+                            <p className="truncate text-xs text-slate-500">
                               {license.customer_name}
                             </p>
                             <p className="text-xs text-orange-600 font-medium">
@@ -194,10 +194,10 @@ export function NotificationsCenter({
 
           {/* Footer */}
           {hasNotifications && (
-            <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+            <div className="border-t border-slate-200/80 bg-[rgba(239,245,253,0.7)] px-4 py-3">
               <Link
                 href="/policies?expiring_soon=true"
-                className="block w-full py-2 text-center text-sm font-medium text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                className="block w-full rounded-[14px] py-2 text-center text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
                 onClick={() => setIsOpen(false)}
               >
                 View All Expiring Items →

@@ -11,6 +11,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  authSessionVersion: number;
   login: (email: string, password: string) => Promise<{ requiresTOTP: boolean; totpSetup?: any }>;
   verifyTOTP: (email: string, code: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -22,6 +23,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authSessionVersion, setAuthSessionVersion] = useState(0);
   const router = useRouter();
 
   // Load user on mount — recover auth state from localStorage
@@ -40,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Both user and token exist — restore session immediately
           const parsedUser = JSON.parse(savedUser);
           setUser(parsedUser);
+          setAuthSessionVersion((prev) => prev + 1);
 
           // Background verify: check if the token is still valid.
           // This is NON-DESTRUCTIVE: if verification fails due to a
@@ -49,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const currentUser = await authApi.getCurrentUser();
             setUser(currentUser);
             localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
+            setAuthSessionVersion((prev) => prev + 1);
           } catch (error: any) {
             const status = error?.response?.status;
             if (status === 401 || status === 403) {
@@ -57,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               localStorage.removeItem(STORAGE_KEYS.USER);
               localStorage.removeItem('__autosecure_at');
               setUser(null);
+              setAuthSessionVersion((prev) => prev + 1);
             }
             // For network errors, timeouts, 500s etc. — keep the cached user
             // The user can still interact; API calls will fail individually
@@ -66,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           clearToken();
           localStorage.removeItem(STORAGE_KEYS.USER);
           setUser(null);
+          setAuthSessionVersion((prev) => prev + 1);
         }
       } catch (error) {
         console.error('Failed to load user:', error);
@@ -142,6 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(STORAGE_KEYS.TOTP_EMAIL);
 
     setUser(userData);
+    setAuthSessionVersion((prev) => prev + 1);
 
     // Clear TOTP setup data
     sessionStorage.removeItem('totp_setup');
@@ -165,6 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       sessionStorage.removeItem('totp_setup');
 
       setUser(null);
+      setAuthSessionVersion((prev) => prev + 1);
 
       // Redirect to login
       router.push(ROUTES.LOGIN);
@@ -176,6 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const currentUser = await authApi.getCurrentUser();
       setUser(currentUser);
       localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
+      setAuthSessionVersion((prev) => prev + 1);
     } catch (error) {
       console.error('Failed to refresh user:', error);
       // If refresh fails, logout
@@ -189,6 +198,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         isLoading,
         isAuthenticated: !!user,
+        authSessionVersion,
         login,
         verifyTOTP,
         logout,

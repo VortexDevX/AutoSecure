@@ -1,11 +1,11 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
+import clsx from 'clsx';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { NavLink } from '@/lib/context/NavigationContext';
-import clsx from 'clsx';
 import {
   HomeIcon,
   DocumentTextIcon,
@@ -15,7 +15,6 @@ import {
   TagIcon,
   ClipboardDocumentListIcon,
   EnvelopeIcon,
-  ChevronLeftIcon,
 } from '@heroicons/react/24/outline';
 
 interface NavItem {
@@ -31,10 +30,9 @@ const navigation: NavItem[] = [
   { name: 'New Policy', href: '/policies/new', icon: PlusCircleIcon },
   { name: 'Licenses', href: '/licenses', icon: DocumentTextIcon },
   { name: 'Exports', href: '/exports', icon: ArrowDownTrayIcon },
-  // ✅ Admin section - moved audit-logs here
   {
     name: 'Audit Logs',
-    href: '/admin/audit-logs', // ✅ Changed from /audit-logs
+    href: '/admin/audit-logs',
     icon: ClipboardDocumentListIcon,
     roles: ['owner', 'admin'],
   },
@@ -44,7 +42,7 @@ const navigation: NavItem[] = [
     name: 'Email Templates',
     href: '/admin/email-templates',
     icon: EnvelopeIcon,
-    roles: ['owner'], // ✅ Owner only
+    roles: ['owner'],
   },
 ];
 
@@ -56,139 +54,120 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { user } = useAuth();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
-  // Filter navigation based on user role
   const filteredNavigation = navigation.filter((item) => {
     if (!item.roles) return true;
     return user && item.roles.includes(user.role);
   });
 
+  const isItemActive = (href: string) => {
+    if (href === '/dashboard') return pathname === '/dashboard';
+    if (href === '/policies') {
+      return pathname === '/policies' || (pathname.startsWith('/policies/') && !pathname.startsWith('/policies/new'));
+    }
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
   return (
     <>
-      {/* Mobile backdrop */}
       {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={onClose} />
+        <div
+          className="fixed inset-0 z-[80] bg-slate-900/28 backdrop-blur-sm lg:hidden"
+          onClick={onClose}
+        />
       )}
 
-      {/* Sidebar */}
-      <aside
-        className={clsx(
-          'fixed lg:static inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 ease-in-out',
-          'bg-white text-slate-700 border-r border-slate-200', // Flat bg, thin border
-          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-          isCollapsed ? 'w-20 lg:w-20' : 'w-64 lg:w-72',
-          'h-full' // Full height flat
-        )}
-      >
-        {/* Logo / Header */}
+      <aside className="fixed inset-y-0 left-0 z-[90] px-3 py-3 lg:px-2 lg:py-4">
         <div
           className={clsx(
-            'flex items-center justify-between p-6 transition-all duration-300',
-            isCollapsed ? 'px-4 justify-center' : 'px-6'
+            'glass-panel-strong flex h-full w-[17rem] max-w-[82vw] flex-col transition-transform duration-250 lg:max-w-none lg:overflow-hidden lg:transition-[width] lg:duration-200',
+            isOpen ? 'translate-x-0' : '-translate-x-[120%] lg:translate-x-0',
+            isHovered ? 'lg:w-[15rem]' : 'lg:w-[4.75rem]'
           )}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
-          <div className="flex items-center gap-3">
-            <div className="relative flex-shrink-0 cursor-pointer">
-              <div className="w-10 h-10 relative bg-primary rounded-xl flex items-center justify-center text-white shadow-sm">
-                <Image
-                  src="/logo.png"
-                  alt="AutoSecure"
-                  width={24}
-                  height={24}
-                  className="rounded-lg bg-white/10"
-                />
-              </div>
+          <div className="flex items-center gap-3 px-4 py-4 lg:px-3 lg:py-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-slate-900 text-white shadow-[0_10px_22px_rgba(15,23,42,0.18)]">
+              <Image src="/logo.png" alt="AutoSecure" width={22} height={22} className="rounded" />
             </div>
-            {!isCollapsed && (
-              <div className="flex flex-col">
-                <h1 className="text-lg font-semibold tracking-tight text-slate-900">AutoSecure</h1>
-                <span className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">
-                  Admin Panel
-                </span>
-              </div>
-            )}
+            <div
+              className={clsx(
+                'min-w-0 transition-all duration-200 lg:overflow-hidden',
+                isHovered ? 'lg:w-auto lg:opacity-100' : 'lg:w-0 lg:opacity-0'
+              )}
+            >
+              <p className="section-label whitespace-nowrap">AutoSecure</p>
+              <h1 className="mt-1 whitespace-nowrap text-sm font-semibold tracking-[-0.03em] text-slate-900">
+                Navigation
+              </h1>
+            </div>
           </div>
 
-          {!isCollapsed && (
-            <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="hidden lg:flex items-center justify-center p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
-            >
-              <ChevronLeftIcon className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+          <nav className="flex-1 px-3 pb-4 lg:px-2">
+            <ul className="space-y-1.5">
+              {filteredNavigation.map((item) => {
+                const Icon = item.icon;
+                const active = isItemActive(item.href);
 
-        {/* Separator */}
-        <div className="px-6 py-2">
-          <div className="h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent" />
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 overflow-y-auto scrollbar-none">
-          <ul className="flex flex-col gap-1.5">
-            {filteredNavigation.map((item) => {
-              const isActive = 
-                item.href === '/dashboard' 
-                  ? pathname === '/dashboard'
-                  : item.href === '/policies' 
-                    ? pathname === '/policies' || (pathname.startsWith('/policies/') && !pathname.startsWith('/policies/new'))
-                    : pathname === item.href || pathname.startsWith(item.href + '/');
-              const Icon = item.icon;
-
-              return (
-                <li key={item.name} title={isCollapsed ? item.name : ''}>
-                  <NavLink
-                    href={item.href}
-                    onClick={onClose}
-                    className={clsx(
-                      'group flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 relative overflow-hidden',
-                      isActive
-                        ? 'bg-primary/10 text-primary border border-transparent'
-                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900',
-                      isCollapsed && 'justify-center px-0'
-                    )}
-                  >
-                    <Icon
+                return (
+                  <li key={item.name}>
+                    <NavLink
+                      href={item.href}
+                      onClick={onClose}
                       className={clsx(
-                        'w-6 h-6 flex-shrink-0 relative z-10 transition-colors',
-                        isActive
-                          ? 'text-primary'
-                          : 'group-hover:text-primary'
+                        'flex h-10 items-center rounded-[14px] text-sm font-medium transition',
+                        isHovered
+                          ? 'gap-3 px-3 justify-start'
+                          : 'mx-auto w-10 justify-center px-0 lg:gap-0',
+                        active
+                          ? 'bg-slate-900 text-white shadow-[0_10px_20px_rgba(15,23,42,0.16)]'
+                          : 'text-slate-600 hover:bg-white/80 hover:text-slate-900'
                       )}
-                    />
-
-                    {!isCollapsed && (
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
                       <span
                         className={clsx(
-                          'text-sm font-medium relative z-10',
-                          isActive ? 'text-primary font-semibold' : ''
+                          'whitespace-nowrap transition-all duration-200 lg:overflow-hidden',
+                          isHovered ? 'lg:w-auto lg:translate-x-0 lg:opacity-100' : 'lg:w-0 lg:-translate-x-1 lg:opacity-0'
                         )}
                       >
                         {item.name}
                       </span>
-                    )}
+                    </NavLink>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
 
-                    {/* Active Indicator Bar - Disabled for minimalist flat look */}
-                  </NavLink>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-
-        {/* Toggle (Collapsed State) */}
-        {isCollapsed && (
-          <div className="p-4 flex justify-center border-t border-gray-100">
-            <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="hidden lg:flex w-8 h-8 items-center justify-center bg-gray-50 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-900 transition-all"
+          <div className="mt-auto border-t border-slate-200/70 px-4 py-3 lg:px-3">
+            <div
+              className={clsx(
+                'flex items-center rounded-[14px] bg-slate-50/90 transition-all duration-200',
+                isHovered ? 'gap-3 px-3 py-2.5' : 'justify-center px-0 py-2'
+              )}
             >
-              <ChevronLeftIcon className="w-4 h-4 rotate-180" />
-            </button>
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white">
+                {user?.email?.charAt(0).toUpperCase() || 'A'}
+              </div>
+              <div
+                className={clsx(
+                  'min-w-0 transition-all duration-200 lg:overflow-hidden',
+                  isHovered ? 'lg:w-auto lg:opacity-100' : 'lg:w-0 lg:opacity-0'
+                )}
+              >
+                <p className="truncate text-sm font-medium text-slate-800">
+                  {user?.full_name || user?.email?.split('@')[0] || 'Account'}
+                </p>
+                <p className="mt-0.5 truncate text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                  {user?.role || 'member'}
+                </p>
+              </div>
+            </div>
           </div>
-        )}
+        </div>
       </aside>
     </>
   );

@@ -1,28 +1,19 @@
-// frontend/app/(dashboard)/policies/page.tsx
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
+import apiClient from '@/lib/api/client';
+import { getPolicyById } from '@/lib/api/policies';
 import { usePolicies } from '@/lib/hooks/usePolicies';
+import { Policy } from '@/lib/types/policy';
 import { PolicyFilters } from '@/components/policies/PolicyFilters';
 import { PolicyTable } from '@/components/policies/PolicyTable';
+import { SendEmailModal } from '@/components/policies/SendEmailModal';
 import { Pagination } from '@/components/ui/Pagination';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import { SendEmailModal } from '@/components/policies/SendEmailModal';
-import { Policy } from '@/lib/types/policy';
-import { getPolicyById } from '@/lib/api/policies';
-import {
-  PlusIcon,
-  DocumentTextIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  ExclamationCircleIcon,
-  CurrencyRupeeIcon,
-} from '@heroicons/react/24/outline';
-import toast from 'react-hot-toast';
-import apiClient from '@/lib/api/client';
+import { PlusIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 export default function PoliciesPage() {
   const [page, setPage] = useState(1);
@@ -34,15 +25,12 @@ export default function PoliciesPage() {
     branch_id?: string;
     expiring_soon?: boolean;
   }>({});
-
-  // Sorting state
   const [sortBy, setSortBy] = useState<string>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-
-  // Email modal state
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
   const [isLoadingPolicy, setIsLoadingPolicy] = useState(false);
+  const [monthNetPremium, setMonthNetPremium] = useState<number | null>(null);
 
   const { policies, pagination, isLoading, error, mutate } = usePolicies({
     page,
@@ -52,6 +40,29 @@ export default function PoliciesPage() {
     sort_order: sortOrder,
     ...filters,
   });
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchOverview = async () => {
+      try {
+        const res = await apiClient.get('/api/v1/analytics/overview');
+        const value = res?.data?.data?.financial?.month_net_premium;
+        const parsed = value === undefined || value === null ? null : Number(value);
+
+        if (!mounted) return;
+        if (parsed !== null && !Number.isNaN(parsed)) setMonthNetPremium(parsed);
+        else if (value === null || value === undefined) setMonthNetPremium(null);
+        else setMonthNetPremium(0);
+      } catch {
+        if (mounted) setMonthNetPremium(null);
+      }
+    };
+
+    fetchOverview();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -67,82 +78,41 @@ export default function PoliciesPage() {
     setPage(1);
   };
 
-  // Running month's net premium from analytics endpoint (fallback to page calculation)
-  const [monthNetPremium, setMonthNetPremium] = useState<number | null>(null);
-  const [isLoadingMonthNetPremium, setIsLoadingMonthNetPremium] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-    const fetchOverview = async () => {
-      setIsLoadingMonthNetPremium(true);
-      try {
-        const res = await apiClient.get('/api/v1/analytics/overview');
-        const value = res?.data?.data?.financial?.month_net_premium;
-
-        // Accept numbers or numeric strings from the API
-        const parsed = value === undefined || value === null ? null : Number(value);
-        if (mounted) {
-          if (parsed !== null && !Number.isNaN(parsed)) {
-            setMonthNetPremium(parsed);
-          } else if (value === null || value === undefined) {
-            setMonthNetPremium(null);
-          } else {
-            // non-numeric value — treat as 0 to avoid showing NaN
-            setMonthNetPremium(0);
-          }
-        }
-      } catch (err) {
-        // silently ignore — we'll fallback to computing from current page
-        if (mounted) setMonthNetPremium(null);
-      } finally {
-        if (mounted) setIsLoadingMonthNetPremium(false);
-      }
-    };
-
-    fetchOverview();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  // Calculate quick stats from current page data
-  interface Stats {
-    total: number;
-    completed: number;
-    pending: number;
-    paymentPending: number;
-    totalPremium: number;
-    expiringSoon: number;
-  }
-
-  const stats: Stats = {
-    total: pagination?.total || 0,
-    completed: policies.filter((p) => p.ins_status === 'policy_done').length,
-    pending: policies.filter((p) => p.ins_status === 'policy_pending').length,
-    paymentPending: policies.filter((p) => p.customer_payment_status === 'pending').length,
-    // Use server-provided running month net_premium when available; otherwise compute from current page
-    totalPremium:
+  const stats = useMemo(() => {
+    const totalPremium =
       monthNetPremium !== null
         ? monthNetPremium
-        : policies.reduce((sum: number, p) => {
-            const createdDate = p.created_at ? new Date(p.created_at) : null;
+        : policies.reduce((sum: number, policy) => {
+            const createdDate = policy.created_at ? new Date(policy.created_at) : null;
             const now = new Date();
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-            if (createdDate && createdDate >= startOfMonth) {
-              return sum + (p.net_premium || 0);
-            }
+            if (createdDate && createdDate >= startOfMonth) return sum + (policy.net_premium || 0);
             return sum;
-          }, 0),
-    expiringSoon: policies.filter((p) => {
-      const saodDate = p.saod_end_date ? new Date(p.saod_end_date) : null;
-      const endDate = new Date(p.end_date);
-      const expiryDate = saodDate || endDate;
-      const thirtyDaysFromNow = new Date();
-      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-      return expiryDate >= new Date() && expiryDate <= thirtyDaysFromNow;
-    }).length,
-  };
+          }, 0);
+
+    return {
+      total: pagination?.total || 0,
+      completed: policies.filter((policy) => policy.ins_status === 'policy_done').length,
+      pending: policies.filter((policy) => policy.ins_status === 'policy_pending').length,
+      paymentPending: policies.filter((policy) => policy.customer_payment_status === 'pending').length,
+      totalPremium,
+    };
+  }, [monthNetPremium, pagination?.total, policies]);
+
+  const summaryItems = [
+    { label: 'Total', value: stats.total },
+    { label: 'Done', value: stats.completed },
+    { label: 'Pending', value: stats.pending },
+    { label: 'Payment pending', value: stats.paymentPending },
+    {
+      label: 'Month net premium',
+      value: new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        maximumFractionDigits: 0,
+      }).format(stats.totalPremium),
+    },
+  ];
 
   const handleSearch = (searchValue: string) => {
     setSearch(searchValue);
@@ -173,157 +143,75 @@ export default function PoliciesPage() {
       await apiClient.delete(`/api/v1/policies/${id}`);
       toast.success('Policy deleted successfully');
       mutate();
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Failed to delete policy');
+    } catch (deleteError: any) {
+      toast.error(deleteError?.response?.data?.message || 'Failed to delete policy');
     }
   };
 
   const handleSendEmail = async (id: string) => {
+    setShowEmailModal(true);
+    setSelectedPolicy(null);
     setIsLoadingPolicy(true);
     try {
       const policy = await getPolicyById(id);
       setSelectedPolicy(policy);
-      setShowEmailModal(true);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load policy details');
     } finally {
       setIsLoadingPolicy(false);
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <ExclamationCircleIcon className="w-12 h-12 text-red-400 mx-auto mb-3" />
-          <p className="font-semibold text-red-800">Failed to load policies</p>
-          <p className="text-sm text-red-600 mt-1">{error}</p>
-          <Button variant="secondary" onClick={() => mutate()} className="mt-4">
-            Try Again
-          </Button>
-        </div>
+      <div className="glass-panel mx-auto max-w-6xl rounded-[24px] p-8 text-center">
+        <ExclamationCircleIcon className="mx-auto h-10 w-10 text-rose-400" />
+        <p className="mt-3 text-lg font-semibold text-rose-900">Failed to load policies</p>
+        <p className="mt-1 text-sm text-rose-700">{error}</p>
+        <Button variant="secondary" onClick={() => mutate()} className="mt-4">
+          Try Again
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Insurance Policies</h1>
-          <p className="text-gray-600 mt-1">Manage and track all your insurance policies</p>
-        </div>
-        <Link href="/policies/new">
-          <Button
-            variant="primary"
-            className="flex px-4 py-2 text-sm items-center gap-2 shadow-sm hover:shadow-md transition-shadow"
-          >
-            <PlusIcon className="w-5 h-5" />
-            New Policy
-          </Button>
-        </Link>
-      </div>
-
-      {/* Quick Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
-        {/* Total Policies */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100/50 hover:shadow-md transition-all duration-300 group">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <DocumentTextIcon className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total</p>
-            </div>
+    <div className="space-y-4">
+      <section className="glass-panel-strong rounded-[22px] px-4 py-4 sm:px-5">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+          <div className="min-w-0">
+            <p className="section-label">Policies</p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
+              Insurance policies
+            </h1>
+            <p className="mt-1 text-sm text-slate-600">
+              Create policies, review status, and track payments.
+            </p>
           </div>
+
+          <Link href="/policies/new" className="shrink-0">
+            <Button variant="primary">
+              <PlusIcon className="h-4 w-4" />
+              New Policy
+            </Button>
+          </Link>
         </div>
 
-        {/* Completed */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100/50 hover:shadow-md transition-all duration-300 group">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <CheckCircleIcon className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.completed}</p>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Done</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Pending Status */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100/50 hover:shadow-md transition-all duration-300 group">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <ClockIcon className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Pending</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Payment Pending */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100/50 hover:shadow-md transition-all duration-300 group">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <ExclamationCircleIcon className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.paymentPending}</p>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Unpaid</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Expiring Soon */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100/50 hover:shadow-md transition-all duration-300 group">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <ClockIcon className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.expiringSoon}</p>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Expiring</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Total Premium (This Page) */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100/50 hover:shadow-md transition-all duration-300 group lg:col-span-1">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <CurrencyRupeeIcon className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="text-lg font-bold text-gray-900">
-                {isLoadingMonthNetPremium ? (
-                  <span className="text-sm font-medium animate-pulse">Loading...</span>
-                ) : (
-                  formatCurrency(stats.totalPremium)
-                )}
-              </div>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">
-                Net Premium
+        <div className="mt-4 grid gap-4 border-t border-stone-200/80 pt-4 sm:grid-cols-2 xl:grid-cols-5">
+          {summaryItems.map((item) => (
+            <div key={item.label} className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                {item.label}
+              </p>
+              <p className="mt-2 text-lg font-semibold tracking-[-0.03em] text-slate-900">
+                {item.value}
               </p>
             </div>
-          </div>
+          ))}
         </div>
-      </div>
+      </section>
 
-      {/* Filters Section */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="sticky top-[5.25rem] z-20">
         <PolicyFilters
           onSearch={handleSearch}
           onFilter={handleFilter}
@@ -333,99 +221,68 @@ export default function PoliciesPage() {
         />
       </div>
 
-      {/* Results Info - REMOVED duplicate "Clear all filters" button */}
-      {!isLoading && pagination && (
-        <div className="text-sm text-gray-600">
-          <p>
-            Showing <span className="font-medium">{policies.length}</span> of{' '}
-            <span className="font-medium">{pagination.total}</span> policies
-            {search && (
-              <span className="ml-1">
-                for "<span className="font-medium text-primary">{search}</span>"
-              </span>
-            )}
-          </p>
-        </div>
-      )}
-
-      {/* Table */}
-      {isLoading ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-16 flex flex-col items-center justify-center">
-          <Spinner size="lg" />
-          <p className="text-gray-500 mt-4">Loading policies...</p>
-        </div>
-      ) : policies.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
-          <DocumentTextIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900">No policies found</h3>
-          <p className="text-gray-500 mt-2 max-w-md mx-auto">
-            {search || Object.keys(filters).length > 0
-              ? "Try adjusting your search or filters to find what you're looking for."
-              : 'Get started by creating your first insurance policy.'}
-          </p>
-          {!search && Object.keys(filters).length === 0 && (
-            <Link href="/policies/new">
-              <Button variant="primary" className="mt-6">
-                <PlusIcon className="w-5 h-5 mr-2" />
-                Create Your First Policy
-              </Button>
-            </Link>
-          )}
-        </div>
-      ) : (
-        <>
-          <PolicyTable 
-            policies={policies} 
-            onDelete={handleDelete} 
-            onSendEmail={handleSendEmail} 
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-            onSort={handleSort}
-          />
-
-          {/* Pagination */}
-          {pagination && pagination.total > limit && (
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <Pagination
-                currentPage={pagination.page}
-                totalPages={pagination.total_pages}
-                onPageChange={setPage}
-                itemsPerPage={limit}
-                onItemsPerPageChange={(newLimit) => {
-                  setLimit(newLimit);
-                  setPage(1);
-                }}
-                totalItems={pagination.total}
-              />
+      <section className="space-y-4">
+        <div className="glass-panel rounded-[20px] px-4 py-3">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold tracking-[-0.03em] text-slate-900">
+                {pagination?.total || 0} policy records
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Search records, update details, and send follow-ups.
+              </p>
             </div>
-          )}
-        </>
-      )}
-
-      {/* Email Modal */}
-      {selectedPolicy && (
-        <SendEmailModal
-          isOpen={showEmailModal}
-          onClose={() => {
-            setShowEmailModal(false);
-            setSelectedPolicy(null);
-          }}
-          policy={selectedPolicy}
-          onSuccess={() => {
-            toast.success('Email sent successfully!');
-          }}
-        />
-      )}
-
-      {/* Loading overlay for policy fetch */}
-      {isLoadingPolicy && (
-        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 shadow-xl flex items-center gap-3">
-            <Spinner size="md" />
-            <span className="text-gray-700">Loading policy...</span>
+            <div className="text-xs font-medium text-slate-500">
+              Sorted by {sortBy} • {sortOrder}
+            </div>
           </div>
         </div>
-      )}
+
+        {isLoading ? (
+          <div className="glass-panel rounded-[24px] py-14">
+            <div className="flex items-center justify-center">
+              <Spinner size="lg" />
+            </div>
+          </div>
+        ) : (
+          <>
+            <PolicyTable
+              policies={policies}
+              onDelete={handleDelete}
+              onSendEmail={handleSendEmail}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onSort={handleSort}
+            />
+
+            {pagination && (
+              <div className="glass-panel rounded-[22px] p-4">
+                <Pagination
+                  currentPage={page}
+                  totalPages={pagination.totalPages}
+                  onPageChange={setPage}
+                  itemsPerPage={limit}
+                  onItemsPerPageChange={(newLimit) => {
+                    setLimit(newLimit);
+                    setPage(1);
+                  }}
+                  totalItems={pagination.total}
+                />
+              </div>
+            )}
+          </>
+        )}
+      </section>
+      <SendEmailModal
+        isOpen={showEmailModal}
+        onClose={() => {
+          setShowEmailModal(false);
+          setSelectedPolicy(null);
+          setIsLoadingPolicy(false);
+        }}
+        policy={selectedPolicy}
+        isLoading={isLoadingPolicy}
+      />
     </div>
   );
 }

@@ -65,7 +65,7 @@ export function Step2CustomerDetails() {
     <div className="space-y-8">
       {/* Customer Information */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Customer Information</h3>
+        <h3 className="mb-4 text-lg font-semibold text-slate-900">Customer Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="label label-required">Branch</label>
@@ -184,10 +184,10 @@ export function Step2CustomerDetails() {
       </div>
 
       {/* Nominee Details Section */}
-      <div className="border-t border-gray-200 pt-6">
+      <div className="border-t border-slate-200/70 pt-6">
         <div className="flex items-center gap-2 mb-4">
           <UserGroupIcon className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-semibold text-gray-900">Nominee Details (Optional)</h3>
+          <h3 className="text-lg font-semibold text-slate-900">Nominee Details (Optional)</h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -228,33 +228,33 @@ export function Step2CustomerDetails() {
           </div>
         </div>
 
-        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-900">
-            <strong>💡 Note:</strong> Nominee details are optional. Add nominee information if the
+        <div className="mt-4 rounded-[18px] border border-sky-200/80 bg-sky-50/70 p-4">
+          <p className="text-sm text-slate-700">
+            <strong>Note:</strong> Nominee details are optional. Add nominee information if the
             policy requires a beneficiary.
           </p>
         </div>
       </div>
 
       {/* Document Uploads */}
-      <div className="border-t border-gray-200 pt-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Document Uploads (Optional)</h3>
+      <div className="border-t border-slate-200/70 pt-6">
+        <h3 className="mb-4 text-lg font-semibold text-slate-900">Document Uploads (Optional)</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Aadhaar Upload */}
           <div>
             <label className="label">Aadhaar Document</label>
             <div className="mt-1">
               {hasAdhFile ? (
-                <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center justify-between rounded-[18px] border border-emerald-200/80 bg-emerald-50/70 p-4">
                   <div className="flex items-center gap-3">
                     <CheckCircleIcon className="w-8 h-8 text-green-600" />
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-slate-900">
                         {formData.adh_file instanceof File
                           ? formData.adh_file.name
                           : formData.existing_adh_file?.file_name || 'Aadhaar Document'}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-slate-500">
                         {formData.adh_file instanceof File
                           ? `${(formData.adh_file.size / 1024 / 1024).toFixed(2)} MB - New upload`
                           : 'Already uploaded'}
@@ -264,18 +264,18 @@ export function Step2CustomerDetails() {
                   <button
                     type="button"
                     onClick={() => handleRemoveFile('adh_file')}
-                    className="p-2 hover:bg-red-100 rounded-lg transition-colors"
+                    className="rounded-lg p-2 transition-colors hover:bg-red-100/70"
                     title="Remove file"
                   >
                     <XMarkIcon className="w-5 h-5 text-red-600" />
                   </button>
                 </div>
               ) : (
-                <label className="flex items-center justify-center w-full h-32 px-4 transition bg-white border-2 border-gray-300 border-dashed rounded-lg appearance-none cursor-pointer hover:border-primary focus:outline-none">
+                <label className="flex h-32 w-full cursor-pointer appearance-none items-center justify-center rounded-[18px] border-2 border-dashed border-slate-300 bg-slate-50/70 px-4 transition hover:border-primary/50 hover:bg-slate-50 focus:outline-none">
                   <div className="flex flex-col items-center space-y-2">
-                    <CloudArrowUpIcon className="w-10 h-10 text-gray-400" />
-                    <span className="text-sm text-gray-600">Click to upload Aadhaar</span>
-                    <span className="text-xs text-gray-500">PDF, JPG, PNG (max 10MB)</span>
+                    <CloudArrowUpIcon className="w-10 h-10 text-slate-400" />
+                    <span className="text-sm text-slate-700">Click to upload Aadhaar</span>
+                    <span className="text-xs text-slate-500">PDF, JPG, PNG (max 10MB)</span>
                   </div>
                   <input
                     type="file"
@@ -294,16 +294,16 @@ export function Step2CustomerDetails() {
             <label className="label">PAN Document</label>
             <div className="mt-1">
               {hasPanFile ? (
-                <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center justify-between rounded-[18px] border border-emerald-200/80 bg-emerald-50/70 p-4">
                   <div className="flex items-center gap-3">
                     <CheckCircleIcon className="w-8 h-8 text-green-600" />
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-slate-900">
                         {formData.pan_file instanceof File
                           ? formData.pan_file.name
                           : formData.existing_pan_file?.file_name || 'PAN Document'}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-slate-500">
                         {formData.pan_file instanceof File
                           ? `${(formData.pan_file.size / 1024 / 1024).toFixed(2)} MB - New upload`
                           : 'Already uploaded'}
@@ -313,18 +313,18 @@ export function Step2CustomerDetails() {
                   <button
                     type="button"
                     onClick={() => handleRemoveFile('pan_file')}
-                    className="p-2 hover:bg-red-100 rounded-lg transition-colors"
+                    className="rounded-lg p-2 transition-colors hover:bg-red-100/70"
                     title="Remove file"
                   >
                     <XMarkIcon className="w-5 h-5 text-red-600" />
                   </button>
                 </div>
               ) : (
-                <label className="flex items-center justify-center w-full h-32 px-4 transition bg-white border-2 border-gray-300 border-dashed rounded-lg appearance-none cursor-pointer hover:border-primary focus:outline-none">
+                <label className="flex h-32 w-full cursor-pointer appearance-none items-center justify-center rounded-[18px] border-2 border-dashed border-slate-300 bg-slate-50/70 px-4 transition hover:border-primary/50 hover:bg-slate-50 focus:outline-none">
                   <div className="flex flex-col items-center space-y-2">
-                    <CloudArrowUpIcon className="w-10 h-10 text-gray-400" />
-                    <span className="text-sm text-gray-600">Click to upload PAN</span>
-                    <span className="text-xs text-gray-500">PDF, JPG, PNG (max 10MB)</span>
+                    <CloudArrowUpIcon className="w-10 h-10 text-slate-400" />
+                    <span className="text-sm text-slate-700">Click to upload PAN</span>
+                    <span className="text-xs text-slate-500">PDF, JPG, PNG (max 10MB)</span>
                   </div>
                   <input
                     type="file"

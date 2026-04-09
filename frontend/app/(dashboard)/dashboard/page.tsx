@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { format } from 'date-fns';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useAnalytics } from '@/lib/hooks/useAnalytics';
 import { usePrivacy } from '@/lib/context/PrivacyContext';
-import { format } from 'date-fns';
 import { PoliciesByTypeChart } from '@/components/dashboard/PoliciesByTypeChart';
 // @ts-ignore
 import { PoliciesByStatusChart } from '@/components/dashboard/PoliciesByStatusChart';
@@ -16,21 +16,38 @@ import { RenewalCalendar } from '@/components/dashboard/RenewalCalendar';
 import { NotificationsCenter } from '@/components/dashboard/NotificationsCenter';
 import { RevenueTrendChart } from '@/components/dashboard/RevenueTrendChart';
 import { DateRangePreset, DateRangeSelector } from '@/components/ui/DateRangeSelector';
+import { DateRangePicker } from '@/components/ui/DatePicker';
 import { Spinner } from '@/components/ui/Spinner';
 import {
   ChartBarIcon,
   BuildingOfficeIcon,
   TruckIcon,
   UserGroupIcon,
+  BanknotesIcon,
+  ShieldCheckIcon,
+  ArrowTrendingUpIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline';
-import { DateRangePicker, DateRangeValue } from '@/components/ui/DatePicker';
 
 type PerformanceTab = 'branch' | 'company' | 'dealer' | 'executive';
+
+const performanceTabs = [
+  { id: 'company' as const, label: 'Ins. Company', icon: ChartBarIcon },
+  { id: 'branch' as const, label: 'Branch', icon: BuildingOfficeIcon },
+  { id: 'dealer' as const, label: 'Ins. Dealer', icon: TruckIcon },
+  { id: 'executive' as const, label: 'Executive', icon: UserGroupIcon },
+];
+
+const formatCompactINR = (value: number) => {
+  if (value >= 10000000) return `₹${(value / 10000000).toFixed(1)}Cr`;
+  if (value >= 100000) return `₹${(value / 100000).toFixed(1)}L`;
+  if (value >= 1000) return `₹${(value / 1000).toFixed(0)}K`;
+  return `₹${value.toLocaleString('en-IN')}`;
+};
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { formatPrivacyValue } = usePrivacy();
-
   const {
     overview,
     policyAnalytics,
@@ -56,15 +73,13 @@ export default function DashboardPage() {
       case '7d':
       case 'this_month':
       case 'last_month':
+      case 'custom':
         return 'daily';
       case 'this_year':
       case 'last_year':
         return 'monthly';
       case 'all':
         return 'yearly';
-      case 'custom':
-        // Rough estimation for label/period logic
-        return 'daily';
       default:
         return 'monthly';
     }
@@ -95,53 +110,6 @@ export default function DashboardPage() {
     }
   };
 
-  const rangeLabel = getRangeLabel(selectedRange);
-
-  // Calculate financial metrics from trends data for the selected date range
-  const calculateFinancialMetrics = () => {
-    if (!trends?.trends || trends.trends.length === 0) {
-      return {
-        rangePolicies: 0,
-        rangeLicenses: 0,
-        rangePremium: 0,
-        rangeNetPremium: 0,
-        rangeCommission: 0,
-        rangeProfit: 0,
-        totalPremium: overview?.financial?.total_premium || 0,
-        totalCommission: overview?.financial?.total_commission || 0,
-        totalProfit: overview?.financial?.total_profit || 0,
-      };
-    }
-
-    const rangePremium = trends.trends.reduce((sum: number, item: any) => sum + (item.total_premium || 0), 0);
-    const rangePolicies = trends.trends.reduce((sum: number, item: any) => sum + (item.count || 0), 0);
-    const rangeLicenses = licenseAnalytics?.status_breakdown?.reduce((sum: number, item: any) => sum + item.count, 0) || 0;
-    const rangeCommission = trends.trends.reduce((sum: number, item: any) => sum + (item.total_commission || 0), 0);
-    const rangeProfit = trends.trends.reduce((sum: number, item: any) => sum + (item.total_profit || 0), 0);
-    const rangeNetPremium = trends.trends.reduce((sum: number, item: any) => sum + (item.total_net_premium || 0), 0);
-
-    return {
-      rangePolicies,
-      rangeLicenses,
-      rangePremium,
-      rangeNetPremium,
-      rangeCommission,
-      rangeProfit,
-      totalPremium: overview?.financial?.total_premium || 0,
-      totalCommission: overview?.financial?.total_commission || 0,
-      totalProfit: overview?.financial?.total_profit || 0,
-    };
-  };
-
-  const financialMetrics = calculateFinancialMetrics();
-
-  const performanceTabs = [
-    { id: 'company' as const, label: 'Ins. Company', icon: ChartBarIcon },
-    { id: 'branch' as const, label: 'Branch', icon: BuildingOfficeIcon },
-    { id: 'dealer' as const, label: 'Ins. Dealer', icon: TruckIcon },
-    { id: 'executive' as const, label: 'Executive', icon: UserGroupIcon },
-  ];
-
   const getActivePerformanceData = () => {
     switch (activePerformanceTab) {
       case 'branch':
@@ -157,24 +125,80 @@ export default function DashboardPage() {
     }
   };
 
-  const getPerformanceTitle = () => {
-    switch (activePerformanceTab) {
-      case 'branch':
-        return 'Branch Performance';
-      case 'company':
-        return 'Insurance Company Performance';
-      case 'dealer':
-        return 'Insurance Dealer Performance';
-      case 'executive':
-        return 'Executive Performance';
-      default:
-        return 'Performance';
-    }
-  };
+  const rangeLabel = getRangeLabel(selectedRange);
+
+  const metrics = !trends?.trends?.length
+    ? {
+        rangePolicies: 0,
+        rangeLicenses: 0,
+        rangeNetPremium: 0,
+        rangeCommission: 0,
+        rangeProfit: 0,
+      }
+    : {
+        rangePolicies: trends.trends.reduce((sum: number, item: any) => sum + (item.count || 0), 0),
+        rangeLicenses:
+          licenseAnalytics?.status_breakdown?.reduce((sum: number, item: any) => sum + item.count, 0) ||
+          0,
+        rangeNetPremium: trends.trends.reduce(
+          (sum: number, item: any) => sum + (item.total_net_premium || 0),
+          0
+        ),
+        rangeCommission: trends.trends.reduce(
+          (sum: number, item: any) => sum + (item.total_commission || 0),
+          0
+        ),
+        rangeProfit: trends.trends.reduce((sum: number, item: any) => sum + (item.total_profit || 0), 0),
+      };
+
+  const compactCards = [
+    {
+      label: 'Policies',
+      value: metrics.rangePolicies,
+      note: 'In range',
+      icon: SparklesIcon,
+      iconClass: 'bg-sky-100/80 text-sky-700',
+    },
+    {
+      label: 'Licenses',
+      value: metrics.rangeLicenses,
+      note: 'Tracked',
+      icon: ShieldCheckIcon,
+      iconClass: 'bg-cyan-100/80 text-cyan-700',
+    },
+    {
+      label: 'Expiring',
+      value: overview?.expiring_items?.total_count || 0,
+      note: 'Live reminders',
+      icon: ArrowTrendingUpIcon,
+      iconClass: 'bg-amber-100/80 text-amber-700',
+    },
+    {
+      label: 'Net Premium',
+      value: formatCompactINR(metrics.rangeNetPremium),
+      note: rangeLabel,
+      icon: BanknotesIcon,
+      iconClass: 'bg-blue-100/80 text-blue-700',
+    },
+    {
+      label: 'Commission',
+      value: formatPrivacyValue(formatCompactINR(metrics.rangeCommission)),
+      note: rangeLabel,
+      icon: ChartBarIcon,
+      iconClass: 'bg-slate-200/85 text-slate-700',
+    },
+    {
+      label: 'Profit',
+      value: formatPrivacyValue(formatCompactINR(metrics.rangeProfit)),
+      note: rangeLabel,
+      icon: BuildingOfficeIcon,
+      iconClass: 'bg-teal-100/80 text-teal-700',
+    },
+  ];
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto flex items-center justify-center py-20">
+      <div className="flex items-center justify-center py-24">
         <Spinner size="lg" />
       </div>
     );
@@ -182,273 +206,224 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
-          <p className="font-semibold">Failed to load analytics</p>
-          <p className="text-sm">{error}</p>
-        </div>
+      <div className="glass-panel rounded-[24px] p-8 text-rose-900">
+        <p className="text-lg font-semibold">Failed to load analytics</p>
+        <p className="mt-1 text-sm text-rose-700">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Page Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-gray-600 mt-1">
-                Welcome back, {user?.full_name || user?.email?.split('@')[0]}! Here's your business
-                overview.
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex flex-col items-end gap-2">
-                <DateRangeSelector
-                  selectedRange={selectedRange}
-                  onRangeChange={updateDateRange}
-                  className="w-48"
-                />
-                {selectedRange === 'custom' && (
-                  <div className="flex items-center gap-2">
-                    <DateRangePicker
-                      value={customRange}
-                      onChange={(range) => range && setCustomRange(range)}
-                      className="w-64"
-                      showPresets={false}
-                    />
-                  </div>
-                )}
-              </div>
-              <NotificationsCenter
-                expiringPolicies={overview?.expiring_items?.policies || []}
-                expiringLicenses={overview?.expiring_items?.licenses || []}
-                policiesCount={overview?.expiring_items?.policies_count || 0}
-                licensesCount={overview?.expiring_items?.licenses_count || 0}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Quick Actions */}
-        <div className="mb-6">
-          <QuickActionsPanel />
-        </div>
-
-        {/* Financial Overview */}
-        <div className="mb-6">
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">Financial Overview</h2>
-                <p className="text-sm text-gray-500">{rangeLabel}</p>
-              </div>
-            </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              <div className="card p-5 flex flex-col gap-1">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Policies</p>
-                  <ChartBarIcon className="w-5 h-5 text-blue-500" />
-                </div>
-                <p className="text-2xl font-bold tracking-tight text-slate-900">{financialMetrics.rangePolicies}</p>
-                <div className="flex items-center mt-1">
-                  <span className="text-slate-400 text-[10px]">In selected period</span>
-                </div>
-              </div>
-
-              <div className="card p-5 flex flex-col gap-1">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Licenses</p>
-                  <BuildingOfficeIcon className="w-5 h-5 text-emerald-500" />
-                </div>
-                <p className="text-2xl font-bold tracking-tight text-slate-900">
-                  {financialMetrics.rangeLicenses}
-                </p>
-                <div className="flex items-center mt-1">
-                  <span className="text-slate-400 text-[10px]">In selected period</span>
-                </div>
-              </div>
-
-              <div className="card p-5 flex flex-col gap-1">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Expiring</p>
-                  <ChartBarIcon className="w-5 h-5 text-rose-500" />
-                </div>
-                <p className="text-2xl font-bold tracking-tight text-slate-900">
-                  {overview?.expiring_items?.total_count || 0}
-                </p>
-                <div className="flex items-center mt-1">
-                  <span className="text-slate-400 text-[10px]">Policies & Licenses</span>
-                </div>
-              </div>
-
-              <div className="card p-5 flex border-t-4 border-indigo-500 flex-col gap-1">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Net Premium</p>
-                  <ChartBarIcon className="w-5 h-5 text-indigo-500" />
-                </div>
-                <p className="text-2xl font-bold tracking-tight text-slate-900">
-                  {financialMetrics.rangeNetPremium >= 10000000
-                    ? `₹${(financialMetrics.rangeNetPremium / 10000000).toFixed(1)}Cr`
-                    : financialMetrics.rangeNetPremium >= 100000
-                      ? `₹${(financialMetrics.rangeNetPremium / 100000).toFixed(1)}L`
-                      : financialMetrics.rangeNetPremium >= 1000
-                        ? `₹${(financialMetrics.rangeNetPremium / 1000).toFixed(0)}K`
-                        : `₹${financialMetrics.rangeNetPremium.toLocaleString('en-IN')}`}
-                </p>
-                <div className="flex items-center mt-1">
-                  <span className="text-slate-400 text-[10px]">{rangeLabel}</span>
-                </div>
-              </div>
-
-              <div className="card p-5 flex flex-col gap-1">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Commission</p>
-                  <ChartBarIcon className="w-5 h-5 text-primary" />
-                </div>
-                <p className="text-2xl font-bold tracking-tight text-slate-900">
-                  {formatPrivacyValue(
-                    financialMetrics.rangeCommission >= 10000000
-                      ? `₹${(financialMetrics.rangeCommission / 10000000).toFixed(1)}Cr`
-                      : financialMetrics.rangeCommission >= 100000
-                        ? `₹${(financialMetrics.rangeCommission / 100000).toFixed(1)}L`
-                        : financialMetrics.rangeCommission >= 1000
-                          ? `₹${(financialMetrics.rangeCommission / 1000).toFixed(0)}K`
-                          : `₹${financialMetrics.rangeCommission.toLocaleString('en-IN')}`
-                  )}
-                </p>
-                <div className="flex items-center mt-1">
-                  <span className="text-slate-400 text-[10px]">{rangeLabel}</span>
-                </div>
-              </div>
-
-              <div className="card p-5 flex flex-col gap-1">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Profit</p>
-                  <ChartBarIcon className="w-5 h-5 text-primary" />
-                </div>
-                <p className="text-2xl font-bold tracking-tight text-slate-900">
-                  {formatPrivacyValue(
-                    financialMetrics.rangeProfit >= 10000000
-                      ? `₹${(financialMetrics.rangeProfit / 10000000).toFixed(1)}Cr`
-                      : financialMetrics.rangeProfit >= 100000
-                        ? `₹${(financialMetrics.rangeProfit / 100000).toFixed(1)}L`
-                        : financialMetrics.rangeProfit >= 1000
-                          ? `₹${(financialMetrics.rangeProfit / 1000).toFixed(0)}K`
-                          : `₹${financialMetrics.rangeProfit.toLocaleString('en-IN')}`
-                  )}
-                </p>
-                <div className="flex items-center mt-1">
-                  <span className="text-slate-400 text-[10px]">{rangeLabel}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Revenue Trend Chart - Full Width */}
-        <div className="mb-8">
-          <RevenueTrendChart data={trends?.trends || null} period={getPeriodFromRange(selectedRange)} />
-        </div>
-
-        {/* Performance Breakdown Section */}
-        <div className="mb-8">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Performance Breakdown</h2>
-            <p className="text-gray-600">
-              Compare performance across different dimensions for {rangeLabel.toLowerCase()}
+    <div className="space-y-5">
+      <section className="relative z-30 glass-panel-strong rounded-[24px] px-4 py-4 sm:px-5">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div className="min-w-0">
+            <p className="section-label">Operations Overview</p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
+              Welcome back, {user?.full_name || user?.email?.split('@')[0]}
+            </h1>
+            <p className="mt-1 text-sm text-slate-600">
+              Track premium, renewals, and recent performance in one view.
             </p>
           </div>
 
-          {/* Performance Tabs */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="border-b border-gray-200">
-              <div className="flex">
-                {performanceTabs.map((tab) => {
-                  const Icon = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActivePerformanceTab(tab.id)}
-                      className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                        activePerformanceTab === tab.id
-                          ? 'border-primary text-primary bg-primary/5'
-                          : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                      }`}
-                    >
-                      <Icon className="w-5 h-5" />
-                      {tab.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="p-6">
-              <PerformanceChart
-                title={getPerformanceTitle()}
-                subtitle={`Premium collected by ${activePerformanceTab} for ${rangeLabel.toLowerCase()}`}
-                data={getActivePerformanceData()}
-                isLoading={isLoading}
-                emptyMessage={`No ${activePerformanceTab} data available for this period`}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-2">
+              <DateRangeSelector
+                selectedRange={selectedRange}
+                onRangeChange={updateDateRange}
+                className="w-full sm:w-44"
               />
+              {selectedRange === 'custom' && (
+                <DateRangePicker
+                  value={customRange}
+                  onChange={(range) => range && setCustomRange(range)}
+                  className="w-full sm:w-60"
+                  showPresets={false}
+                />
+              )}
             </div>
-          </div>
-        </div>
-
-        {/* Analytics Charts + Calendar */}
-        <div className="mb-8 grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Left Column - Policy/License Charts */}
-          <div className="xl:col-span-2 space-y-6">
-            <div className="mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Policy & License Analytics</h2>
-              <p className="text-gray-600 text-sm">Status and type distribution</p>
-            </div>
-
-            {/* Status Chart - Full Width */}
-            {policyAnalytics?.status_breakdown && policyAnalytics.status_breakdown.length > 0 && (
-              <PoliciesByStatusChart data={policyAnalytics.status_breakdown} />
-            )}
-
-            {/* Side-by-Side Pie Charts */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {policyAnalytics?.by_insurance_type &&
-                policyAnalytics.by_insurance_type.length > 0 && (
-                  <PoliciesByTypeChart data={policyAnalytics.by_insurance_type} />
-                )}
-              {licenseAnalytics?.status_breakdown &&
-                licenseAnalytics.status_breakdown.length > 0 && (
-                  <LicenseAnalytics
-                    statusBreakdown={licenseAnalytics.status_breakdown}
-                    totalLicenses={licenseAnalytics.status_breakdown.reduce(
-                      (sum: number, item: any) => sum + item.count,
-                      0
-                    )}
-                  />
-                )}
-            </div>
-          </div>
-
-          {/* Right Column - Calendar (Narrower 1/3 width) */}
-          <div className="xl:col-span-1">
-            <RenewalCalendar
-              policies={calendarEvents?.policies || []}
-              licenses={calendarEvents?.licenses || []}
-              isLoading={!calendarEvents}
+            <NotificationsCenter
+              expiringPolicies={overview?.expiring_items?.policies || []}
+              expiringLicenses={overview?.expiring_items?.licenses || []}
+              policiesCount={overview?.expiring_items?.policies_count || 0}
+              licensesCount={overview?.expiring_items?.licenses_count || 0}
             />
           </div>
         </div>
+      </section>
 
-        {/* Recent Activity - Full Width at Bottom */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <RecentActivity />
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(22rem,0.95fr)]">
+        <div className="glass-panel rounded-[24px] p-4 sm:p-5">
+          <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/45 pb-4">
+            <div>
+              <p className="section-label">Summary</p>
+              <h2 className="mt-1 text-xl font-semibold tracking-[-0.03em] text-slate-900">
+                Snapshot for {rangeLabel.toLowerCase()}
+              </h2>
+            </div>
+            <div className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+              6 metrics
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {compactCards.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.label}
+                  className="rounded-[18px] border border-slate-200/70 bg-[rgba(239,245,253,0.84)] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                        {item.label}
+                      </p>
+                      <p className="mt-2 text-lg font-semibold tracking-[-0.03em] text-slate-900">
+                        {item.value}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">{item.note}</p>
+                    </div>
+                    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[14px] ${item.iconClass}`}>
+                      <Icon className="h-4 w-4" />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
+
+        <QuickActionsPanel />
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.28fr)_minmax(20rem,0.92fr)]">
+        <div className="glass-panel min-w-0 rounded-[24px] p-4 sm:p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <p className="section-label">Revenue Flow</p>
+              <h2 className="mt-1 text-xl font-semibold tracking-[-0.03em] text-slate-900">
+                Trendline for {rangeLabel.toLowerCase()}
+              </h2>
+            </div>
+          </div>
+          <RevenueTrendChart data={trends?.trends || null} period={getPeriodFromRange(selectedRange)} />
+        </div>
+
+        <RenewalCalendar
+          policies={calendarEvents?.policies || []}
+          licenses={calendarEvents?.licenses || []}
+          isLoading={!calendarEvents}
+        />
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.16fr)_minmax(0,0.84fr)]">
+        <section className="glass-panel min-w-0 overflow-hidden rounded-[24px]">
+          <div className="border-b border-white/45 px-4 py-4">
+            <p className="section-label">Performance Matrix</p>
+            <h2 className="mt-1 text-xl font-semibold tracking-[-0.03em] text-slate-900">
+              Breakdown by operating dimension
+            </h2>
+          </div>
+          <div className="px-4 pt-4">
+            <div className="flex flex-wrap gap-2">
+              {performanceTabs.map((tab) => {
+                const Icon = tab.icon;
+                const active = activePerformanceTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActivePerformanceTab(tab.id)}
+                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition ${
+                      active
+                        ? 'border-slate-900 bg-slate-900 text-white'
+                        : 'border-slate-200 bg-slate-50/90 text-slate-600 hover:bg-white hover:text-slate-900'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="p-4">
+            <PerformanceChart
+              title="Performance"
+              subtitle={`Premium collected by ${activePerformanceTab} for ${rangeLabel.toLowerCase()}`}
+              data={getActivePerformanceData()}
+              isLoading={isLoading}
+              emptyMessage={`No ${activePerformanceTab} data available for this period`}
+            />
+          </div>
+        </section>
+
+        <section className="glass-panel min-w-0 overflow-hidden rounded-[24px]">
+          <div className="border-b border-white/45 px-4 py-4">
+            <p className="section-label">Activity Feed</p>
+            <h2 className="mt-1 text-xl font-semibold tracking-[-0.03em] text-slate-900">
+              Recent activity
+            </h2>
+          </div>
+          <RecentActivity />
+        </section>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-3">
+        <div className="glass-panel min-w-0 rounded-[24px] p-4">
+          <p className="section-label">Policy Signals</p>
+          <h3 className="mt-1 text-lg font-semibold tracking-[-0.03em] text-slate-900">
+            Status view
+          </h3>
+          <div className="mt-4">
+            {policyAnalytics?.status_breakdown && policyAnalytics.status_breakdown.length > 0 ? (
+              <PoliciesByStatusChart data={policyAnalytics.status_breakdown} />
+            ) : (
+              <div className="rounded-[16px] border border-dashed border-slate-200 px-4 py-6 text-sm text-slate-500">
+                No policy status data for the selected period.
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="glass-panel min-w-0 rounded-[24px] p-4">
+          <p className="section-label">Policy Mix</p>
+          <h3 className="mt-1 text-lg font-semibold tracking-[-0.03em] text-slate-900">
+            Insurance type spread
+          </h3>
+          <div className="mt-4">
+            {policyAnalytics?.by_insurance_type && policyAnalytics.by_insurance_type.length > 0 ? (
+              <PoliciesByTypeChart data={policyAnalytics.by_insurance_type} />
+            ) : (
+              <div className="rounded-[16px] border border-dashed border-slate-200 px-4 py-6 text-sm text-slate-500">
+                No policy type data for the selected period.
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="glass-panel min-w-0 rounded-[24px] p-4">
+          <p className="section-label">License Status</p>
+          <h3 className="mt-1 text-lg font-semibold tracking-[-0.03em] text-slate-900">
+            License analytics
+          </h3>
+          <div className="mt-4">
+            {licenseAnalytics?.status_breakdown && licenseAnalytics.status_breakdown.length > 0 ? (
+              <LicenseAnalytics
+                statusBreakdown={licenseAnalytics.status_breakdown}
+                totalLicenses={licenseAnalytics.status_breakdown.reduce(
+                  (sum: number, item: any) => sum + item.count,
+                  0
+                )}
+              />
+            ) : (
+              <div className="rounded-[16px] border border-dashed border-slate-200 px-4 py-6 text-sm text-slate-500">
+                No license status data for the selected period.
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

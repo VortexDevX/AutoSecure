@@ -1,30 +1,26 @@
 'use client';
 
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { updateProfile, changePassword } from '@/lib/api/users';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import { 
-  UserIcon, 
-  LockClosedIcon, 
-  EnvelopeIcon, 
+import {
+  UserIcon,
+  LockClosedIcon,
+  EnvelopeIcon,
   ShieldCheckIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
 } from '@heroicons/react/24/outline';
-import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-
-  // Profile Form State
   const [fullName, setFullName] = useState(user?.full_name || '');
-
-  // Password Form State
   const [passwordData, setPasswordData] = useState({
     oldPassword: '',
     newPassword: '',
@@ -56,12 +52,10 @@ export default function ProfilePage() {
       toast.error('Both old and new passwords are required');
       return;
     }
-
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast.error('New passwords do not match');
       return;
     }
-
     if (passwordData.newPassword.length < 6) {
       toast.error('New password must be at least 6 characters');
       return;
@@ -91,75 +85,83 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Profile Settings</h1>
-        <p className="text-gray-600 mt-1">Manage your account details and security preferences.</p>
-      </div>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <section className="glass-panel-strong rounded-[24px] px-4 py-4 sm:px-5">
+        <p className="section-label">Account</p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
+          Profile settings
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+          Update your account details and password.
+        </p>
+      </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Sidebar / Info */}
-        <div className="md:col-span-1 space-y-6">
-          <Card>
-            <CardBody className="flex flex-col items-center text-center p-6">
-              <div className="w-24 h-24 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center mb-4 border-4 border-white shadow-sm">
-                <UserIcon className="w-12 h-12" />
-              </div>
-              <h2 className="text-xl font-bold text-gray-900">{user.full_name || 'User'}</h2>
-              <p className="text-sm text-gray-500 mb-4">{user.email}</p>
-              <div className="flex items-center gap-2 px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-xs font-bold uppercase tracking-wider">
-                <ShieldCheckIcon className="w-4 h-4" />
-                {user.role}
-              </div>
-            </CardBody>
-          </Card>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr]">
+        <aside className="space-y-6">
+          <div className="glass-panel rounded-[22px] p-4 text-center">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[20px] border border-white/70 bg-gradient-to-br from-primary/12 to-white text-primary shadow-[0_18px_34px_rgba(99,102,241,0.12)]">
+              <UserIcon className="h-9 w-9" />
+            </div>
+            <h2 className="mt-4 text-xl font-semibold tracking-[-0.03em] text-slate-900">
+              {user.full_name || 'User'}
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">{user.email}</p>
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">
+              <ShieldCheckIcon className="h-4 w-4" />
+              {user.role}
+            </div>
+          </div>
 
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-            <h3 className="text-sm font-bold text-blue-900 flex items-center gap-2 mb-2">
-              <CheckCircleIcon className="w-4 h-4" />
-              Account Security
-            </h3>
-            <p className="text-xs text-blue-800 leading-relaxed">
-              Your password should be strong and unique. We recommend at least 12 characters with a mix of letters, numbers, and symbols.
+          <div className="rounded-[20px] border border-white/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.78),rgba(236,253,245,0.7))] p-4 shadow-[0_14px_26px_rgba(148,163,184,0.1)]">
+            <div className="flex items-center gap-2 text-emerald-700">
+              <CheckCircleIcon className="h-5 w-5" />
+              <p className="text-sm font-semibold uppercase tracking-[0.18em]">Security note</p>
+            </div>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              Use a unique password with a long passphrase pattern. Keep owner and admin access
+              limited to people who actually operate the system.
             </p>
           </div>
-        </div>
+        </aside>
 
-        {/* Forms */}
-        <div className="md:col-span-2 space-y-8">
-          {/* General Info */}
-          <Card>
+        <div className="space-y-6">
+          <Card className="rounded-[22px]">
             <CardHeader>
-              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <UserIcon className="w-5 h-5 text-gray-400" />
-                General Information
-              </h3>
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-sky-600">
+                  <UserIcon className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold tracking-[-0.03em] text-slate-900">
+                    General information
+                  </h3>
+                  <p className="text-sm text-slate-500">Identity and contact details.</p>
+                </div>
+              </div>
             </CardHeader>
             <CardBody>
-              <form onSubmit={handleUpdateProfile} className="space-y-4">
-                <div className="grid grid-cols-1 gap-4">
+              <form onSubmit={handleUpdateProfile} className="space-y-5">
+                <div className="grid grid-cols-1 gap-5">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email Address
-                    </label>
+                    <label className="label mb-2 block">Email address</label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <EnvelopeIcon className="h-5 w-5 text-gray-400" />
+                      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                        <EnvelopeIcon className="h-5 w-5 text-slate-400" />
                       </div>
                       <Input
                         type="email"
                         value={user.email}
                         disabled
-                        className="pl-10 bg-gray-50 cursor-not-allowed"
+                        className="pl-11 text-slate-500"
                       />
                     </div>
-                    <p className="text-[10px] text-gray-400 mt-1">Email cannot be changed contact admin.</p>
+                    <p className="mt-2 text-xs text-slate-400">
+                      Email changes are restricted. Contact an owner or administrator if needed.
+                    </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Full Name
-                    </label>
+                    <label className="label mb-2 block">Full name</label>
                     <Input
                       type="text"
                       placeholder="Enter your full name"
@@ -170,11 +172,11 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-2">
+                <div className="flex justify-end">
                   <Button
                     type="submit"
-                    variant="primary"
                     disabled={isUpdatingProfile || fullName === user.full_name}
+                    className="px-5"
                   >
                     {isUpdatingProfile ? <Spinner size="sm" /> : 'Save Changes'}
                   </Button>
@@ -183,20 +185,24 @@ export default function ProfilePage() {
             </CardBody>
           </Card>
 
-          {/* Change Password */}
-          <Card>
+          <Card className="rounded-[22px]">
             <CardHeader>
-              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <LockClosedIcon className="w-5 h-5 text-gray-400" />
-                Change Password
-              </h3>
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-100 text-violet-600">
+                  <LockClosedIcon className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold tracking-[-0.03em] text-slate-900">
+                    Password
+                  </h3>
+                  <p className="text-sm text-slate-500">Rotate credentials without leaving the app.</p>
+                </div>
+              </div>
             </CardHeader>
             <CardBody>
-              <form onSubmit={handleChangePassword} className="space-y-4">
+              <form onSubmit={handleChangePassword} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Current Password
-                  </label>
+                  <label className="label mb-2 block">Current password</label>
                   <Input
                     type="password"
                     placeholder="••••••••"
@@ -206,11 +212,9 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      New Password
-                    </label>
+                    <label className="label mb-2 block">New password</label>
                     <Input
                       type="password"
                       placeholder="••••••••"
@@ -220,24 +224,27 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Confirm New Password
-                    </label>
+                    <label className="label mb-2 block">Confirm new password</label>
                     <Input
                       type="password"
                       placeholder="••••••••"
                       value={passwordData.confirmPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                      onChange={(e) =>
+                        setPasswordData({ ...passwordData, confirmPassword: e.target.value })
+                      }
                       required
                     />
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-2">
+                <div className="flex justify-end">
                   <Button
                     type="submit"
                     variant="secondary"
-                    disabled={isChangingPassword || !passwordData.oldPassword || !passwordData.newPassword}
+                    disabled={
+                      isChangingPassword || !passwordData.oldPassword || !passwordData.newPassword
+                    }
+                    className="px-5"
                   >
                     {isChangingPassword ? <Spinner size="sm" /> : 'Update Password'}
                   </Button>

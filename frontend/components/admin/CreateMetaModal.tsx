@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { Modal } from '@/components/ui/Modal';
-import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { createMetaOption, getMetaByCategory } from '@/lib/api/meta';
 import { MetaOption } from '@/lib/types/meta';
@@ -110,17 +109,17 @@ export function CreateMetaModal({
     <Modal isOpen={isOpen} onClose={handleClose} title="Add New Option">
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Category Info */}
-        <div className="p-3 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600">
+        <div className="rounded-[18px] border border-slate-200/70 bg-slate-50/70 p-3">
+          <p className="text-sm text-slate-600">
             Adding option to:{' '}
-            <span className="font-semibold text-gray-900">{getCategoryDisplayName(category)}</span>
+            <span className="font-semibold text-slate-900">{getCategoryDisplayName(category)}</span>
           </p>
-          <code className="text-xs text-gray-500">{category}</code>
+          <code className="text-xs text-slate-500">{category}</code>
         </div>
 
         {/* Label Input */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label className="mb-1.5 block text-sm font-medium text-slate-700">
             Display Label <span className="text-red-500">*</span>
           </label>
           <input
@@ -128,16 +127,16 @@ export function CreateMetaModal({
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             placeholder="e.g., Maruti Suzuki, HDFC Bank"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+            className="input"
             required
             autoFocus
           />
-          <p className="text-xs text-gray-500 mt-1">This is what users will see in dropdowns</p>
+          <p className="mt-1 text-xs text-slate-500">This is what users will see in dropdowns</p>
         </div>
 
         {/* Value Input */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label className="mb-1.5 block text-sm font-medium text-slate-700">
             Technical Value <span className="text-red-500">*</span>
           </label>
           <input
@@ -145,10 +144,10 @@ export function CreateMetaModal({
             value={value}
             onChange={(e) => setValue(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
             placeholder="e.g., maruti_suzuki, hdfc_bank"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary font-mono text-sm"
+            className="input font-mono text-sm"
             required
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="mt-1 text-xs text-slate-500">
             Unique identifier used in the database (auto-generated from label)
           </p>
         </div>
@@ -156,13 +155,13 @@ export function CreateMetaModal({
         {/* Parent Value (for dependent categories) */}
         {parentCategory && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">
               Parent ({getCategoryDisplayName(parentCategory)})
             </label>
             <select
               value={parentValue}
               onChange={(e) => setParentValue(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+              className="input"
             >
               <option value="">-- Select Parent (Optional) --</option>
               {parentOptions?.map((opt) => (
@@ -171,18 +170,18 @@ export function CreateMetaModal({
                 </option>
               ))}
             </select>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="mt-1 text-xs text-slate-500">
               This option will only show when the parent is selected
             </p>
           </div>
         )}
 
         {/* Info Box */}
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex gap-3">
-          <InformationCircleIcon className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-800">
+        <div className="flex gap-3 rounded-[18px] border border-sky-200/80 bg-sky-50/70 p-3">
+          <InformationCircleIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-sky-700" />
+          <div className="text-sm text-slate-700">
             <p className="font-medium mb-1">Tips:</p>
-            <ul className="list-disc list-inside space-y-0.5 text-blue-700">
+            <ul className="list-disc list-inside space-y-0.5 text-slate-600">
               <li>Keep values lowercase with underscores</li>
               <li>Labels can have proper casing and spaces</li>
               <li>Values must be unique within the category</li>
@@ -191,7 +190,7 @@ export function CreateMetaModal({
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 justify-end pt-4 border-t border-gray-100">
+        <div className="flex justify-end gap-3 border-t border-white/45 pt-4">
           <Button type="button" variant="ghost" onClick={handleClose}>
             Cancel
           </Button>

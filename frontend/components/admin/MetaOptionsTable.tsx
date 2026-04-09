@@ -117,7 +117,7 @@ export function MetaOptionsTable({ category, options, onUpdate }: MetaOptionsTab
       await reorderMetaOptions(category, reorderedData);
       toast.success('Order updated');
       onUpdate();
-    } catch (error: any) {
+    } catch {
       toast.error('Failed to update order');
       setLocalOptions(options);
     } finally {
@@ -139,7 +139,7 @@ export function MetaOptionsTable({ category, options, onUpdate }: MetaOptionsTab
       await reorderMetaOptions(category, reorderedData);
       toast.success('Sorted A-Z successfully');
       onUpdate();
-    } catch (error: any) {
+    } catch {
       toast.error('Failed to sort');
       setLocalOptions(options);
     }
@@ -147,37 +147,42 @@ export function MetaOptionsTable({ category, options, onUpdate }: MetaOptionsTab
 
   return (
     <>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">Meta Options for "{category}"</h2>
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <p className="section-label">Category</p>
+          <h2 className="mt-2 text-xl font-semibold tracking-[-0.03em] text-slate-900">
+            {category.replace(/_/g, ' ')}
+          </h2>
+        </div>
         <Button onClick={handleSortAZ} variant="secondary" size="sm">
           <ArrowDownIcon className="w-4 h-4 mr-1" />
           Sort A-Z
         </Button>
       </div>
 
-      <div className="overflow-x-auto -mx-6">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="overflow-x-auto">
+        <table className="min-w-full border-separate border-spacing-y-3">
+          <thead className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
             <tr>
-              <th className="w-12 px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"></th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="w-12 px-4 py-3 text-left"></th>
+              <th className="px-6 py-3 text-left">
                 Value
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left">
                 Label
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left">
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left">
                 Parent
               </th>
-              <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-100">
+          <tbody>
             {localOptions.map((option, index) => (
               <tr
                 key={option.id}
@@ -186,26 +191,26 @@ export function MetaOptionsTable({ category, options, onUpdate }: MetaOptionsTab
                 onDragOver={(e) => handleDragOver(e, index)}
                 onDragEnd={handleDragEnd}
                 className={`
-                  hover:bg-gray-50 transition-colors group
-                  ${draggedIndex === index ? 'opacity-50 bg-blue-50' : ''}
-                  ${!option.active ? 'bg-gray-50 opacity-60' : ''}
+                  group transition
+                  ${draggedIndex === index ? 'opacity-50' : ''}
+                  ${!option.active ? 'opacity-60' : ''}
                 `}
               >
-                <td className="px-4 py-4 whitespace-nowrap cursor-move">
-                  <Bars3Icon className="w-5 h-5 text-gray-400 group-hover:text-gray-600" />
+                <td className="cursor-move whitespace-nowrap rounded-l-[18px] border-y border-l border-slate-200/80 bg-[rgba(239,245,253,0.82)] px-4 py-3">
+                  <Bars3Icon className="w-5 h-5 text-slate-400 group-hover:text-slate-600" />
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <code className="text-sm font-mono text-gray-900 bg-gray-100 px-2 py-0.5 rounded">
+                <td className="whitespace-nowrap border-y border-slate-200/80 bg-[rgba(239,245,253,0.82)] px-6 py-3">
+                  <code className="rounded-full bg-slate-100 px-2.5 py-1 text-sm font-mono text-slate-900">
                     {option.value}
                   </code>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="whitespace-nowrap border-y border-slate-200/80 bg-[rgba(239,245,253,0.82)] px-6 py-3 text-sm text-slate-900">
                   {editingId === option.id ? (
                     <input
                       type="text"
                       value={editLabel}
                       onChange={(e) => setEditLabel(e.target.value)}
-                      className="px-2 py-1 border border-primary rounded focus:ring-2 focus:ring-primary w-full max-w-[200px]"
+                      className="input h-10 max-w-[220px] px-3"
                       autoFocus
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') handleSaveEdit(option.id);
@@ -216,7 +221,7 @@ export function MetaOptionsTable({ category, options, onUpdate }: MetaOptionsTab
                     <span className="font-medium">{option.label}</span>
                   )}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="whitespace-nowrap border-y border-slate-200/80 bg-[rgba(239,245,253,0.82)] px-6 py-3">
                   <button onClick={() => handleToggleActive(option)} className="focus:outline-none">
                     <Badge
                       variant={option.active ? 'success' : 'secondary'}
@@ -226,28 +231,28 @@ export function MetaOptionsTable({ category, options, onUpdate }: MetaOptionsTab
                     </Badge>
                   </button>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="whitespace-nowrap border-y border-slate-200/80 bg-[rgba(239,245,253,0.82)] px-6 py-3 text-sm text-slate-500">
                   {option.parent_value ? (
-                    <span className="bg-gray-100 px-2 py-0.5 rounded text-xs font-medium">
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium">
                       {option.parent_value}
                     </span>
                   ) : (
-                    <span className="text-gray-400">—</span>
+                    <span className="text-slate-400">—</span>
                   )}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right">
+                <td className="whitespace-nowrap rounded-r-[18px] border-y border-r border-slate-200/80 bg-[rgba(239,245,253,0.82)] px-6 py-3 text-right">
                   {editingId === option.id ? (
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => handleSaveEdit(option.id)}
-                        className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        className="rounded-full border border-emerald-200 bg-emerald-50/90 p-2 text-emerald-600 transition hover:bg-emerald-100"
                         title="Save"
                       >
                         <CheckIcon className="w-5 h-5" />
                       </button>
                       <button
                         onClick={handleCancelEdit}
-                        className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="rounded-full border border-slate-200 bg-slate-100/90 p-2 text-slate-600 transition hover:bg-slate-200"
                         title="Cancel"
                       >
                         <XMarkIcon className="w-5 h-5" />
@@ -257,14 +262,14 @@ export function MetaOptionsTable({ category, options, onUpdate }: MetaOptionsTab
                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => handleEditClick(option)}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="rounded-full border border-sky-200 bg-sky-50/90 p-2 text-sky-600 transition hover:bg-sky-100"
                         title="Edit"
                       >
                         <PencilIcon className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => setDeleteId(option.id)}
-                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="rounded-full border border-rose-200 bg-rose-50/90 p-2 text-rose-600 transition hover:bg-rose-100"
                         title="Delete"
                       >
                         <TrashIcon className="w-4 h-4" />

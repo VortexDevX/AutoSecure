@@ -65,6 +65,8 @@ export interface Policy {
   hypothecation?: string;
   model_name?: string;
   mfg_date?: string;
+  cubic_capacity?: string;
+  seater_or_str?: string;
   engine_no?: string;
   chassis_no?: string;
   registration_number: string;
@@ -162,6 +164,8 @@ export interface PolicyFormData {
   hypothecation?: string;
   model_name?: string;
   mfg_date?: string;
+  cubic_capacity?: string;
+  seater_or_str?: string;
   engine_no?: string;
   chassis_no?: string;
   registration_number: string;

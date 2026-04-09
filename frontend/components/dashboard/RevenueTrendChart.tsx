@@ -1,6 +1,5 @@
 'use client';
 
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import {
   LineChart,
   Line,
@@ -25,28 +24,11 @@ interface RevenueTrendChartProps {
 }
 
 export function RevenueTrendChart({ data, period }: RevenueTrendChartProps) {
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
-
   if (!data || data.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <h3 className="text-lg font-semibold text-gray-900">Revenue Trends</h3>
-          <p className="text-sm text-gray-600">Premium and commission over time</p>
-        </CardHeader>
-        <CardBody>
-          <div className="flex items-center justify-center h-64 text-gray-500">
-            No revenue data available
-          </div>
-        </CardBody>
-      </Card>
+      <div className="flex h-64 items-center justify-center text-sm text-slate-500">
+        No revenue data available
+      </div>
     );
   }
 
@@ -85,48 +67,42 @@ export function RevenueTrendChart({ data, period }: RevenueTrendChartProps) {
     }));
 
   return (
-    <Card>
-      <CardHeader>
-        <h3 className="text-lg font-semibold text-gray-900">Revenue Trends</h3>
-        <p className="text-sm text-gray-600">Premium and commission over time</p>
-      </CardHeader>
-      <CardBody>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={sortedData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-              <XAxis dataKey="displayDate" fontSize={11} interval="preserveStartEnd" />
-              <YAxis
-                tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`}
-                fontSize={11}
-                width={50}
-              />
+    <div className="min-w-0">
+      <div className="h-64 min-w-0">
+        <ResponsiveContainer width="100%" height={256} minWidth={0}>
+          <LineChart data={sortedData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+            <XAxis dataKey="displayDate" fontSize={11} interval="preserveStartEnd" />
+            <YAxis
+              tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`}
+              fontSize={11}
+              width={50}
+            />
 
-              <Tooltip content={<CustomTooltip period={period} />} />
-              <Legend wrapperStyle={{ fontSize: '12px' }} />
-              <Line
-                type="monotone"
-                dataKey="total_premium"
-                stroke="#3B82F6"
-                strokeWidth={2}
-                name="Premium"
-                dot={{ fill: '#3B82F6', strokeWidth: 2, r: 3 }}
-                activeDot={{ r: 5 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="total_commission"
-                stroke="#10B981"
-                strokeWidth={2}
-                name="Commission"
-                dot={{ fill: '#10B981', strokeWidth: 2, r: 3 }}
-                activeDot={{ r: 5 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </CardBody>
-    </Card>
+            <Tooltip content={<CustomTooltip period={period} />} />
+            <Legend wrapperStyle={{ fontSize: '12px' }} />
+            <Line
+              type="monotone"
+              dataKey="total_premium"
+              stroke="#475569"
+              strokeWidth={2}
+              name="Premium"
+              dot={{ fill: '#475569', strokeWidth: 2, r: 3 }}
+              activeDot={{ r: 5 }}
+            />
+            <Line
+              type="monotone"
+              dataKey="total_commission"
+              stroke="#2563eb"
+              strokeWidth={2}
+              name="Commission"
+              dot={{ fill: '#2563eb', strokeWidth: 2, r: 3 }}
+              activeDot={{ r: 5 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
   );
 }
 
@@ -142,16 +118,15 @@ const formatCurrency = (value: number) => {
 interface CustomTooltipProps {
   active?: boolean;
   payload?: any[];
-  label?: string;
   period: 'daily' | 'monthly' | 'yearly';
 }
 
-const CustomTooltip = ({ active, payload, label, period }: CustomTooltipProps) => {
+const CustomTooltip = ({ active, payload, period }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
-        <p className="font-medium text-gray-900 mb-2">
+      <div className="rounded-[16px] border border-slate-200 bg-[rgba(239,245,253,0.98)] p-3 shadow-[0_16px_30px_rgba(74,96,129,0.12)]">
+        <p className="mb-2 font-medium text-slate-900">
           {period === 'yearly'
             ? data._id.year
             : period === 'monthly'
@@ -165,11 +140,11 @@ const CustomTooltip = ({ active, payload, label, period }: CustomTooltipProps) =
                 )}
         </p>
         <div className="space-y-1">
-          <p className="text-sm text-blue-600">Premium: {formatCurrency(data.total_premium)}</p>
-          <p className="text-sm text-green-600">
+          <p className="text-sm text-slate-700">Premium: {formatCurrency(data.total_premium)}</p>
+          <p className="text-sm text-blue-700">
             Commission: {formatCurrency(data.total_commission)}
           </p>
-          <p className="text-sm text-gray-600">Policies: {data.count}</p>
+          <p className="text-sm text-slate-500">Policies: {data.count}</p>
         </div>
       </div>
     );

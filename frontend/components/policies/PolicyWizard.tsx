@@ -54,15 +54,15 @@ export function PolicyWizard({ currentStep, onStepClick, children }: PolicyWizar
                   className={clsx("relative flex items-start group", onStepClick && "cursor-pointer")}
                   onClick={() => onStepClick && onStepClick(step.id)}
                 >
-                  <span className="h-9 flex items-center">
+                  <span className="flex h-9 items-center">
                     <span
                       className={clsx(
                         'relative z-10 w-8 h-8 flex items-center justify-center rounded-full border-2 transition-all duration-200',
                         currentStep > step.id
-                          ? 'bg-primary border-primary'
+                          ? 'border-slate-800 bg-slate-800'
                           : currentStep === step.id
-                            ? 'bg-primary border-primary shadow-[0_0_0_4px_rgba(var(--color-primary),0.1)]'
-                            : 'bg-white border-slate-300 group-hover:border-slate-400'
+                            ? 'border-slate-800 bg-slate-800 shadow-[0_0_0_4px_rgba(148,163,184,0.12)]'
+                            : 'border-slate-300 bg-[rgba(239,245,253,0.88)] group-hover:border-slate-400'
                       )}
                     >
                       {currentStep > step.id ? (
@@ -76,7 +76,7 @@ export function PolicyWizard({ currentStep, onStepClick, children }: PolicyWizar
                     <span
                       className={clsx(
                         'text-sm font-semibold uppercase tracking-tight transition-colors',
-                        currentStep >= step.id ? 'text-primary' : 'text-slate-500 group-hover:text-slate-700'
+                        currentStep >= step.id ? 'text-slate-900' : 'text-slate-500 group-hover:text-slate-700'
                       )}
                     >
                       {step.title}
@@ -91,8 +91,8 @@ export function PolicyWizard({ currentStep, onStepClick, children }: PolicyWizar
       </div>
 
       {/* Main Form Content */}
-      <div className="flex-1 min-w-0 bg-white rounded-2xl shadow-sm border border-slate-200">
-        <div className="p-6 border-b border-slate-100">
+      <div className="glass-panel-strong flex-1 min-w-0 rounded-[22px]">
+        <div className="border-b border-slate-200/80 p-6">
           <h2 className="text-xl font-bold text-slate-900">{steps[currentStep - 1]?.title}</h2>
           <p className="text-sm text-slate-500 mt-1">{steps[currentStep - 1]?.description}</p>
         </div>

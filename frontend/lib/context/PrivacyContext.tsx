@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
 
 interface PrivacyContextType {
@@ -11,20 +11,34 @@ interface PrivacyContextType {
 }
 
 const PrivacyContext = createContext<PrivacyContextType | undefined>(undefined);
+const DEFAULT_PRIVACY_MODE = false;
 
 export function PrivacyProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, authSessionVersion } = useAuth();
   const isOwner = user?.role === 'owner';
   const isAdmin = user?.role === 'admin';
   const isPrivileged = isOwner || isAdmin;
+  const privacySessionKey = `${authSessionVersion}:${user?.email || 'guest'}:${
+    isPrivileged ? 'privileged' : 'restricted'
+  }`;
 
   // Non-privileged users are always in privacy mode
-  const [ownerPrivacyMode, setOwnerPrivacyMode] = useState(false);
+  const [ownerPrivacyState, setOwnerPrivacyState] = useState({
+    sessionKey: '',
+    value: DEFAULT_PRIVACY_MODE,
+  });
+  const ownerPrivacyMode =
+    ownerPrivacyState.sessionKey === privacySessionKey
+      ? ownerPrivacyState.value
+      : DEFAULT_PRIVACY_MODE;
   const isPrivacyMode = isPrivileged ? ownerPrivacyMode : true;
 
   const togglePrivacyMode = () => {
     if (isPrivileged) {
-      setOwnerPrivacyMode((prev) => !prev);
+      setOwnerPrivacyState({
+        sessionKey: privacySessionKey,
+        value: !ownerPrivacyMode,
+      });
     }
     // Regular users can't toggle
   };

@@ -58,6 +58,8 @@ export interface IPolicy extends Document {
   hypothecation?: string;
   model_name?: string;
   mfg_date?: string;
+  cubic_capacity?: string;
+  seater_or_str?: string;
   engine_no?: string;
   chassis_no?: string;
   registration_number: string;
@@ -189,6 +191,8 @@ const PolicySchema = new Schema<IPolicy>(
     hypothecation: { type: String, maxlength: 200 },
     model_name: { type: String, maxlength: 100 },
     mfg_date: { type: String, maxlength: 20 },
+    cubic_capacity: { type: String, maxlength: 50 },
+    seater_or_str: { type: String, maxlength: 50 },
     engine_no: { type: String, trim: true, uppercase: true, maxlength: 50 },
     chassis_no: { type: String, trim: true, uppercase: true, maxlength: 50 },
     registration_number: {

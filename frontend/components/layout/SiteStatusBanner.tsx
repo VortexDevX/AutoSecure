@@ -31,8 +31,10 @@ export function SiteStatusBanner() {
   }
 
   return (
-    <div className="bg-danger text-white text-center py-2 font-bold text-sm">
-      🚫 {settings.maintenance_message || 'Site is currently DISABLED'}
+    <div className="px-3 pt-3 sm:px-4 lg:px-8">
+      <div className="glass-panel flex items-center justify-center rounded-[24px] border border-danger/20 bg-danger-50/70 px-4 py-3 text-center text-sm font-medium text-danger-700">
+        {settings.maintenance_message || 'Site is currently DISABLED'}
+      </div>
     </div>
   );
 }

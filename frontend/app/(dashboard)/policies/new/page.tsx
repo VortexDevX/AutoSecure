@@ -162,7 +162,7 @@ function NewPolicyFormContent() {
       }
 
       // Submit to backend
-      const response = await apiClient.post('/api/v1/policies', submitData, {
+      await apiClient.post('/api/v1/policies', submitData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -200,17 +200,18 @@ function NewPolicyFormContent() {
   };
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Create New Policy</h1>
-        <p className="text-gray-600 mt-1">Step {currentStep} of 6</p>
+    <div className="space-y-5">
+      <div className="glass-panel-strong rounded-[22px] px-5 py-4">
+        <p className="section-label">Policies</p>
+        <h1 className="mt-2 text-3xl font-bold text-slate-900">Create New Policy</h1>
+        <p className="mt-1 text-slate-600">Step {currentStep} of 6</p>
       </div>
 
       <PolicyWizard currentStep={currentStep} onStepClick={setCurrentStep}>
         {renderStep()}
 
         {/* Navigation Buttons */}
-        <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
+        <div className="mt-8 flex items-center justify-between border-t border-stone-200/80 pt-6">
           <Button variant="ghost" onClick={handlePrevious} disabled={currentStep === 1}>
             ← Previous
           </Button>

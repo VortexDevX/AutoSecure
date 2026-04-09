@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import clsx from 'clsx';
 
 type BadgeVariant = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info';
 
@@ -20,19 +21,19 @@ export function Badge({
   dot = false,
 }: BadgeProps) {
   const variantClasses = {
-    default: 'bg-gray-100 text-gray-800 border-gray-200',
-    primary: 'bg-blue-100 text-blue-800 border-blue-200',
-    secondary: 'bg-gray-100 text-gray-700 border-gray-300',
-    success: 'bg-green-100 text-green-800 border-green-200',
-    warning: 'bg-amber-100 text-amber-800 border-amber-200',
-    danger: 'bg-red-100 text-red-800 border-red-200',
-    info: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+    default: 'border-slate-200/70 bg-white/70 text-slate-700',
+    primary: 'border-primary/20 bg-primary/10 text-primary-700',
+    secondary: 'border-slate-200/70 bg-slate-100/80 text-slate-600',
+    success: 'border-emerald-200/60 bg-emerald-50/80 text-emerald-700',
+    warning: 'border-amber-200/70 bg-amber-50/85 text-amber-700',
+    danger: 'border-rose-200/70 bg-rose-50/85 text-rose-700',
+    info: 'border-cyan-200/60 bg-cyan-50/80 text-cyan-700',
   };
 
   const sizeClasses = {
-    sm: 'text-xs px-2 py-0.5',
-    md: 'text-sm px-2.5 py-1',
-    lg: 'text-base px-3 py-1.5',
+    sm: 'px-2.5 py-1 text-[10px] tracking-[0.18em]',
+    md: 'px-3 py-1.5 text-[11px] tracking-[0.16em]',
+    lg: 'px-3.5 py-1.5 text-xs tracking-[0.14em]',
   };
 
   const dotColors = {
@@ -47,13 +48,12 @@ export function Badge({
 
   return (
     <span
-      className={`
-        inline-flex items-center gap-1.5
-        font-medium rounded-full border
-        ${variantClasses[variant]}
-        ${sizeClasses[size]}
-        ${className}
-      `}
+      className={clsx(
+        'inline-flex items-center gap-1.5 rounded-full border font-semibold uppercase backdrop-blur-sm',
+        variantClasses[variant],
+        sizeClasses[size],
+        className
+      )}
     >
       {dot && (
         <span className={`w-1.5 h-1.5 rounded-full ${dotColors[variant]}`} aria-hidden="true" />

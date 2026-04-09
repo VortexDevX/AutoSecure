@@ -1,12 +1,16 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Outfit } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/lib/context/AuthContext';
 import { NavigationProvider } from '@/lib/context/NavigationContext';
 import { PrivacyProvider } from '@/lib/context/PrivacyContext';
 import { Toaster } from 'react-hot-toast';
 
-const inter = Inter({ subsets: ['latin'] });
+const outfit = Outfit({
+  subsets: ['latin'],
+  variable: '--font-outfit',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'AutoSecure - Insurance Management',
@@ -20,12 +24,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={outfit.className}>
         <NavigationProvider>
           <AuthProvider>
             <PrivacyProvider>
               {children}
-              <Toaster position="top-right" />
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  className: 'glass-panel !rounded-[22px] !px-4 !py-3 !text-sm !text-slate-800',
+                }}
+              />
             </PrivacyProvider>
           </AuthProvider>
         </NavigationProvider>

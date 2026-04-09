@@ -314,11 +314,11 @@ export function LicenseForm({ initialData, onSubmit, isEdit = false }: LicenseFo
             />
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="mb-1 block text-sm font-medium text-slate-700">
                 Customer Address
               </label>
               <textarea
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary uppercase"
+                className="input min-h-[88px] resize-y uppercase"
                 rows={3}
                 placeholder="Enter complete address"
                 {...register('customer_address')}
@@ -409,16 +409,16 @@ export function LicenseForm({ initialData, onSubmit, isEdit = false }: LicenseFo
           </div>
 
           {/* Profit Display */}
-          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+          <div className="mt-4 rounded-[18px] border border-slate-200/70 bg-slate-50/70 p-4">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 font-medium">Calculated Profit:</span>
+              <span className="font-medium text-slate-600">Calculated Profit:</span>
               <span
                 className={`text-xl font-bold ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}
               >
                 ₹{profit.toLocaleString('en-IN')}
               </span>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="mt-1 text-xs text-slate-500">
               Profit = Customer Payment - Fee - Agent Fee
             </p>
           </div>
@@ -437,18 +437,18 @@ export function LicenseForm({ initialData, onSubmit, isEdit = false }: LicenseFo
           {/* Existing Documents */}
           {existingDocs.length > 0 && (
             <div className="mb-4">
-              <p className="text-sm font-medium text-gray-700 mb-2">Existing Documents</p>
+              <p className="mb-2 text-sm font-medium text-slate-700">Existing Documents</p>
               <div className="space-y-2">
                 {existingDocs.map((doc) => (
                   <div
                     key={doc.file_id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    className="flex items-center justify-between rounded-[16px] bg-slate-50/70 p-3"
                   >
                     <div className="flex items-center gap-3 flex-1">
-                      <DocumentIcon className="w-5 h-5 text-gray-400" />
+                      <DocumentIcon className="w-5 h-5 text-slate-400" />
                       <div className="flex-1">
                         <p className="text-sm font-medium">{doc.label || doc.file_name}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-slate-500">
                           {doc.original_name || doc.file_name}
                         </p>
                       </div>
@@ -464,7 +464,7 @@ export function LicenseForm({ initialData, onSubmit, isEdit = false }: LicenseFo
                     <button
                       type="button"
                       onClick={() => removeExistingDoc(doc.file_id)}
-                      className="p-1 text-red-500 hover:bg-red-50 rounded ml-2"
+                      className="ml-2 rounded p-1 text-red-500 hover:bg-red-50"
                     >
                       <XMarkIcon className="w-5 h-5" />
                     </button>
@@ -477,10 +477,10 @@ export function LicenseForm({ initialData, onSubmit, isEdit = false }: LicenseFo
           {/* New Documents with Labels */}
           {newDocs.length > 0 && (
             <div className="mb-4">
-              <p className="text-sm font-medium text-gray-700 mb-2">New Documents</p>
+              <p className="mb-2 text-sm font-medium text-slate-700">New Documents</p>
               <div className="space-y-2">
                 {newDocs.map((doc, index) => (
-                  <div key={index} className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                  <div key={index} className="flex items-center gap-3 rounded-[16px] border border-sky-200/70 bg-sky-50/60 p-3">
                     <DocumentIcon className="w-5 h-5 text-blue-400 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <input
@@ -488,9 +488,9 @@ export function LicenseForm({ initialData, onSubmit, isEdit = false }: LicenseFo
                         value={doc.label}
                         onChange={(e) => updateDocLabel(index, e.target.value)}
                         placeholder="Document label"
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:border-primary uppercase"
+                        className="input py-1 text-sm uppercase"
                       />
-                      <p className="text-xs text-gray-500 mt-1 truncate">{doc.file.name}</p>
+                      <p className="mt-1 truncate text-xs text-slate-500">{doc.file.name}</p>
                     </div>
                     <button
                       type="button"
@@ -508,12 +508,12 @@ export function LicenseForm({ initialData, onSubmit, isEdit = false }: LicenseFo
           {/* Upload Area */}
           {canAddMoreDocs ? (
             <label className="block cursor-pointer">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors">
-                <CloudArrowUpIcon className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-                <p className="text-sm text-gray-600">
+              <div className="rounded-[18px] border-2 border-dashed border-slate-300 bg-slate-50/50 p-6 text-center transition-colors hover:border-primary">
+                <CloudArrowUpIcon className="mx-auto mb-3 h-10 w-10 text-slate-400" />
+                <p className="text-sm text-slate-600">
                   <span className="text-primary font-medium">Click to upload</span> or drag and drop
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="mt-1 text-xs text-slate-500">
                   PDF, JPG, PNG (max 10MB each) - {3 - totalDocs} remaining
                 </p>
               </div>
@@ -526,7 +526,7 @@ export function LicenseForm({ initialData, onSubmit, isEdit = false }: LicenseFo
               />
             </label>
           ) : (
-            <p className="text-sm text-gray-500 text-center py-4">
+            <p className="py-4 text-center text-sm text-slate-500">
               Maximum 3 documents reached. Remove existing documents to add new ones.
             </p>
           )}

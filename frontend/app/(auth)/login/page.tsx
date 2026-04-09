@@ -88,7 +88,13 @@ export default function LoginPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Sign In</h2>
+      <p className="section-label mb-3">Authentication</p>
+      <h2 className="mb-2 text-3xl font-semibold tracking-[-0.05em] text-slate-900">
+        Sign in
+      </h2>
+      <p className="mb-8 text-sm leading-7 text-slate-500">
+        Enter your account credentials to continue.
+      </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
@@ -125,7 +131,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-700"
               tabIndex={-1}
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
@@ -144,7 +150,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={handleForgotPassword}
-            className="text-sm text-primary-600 hover:text-primary-700 hover:underline transition-colors"
+            className="text-sm font-medium text-primary-600 transition hover:text-primary-700"
           >
             Forgot Password?
           </button>
@@ -152,7 +158,7 @@ export default function LoginPage() {
 
         {/* Error Alert Box */}
         {errors.password && (
-          <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <div className="glass-panel flex items-start gap-2 rounded-[22px] border border-danger/20 bg-danger-50/70 p-4">
             <ExclamationCircleIcon className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-red-800">
               <p className="font-medium">{errors.password}</p>
@@ -166,7 +172,7 @@ export default function LoginPage() {
         <Button
           type="submit"
           variant="primary"
-          className="w-full"
+          className="w-full justify-center"
           isLoading={isLoading}
           disabled={isLoading}
         >

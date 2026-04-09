@@ -33,13 +33,13 @@ export function Step6ReviewSubmit() {
   };
 
   const renderStatus = (value: string | undefined, type: 'payment' | 'policy' = 'payment') => {
-    if (!value) return <span className="text-gray-400">-</span>;
+    if (!value) return <span className="text-slate-400">-</span>;
     const isPositive = type === 'payment' ? value === 'done' : value === 'policy_done';
     return (
       <span
         className={`
         inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium
-        ${isPositive ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}
+        ${isPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}
       `}
       >
         {isPositive ? (
@@ -57,8 +57,8 @@ export function Step6ReviewSubmit() {
       {/* Company Payment Section */}
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <BuildingOfficeIcon className="w-5 h-5 text-gray-600" />
-          <h3 className="text-lg font-semibold text-gray-900">Company Payment Details</h3>
+          <BuildingOfficeIcon className="w-5 h-5 text-slate-600" />
+          <h3 className="text-lg font-semibold text-slate-900">Company Payment Details</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -125,14 +125,14 @@ export function Step6ReviewSubmit() {
       </div>
 
       {/* Review Summary */}
-      <div className="border-t border-gray-200 pt-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-6">Review Summary</h3>
+      <div className="border-t border-slate-200/70 pt-6">
+        <h3 className="mb-6 text-lg font-semibold text-slate-900">Review Summary</h3>
 
         <div className="space-y-6">
           {/* Row 1: Policy & Customer Info */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Policy Information */}
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-5">
+            <div className="rounded-[20px] border border-sky-200/80 bg-sky-50/65 p-5">
               <div className="flex items-center gap-2 mb-4">
                 <DocumentTextIcon className="w-5 h-5 text-blue-600" />
                 <h4 className="font-semibold text-blue-900">Policy Information</h4>
@@ -180,7 +180,7 @@ export function Step6ReviewSubmit() {
             </div>
 
             {/* Customer Information */}
-            <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-5">
+            <div className="rounded-[20px] border border-emerald-200/80 bg-emerald-50/65 p-5">
               <div className="flex items-center gap-2 mb-4">
                 <UserIcon className="w-5 h-5 text-green-600" />
                 <h4 className="font-semibold text-green-900">Customer Information</h4>
@@ -229,7 +229,7 @@ export function Step6ReviewSubmit() {
           {/* Row 2: Vehicle & Financial Info */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Vehicle Information */}
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-5">
+            <div className="rounded-[20px] border border-indigo-200/80 bg-indigo-50/60 p-5">
               <div className="flex items-center gap-2 mb-4">
                 <TruckIcon className="w-5 h-5 text-purple-600" />
                 <h4 className="font-semibold text-purple-900">Vehicle Information</h4>
@@ -262,6 +262,18 @@ export function Step6ReviewSubmit() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-purple-200/50">
+                  <span className="text-sm text-purple-700">Cubic Capacity</span>
+                  <span className="font-medium text-purple-900">
+                    {renderValue(formData.cubic_capacity)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-purple-200/50">
+                  <span className="text-sm text-purple-700">Seater / STR</span>
+                  <span className="font-medium text-purple-900">
+                    {renderValue(formData.seater_or_str)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-purple-200/50">
                   <span className="text-sm text-purple-700">Engine No.</span>
                   <span className="font-mono text-sm text-purple-900">
                     {renderValue(formData.engine_no)}
@@ -277,7 +289,7 @@ export function Step6ReviewSubmit() {
             </div>
 
             {/* Financial Summary */}
-            <div className="bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 rounded-xl p-5">
+            <div className="rounded-[20px] border border-slate-200/80 bg-slate-50/70 p-5">
               <div className="flex items-center gap-2 mb-4">
                 <CurrencyRupeeIcon className="w-5 h-5 text-amber-600" />
                 <h4 className="font-semibold text-amber-900">Financial Summary</h4>
@@ -328,7 +340,7 @@ export function Step6ReviewSubmit() {
           {/* Row 3: Previous Policy (if exists) */}
           {formData.has_previous_policy &&
             (formData.previous_policy_no || formData.previous_policy_company) && (
-              <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 rounded-xl p-5">
+          <div className="rounded-[20px] border border-blue-200/80 bg-blue-50/60 p-5">
                 <div className="flex items-center gap-2 mb-4">
                   <DocumentDuplicateIcon className="w-5 h-5 text-indigo-600" />
                   <h4 className="font-semibold text-indigo-900">Previous Policy Details</h4>
@@ -371,13 +383,13 @@ export function Step6ReviewSubmit() {
             )}
 
           {/* Documents Summary */}
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
-            <h4 className="font-semibold text-gray-900 mb-4">Documents Attached</h4>
+          <div className="rounded-[20px] border border-slate-200/80 bg-slate-50/70 p-5">
+            <h4 className="mb-4 font-semibold text-slate-900">Documents Attached</h4>
             <div className="flex flex-wrap gap-4">
               <div
                 className={`
                 flex items-center gap-2 px-3 py-2 rounded-lg
-                ${formData.adh_file ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}
+                ${formData.adh_file ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}
               `}
               >
                 {formData.adh_file ? (
@@ -390,7 +402,7 @@ export function Step6ReviewSubmit() {
               <div
                 className={`
                 flex items-center gap-2 px-3 py-2 rounded-lg
-                ${formData.pan_file ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}
+                ${formData.pan_file ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}
               `}
               >
                 {formData.pan_file ? (
@@ -412,9 +424,9 @@ export function Step6ReviewSubmit() {
           </div>
 
           {/* Info Banner */}
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-900">
-              <strong>📝 Note:</strong> Serial number will be auto-generated when you submit this
+          <div className="rounded-[18px] border border-sky-200/80 bg-sky-50/70 p-4">
+            <p className="text-sm text-slate-700">
+              <strong>Note:</strong> Serial number will be auto-generated when you submit this
               policy (format: AS20250001). Please review all details before submitting.
             </p>
           </div>

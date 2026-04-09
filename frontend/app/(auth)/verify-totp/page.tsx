@@ -68,28 +68,29 @@ export default function VerifyTOTPPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">
-        Two-Factor Authentication
+      <p className="section-label mb-3">Secure Access</p>
+      <h2 className="mb-2 text-3xl font-semibold tracking-[-0.05em] text-slate-900">
+        Two-factor authentication
       </h2>
-      <p className="text-gray-600 text-center mb-6">
+      <p className="mb-8 text-sm leading-7 text-slate-500">
         {qrCode
           ? 'Scan QR code with Google Authenticator'
           : 'Enter the 6-digit code from your authenticator app'}
       </p>
 
       {qrCode && (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-sm text-gray-700 mb-3 text-center font-medium">First Time Setup</p>
+        <div className="glass-panel mb-6 rounded-[26px] p-5">
+          <p className="mb-3 text-center text-sm font-medium text-slate-700">First Time Setup</p>
           <div className="flex justify-center mb-3">
             <Image
               src={qrCode}
               alt="TOTP QR Code"
               width={200}
               height={200}
-              className="border-4 border-white shadow-md rounded-lg"
+              className="rounded-[20px] border-4 border-white shadow-[0_20px_45px_rgba(148,163,184,0.18)]"
             />
           </div>
-          <p className="text-xs text-gray-500 text-center">
+          <p className="text-center text-xs text-slate-500">
             Scan this QR code with Google Authenticator or Authy
           </p>
         </div>
@@ -111,18 +112,18 @@ export default function VerifyTOTPPage() {
           className="text-center text-2xl tracking-widest font-mono"
         />
 
-        <Button type="submit" variant="primary" className="w-full" isLoading={isLoading}>
+        <Button type="submit" variant="primary" className="w-full justify-center" isLoading={isLoading}>
           {isLoading ? 'Verifying...' : 'Verify Code'}
         </Button>
 
-        <Button type="button" variant="ghost" className="w-full" onClick={handleBack}>
+        <Button type="button" variant="ghost" className="w-full justify-center" onClick={handleBack}>
           ← Back to Login
         </Button>
       </form>
 
-      <div className="mt-6 p-4 bg-accent-50 rounded-lg border border-accent-200">
+      <div className="glass-panel mt-6 rounded-[24px] border border-accent/20 bg-accent-50/70 p-4">
         <p className="text-sm text-accent-900">
-          <strong>📱 Note:</strong> Enter the 6-digit code from your authenticator app.
+          <strong>Note:</strong> Enter the 6-digit code from your authenticator app.
           {qrCode && ' After scanning the QR code, the app will generate a code.'}
         </p>
       </div>

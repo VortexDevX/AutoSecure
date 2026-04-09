@@ -10,8 +10,6 @@ import {
   PlusIcon,
   TrashIcon,
   CheckIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
 } from '@heroicons/react/24/outline';
 import { SingleDatePicker } from '@/components/ui/DatePicker';
 
@@ -114,7 +112,7 @@ export function Step4PremiumDetails() {
     <div className="space-y-8">
       {/* Premium Details */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Premium Details</h3>
+        <h3 className="mb-4 text-lg font-semibold text-slate-900">Premium Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Input
             label="Sum Insured"
@@ -215,13 +213,13 @@ export function Step4PremiumDetails() {
       </div>
 
       {/* Add-on Coverage Checkbox Grid */}
-      <div className="border-t border-gray-200 pt-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Add-on Coverage (Optional)</h3>
+      <div className="border-t border-slate-200/70 pt-6">
+        <h3 className="mb-4 text-lg font-semibold text-slate-900">Add-on Coverage (Optional)</h3>
 
         {isLoading ? (
-          <div className="text-gray-500">Loading add-on options...</div>
+          <div className="text-slate-500">Loading add-on options...</div>
         ) : addonCoverageOptions.length === 0 ? (
-          <div className="text-gray-500">
+          <div className="text-slate-500">
             No add-on coverage options available. Add them in Meta Management.
           </div>
         ) : (
@@ -236,20 +234,20 @@ export function Step4PremiumDetails() {
                     ${
                       isSelected
                         ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                        : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+                        : 'border-slate-200 bg-slate-50/70 hover:border-slate-300 hover:bg-slate-50'
                     }
                   `}
                 >
                   <div
                     className={`
                       w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-colors
-                      ${isSelected ? 'bg-primary text-white' : 'border-2 border-gray-300 bg-white'}
+                      ${isSelected ? 'bg-primary text-white' : 'border-2 border-slate-300 bg-white/90'}
                     `}
                   >
                     {isSelected && <CheckIcon className="w-3.5 h-3.5" />}
                   </div>
                   <span
-                    className={`text-sm ${isSelected ? 'font-medium text-gray-900' : 'text-gray-700'}`}
+                    className={`text-sm ${isSelected ? 'font-medium text-slate-900' : 'text-slate-700'}`}
                   >
                     {addon.label}
                   </span>
@@ -267,7 +265,7 @@ export function Step4PremiumDetails() {
 
         {/* Selected count */}
         {formData.addon_coverage && formData.addon_coverage.length > 0 && (
-          <div className="mt-4 text-sm text-gray-600">
+          <div className="mt-4 text-sm text-slate-600">
             <span className="font-medium text-primary">{formData.addon_coverage.length}</span>{' '}
             add-on(s) selected
           </div>
@@ -275,9 +273,9 @@ export function Step4PremiumDetails() {
       </div>
 
       {/* ✅ UPDATED: Previous Policy Details with Toggle */}
-      <div className="border-t border-gray-200 pt-6">
+      <div className="border-t border-slate-200/70 pt-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Previous Policy Details</h3>
+          <h3 className="text-lg font-semibold text-slate-900">Previous Policy Details</h3>
         </div>
 
         {/* Toggle Question */}
@@ -293,7 +291,7 @@ export function Step4PremiumDetails() {
                 onChange={() => handlePreviousPolicyToggle(true)}
                 className="w-4 h-4 text-primary focus:ring-primary"
               />
-              <span className="text-sm text-gray-700">Yes</span>
+              <span className="text-sm text-slate-700">Yes</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -304,14 +302,14 @@ export function Step4PremiumDetails() {
                 onChange={() => handlePreviousPolicyToggle(false)}
                 className="w-4 h-4 text-primary focus:ring-primary"
               />
-              <span className="text-sm text-gray-700">No</span>
+              <span className="text-sm text-slate-700">No</span>
             </label>
           </div>
         </div>
 
         {/* Collapsible Previous Policy Section */}
         {showPreviousPolicy && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
+          <div className="animate-in slide-in-from-top-2 space-y-4 rounded-[18px] border border-slate-200/70 bg-slate-50/70 p-4 duration-200">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input
                 label="Previous Policy Number"
@@ -374,7 +372,7 @@ export function Step4PremiumDetails() {
                       onChange={() => updateFormData({ previous_policy_claim: 'yes' })}
                       className="w-4 h-4 text-primary focus:ring-primary"
                     />
-                    <span className="text-sm text-gray-700">Yes</span>
+                    <span className="text-sm text-slate-700">Yes</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -385,7 +383,7 @@ export function Step4PremiumDetails() {
                       onChange={() => updateFormData({ previous_policy_claim: 'no' })}
                       className="w-4 h-4 text-primary focus:ring-primary"
                     />
-                    <span className="text-sm text-gray-700">No</span>
+                    <span className="text-sm text-slate-700">No</span>
                   </label>
                 </div>
               </div>
@@ -395,16 +393,16 @@ export function Step4PremiumDetails() {
       </div>
 
       {/* Other Documents Section */}
-      <div className="border-t border-gray-200 pt-6">
+      <div className="border-t border-slate-200/70 pt-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Other Documents (Optional)</h3>
-          <span className="text-sm text-gray-500">
+          <h3 className="text-lg font-semibold text-slate-900">Other Documents (Optional)</h3>
+          <span className="text-sm text-slate-500">
             {formData.other_documents?.length || 0}/5 uploaded
           </span>
         </div>
 
         {/* Add Document Form */}
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+        <div className="mb-4 rounded-[18px] border border-slate-200/70 bg-slate-50/70 p-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input
               label="Document Label"
@@ -416,8 +414,8 @@ export function Step4PremiumDetails() {
 
             <div>
               <label className="label">Select File</label>
-              <label className="flex items-center justify-center w-full h-10 px-4 bg-white border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                <span className="text-sm text-gray-600 truncate">
+              <label className="flex h-10 w-full cursor-pointer items-center justify-center rounded-[16px] border border-slate-300 bg-white/85 px-4 hover:bg-slate-50">
+                <span className="truncate text-sm text-slate-600">
                   {docFile ? docFile.name : 'Choose file'}
                 </span>
                 <input
@@ -451,13 +449,13 @@ export function Step4PremiumDetails() {
             {formData.other_documents.map((doc, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-3"
+                className="flex items-center justify-between rounded-[16px] border border-slate-200/70 bg-white/85 p-3"
               >
                 <div className="flex items-center gap-3">
                   <DocumentIcon className="w-8 h-8 text-primary flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-900">{doc.label}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="font-medium text-slate-900">{doc.label}</p>
+                    <p className="text-sm text-slate-500">
                       {doc.file.name} ({(doc.file.size / 1024 / 1024).toFixed(2)} MB)
                     </p>
                   </div>
@@ -473,10 +471,10 @@ export function Step4PremiumDetails() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-            <DocumentIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-            <p className="text-gray-500 text-sm">No additional documents added</p>
-            <p className="text-gray-400 text-xs mt-1">
+          <div className="rounded-[18px] border-2 border-dashed border-slate-300 bg-slate-50/70 py-8 text-center">
+            <DocumentIcon className="mx-auto mb-2 h-12 w-12 text-slate-400" />
+            <p className="text-sm text-slate-500">No additional documents added</p>
+            <p className="mt-1 text-xs text-slate-400">
               You can add up to 5 documents (RC Book, Fitness Certificate, etc.)
             </p>
           </div>

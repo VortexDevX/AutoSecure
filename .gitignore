@@ -43,4 +43,4 @@ coverage/
 .vercel
 .railway
 
-security_audit.md
+.agents/

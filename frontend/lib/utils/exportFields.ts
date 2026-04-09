@@ -38,6 +38,8 @@ export const EXPORT_FIELD_CATEGORIES: FieldCategory[] = [
       { key: 'manufacturer', label: 'Manufacturer', category: 'vehicle' },
       { key: 'model_name', label: 'Model Name', category: 'vehicle' },
       { key: 'fuel_type', label: 'Fuel Type', category: 'vehicle' },
+      { key: 'cubic_capacity', label: 'Cubic Capacity', category: 'vehicle' },
+      { key: 'seater_or_str', label: 'Seater / STR', category: 'vehicle' },
       { key: 'engine_no', label: 'Engine Number', category: 'vehicle' },
       { key: 'chassis_no', label: 'Chassis Number', category: 'vehicle' },
       { key: 'registration_number', label: 'Registration Number', category: 'vehicle' },

@@ -97,23 +97,24 @@ export default function ForgotPasswordPage() {
       <button
         type="button"
         onClick={() => router.push(ROUTES.LOGIN)}
-        className="flex items-center text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors"
+        className="mb-8 flex items-center text-sm font-medium text-slate-500 transition hover:text-slate-900"
       >
         <ArrowLeftIcon className="w-4 h-4 mr-1" />
         Back to Login
       </button>
-      
-      <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">
-        {step === 'request' ? 'Forgot Password' : 'Reset Password'}
+
+      <p className="section-label mb-3">Account Recovery</p>
+      <h2 className="mb-2 text-3xl font-semibold tracking-[-0.05em] text-slate-900">
+        {step === 'request' ? 'Forgot password' : 'Reset password'}
       </h2>
-      <p className="text-sm text-gray-500 text-center mb-6">
+      <p className="mb-8 text-sm leading-7 text-slate-500">
         {step === 'request' 
           ? 'Enter your email address and we will send you a verification code.' 
           : 'Enter the 6-digit verification code sent to your email and choose a new password.'}
       </p>
 
       {error && (
-        <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg mb-4">
+        <div className="glass-panel mb-5 flex items-start gap-2 rounded-[22px] border border-danger/20 bg-danger-50/70 p-4">
           <ExclamationCircleIcon className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-red-800 font-medium">{error}</div>
         </div>
@@ -137,7 +138,7 @@ export default function ForgotPasswordPage() {
           <Button
             type="submit"
             variant="primary"
-            className="w-full"
+            className="w-full justify-center"
             isLoading={isLoading}
             disabled={isLoading}
           >
@@ -189,7 +190,7 @@ export default function ForgotPasswordPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700"
                 tabIndex={-1}
               >
                 {showPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
@@ -216,19 +217,19 @@ export default function ForgotPasswordPage() {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700"
                 tabIndex={-1}
               >
                 {showConfirmPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-2">Password must be at least 10 characters long.</p>
+            <p className="mt-2 text-xs text-slate-500">Password must be at least 10 characters long.</p>
           </div>
 
           <Button
             type="submit"
             variant="primary"
-            className="w-full mt-6"
+            className="mt-6 w-full justify-center"
             isLoading={isLoading}
             disabled={isLoading || !otp || !newPassword || !confirmPassword || newPassword !== confirmPassword}
           >

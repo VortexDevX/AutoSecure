@@ -1,4 +1,5 @@
 import { InputHTMLAttributes, forwardRef } from 'react';
+import clsx from 'clsx';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -21,17 +22,26 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
     return (
       <div className="w-full">
-        {label && <label className={`label ${required ? 'label-required' : ''}`}>{label}</label>}
+        {label && (
+          <label className={clsx('label', required && 'label-required')}>
+            {label}
+          </label>
+        )}
         <input
           ref={ref}
           type={type}
           onChange={handleChange}
           required={required}
-          className={`input ${error ? 'input-error' : ''} ${className}`}
+          className={clsx(
+            'input',
+            error && 'input-error',
+            'placeholder:tracking-[0.01em]',
+            className
+          )}
           suppressHydrationWarning
           {...restProps}
         />
-        {helpText && !error && <p className="text-xs text-gray-500 mt-1">{helpText}</p>}
+        {helpText && !error && <p className="mt-2 text-xs text-slate-500">{helpText}</p>}
         {error && <p className="error-message">{error}</p>}
       </div>
     );

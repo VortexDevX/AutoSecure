@@ -37,19 +37,19 @@ export function Pagination({
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   return (
-    <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-b-lg">
+    <div className="flex items-center justify-between rounded-[18px] border border-slate-200/80 bg-[rgba(239,245,253,0.82)] px-4 py-3 sm:px-6">
       <div className="flex-1 flex justify-between sm:hidden">
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="btn-secondary"
+          className="btn btn-secondary"
         >
           Previous
         </button>
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="btn-secondary ml-3"
+          className="btn btn-secondary ml-3"
         >
           Next
         </button>
@@ -57,7 +57,7 @@ export function Pagination({
 
       <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <p className="text-sm text-gray-700">
+          <p className="text-sm text-slate-700">
             Showing <span className="font-medium">{startItem}</span> to{' '}
             <span className="font-medium">{endItem}</span> of{' '}
             <span className="font-medium">{totalItems}</span> results
@@ -66,7 +66,7 @@ export function Pagination({
           <select
             value={itemsPerPage}
             onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-            className="text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
+            className="input h-10 w-auto min-w-[132px] py-0 text-sm"
           >
             <option value={10}>10 per page</option>
             <option value={25}>25 per page</option>
@@ -77,17 +77,17 @@ export function Pagination({
 
         <div>
           <nav
-            className="relative z-0 inline-flex rounded-lg shadow-sm -space-x-px"
+            className="relative z-0 inline-flex -space-x-px rounded-[14px] shadow-sm"
             aria-label="Pagination"
           >
             <button
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
               className={clsx(
-                'relative inline-flex items-center px-2 py-2 rounded-l-lg border border-gray-300 bg-white text-sm font-medium',
+                'relative inline-flex items-center rounded-l-[14px] border border-slate-200 bg-[rgba(239,245,253,0.9)] px-2 py-2 text-sm font-medium',
                 currentPage === 1
-                  ? 'text-gray-300 cursor-not-allowed'
-                  : 'text-gray-500 hover:bg-gray-50'
+                  ? 'cursor-not-allowed text-slate-300'
+                  : 'text-slate-500 hover:bg-[#fbf6ee]'
               )}
             >
               <ChevronLeftIcon className="h-5 w-5" />
@@ -97,12 +97,12 @@ export function Pagination({
               <>
                 <button
                   onClick={() => onPageChange(1)}
-                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="relative inline-flex items-center border border-slate-200 bg-[rgba(239,245,253,0.9)] px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                 >
                   1
                 </button>
                 {startPage > 2 && (
-                  <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                  <span className="relative inline-flex items-center border border-slate-200 bg-[rgba(239,245,253,0.9)] px-4 py-2 text-sm font-medium text-slate-700">
                     ...
                   </span>
                 )}
@@ -114,10 +114,10 @@ export function Pagination({
                 key={page}
                 onClick={() => onPageChange(page)}
                 className={clsx(
-                  'relative inline-flex items-center px-4 py-2 border text-sm font-medium',
+                  'relative inline-flex items-center border px-4 py-2 text-sm font-medium',
                   page === currentPage
-                    ? 'z-10 bg-primary border-primary text-white'
-                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                    ? 'z-10 border-slate-800 bg-slate-800 text-white'
+                    : 'border-slate-200 bg-[rgba(239,245,253,0.9)] text-slate-700 hover:bg-slate-50'
                 )}
               >
                 {page}
@@ -127,13 +127,13 @@ export function Pagination({
             {endPage < totalPages && (
               <>
                 {endPage < totalPages - 1 && (
-                  <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                  <span className="relative inline-flex items-center border border-slate-200 bg-[rgba(239,245,253,0.9)] px-4 py-2 text-sm font-medium text-slate-700">
                     ...
                   </span>
                 )}
                 <button
                   onClick={() => onPageChange(totalPages)}
-                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="relative inline-flex items-center border border-slate-200 bg-[rgba(239,245,253,0.9)] px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                 >
                   {totalPages}
                 </button>
@@ -144,10 +144,10 @@ export function Pagination({
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               className={clsx(
-                'relative inline-flex items-center px-2 py-2 rounded-r-lg border border-gray-300 bg-white text-sm font-medium',
+                'relative inline-flex items-center rounded-r-[14px] border border-slate-200 bg-[rgba(239,245,253,0.9)] px-2 py-2 text-sm font-medium',
                 currentPage === totalPages
-                  ? 'text-gray-300 cursor-not-allowed'
-                  : 'text-gray-500 hover:bg-gray-50'
+                  ? 'cursor-not-allowed text-slate-300'
+                  : 'text-slate-500 hover:bg-[#fbf6ee]'
               )}
             >
               <ChevronRightIcon className="h-5 w-5" />

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import clsx from 'clsx';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { format } from 'date-fns';
+import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { DateRangePicker } from '@/components/ui/DatePicker';
@@ -26,16 +27,11 @@ import {
   DocumentArrowDownIcon,
   DocumentTextIcon,
   DocumentDuplicateIcon,
-  FunnelIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  CheckIcon,
-  XMarkIcon,
   TableCellsIcon,
   ListBulletIcon,
 } from '@heroicons/react/24/outline';
-import { format } from 'date-fns';
-import toast from 'react-hot-toast';
 
 type ExportMode = 'all' | 'selected';
 type ExportType = 'policies' | 'licenses';
@@ -51,41 +47,23 @@ interface DateRangeValue {
 }
 
 export default function ExportsPage() {
-  // Export type tab
   const [exportType, setExportType] = useState<ExportType>('policies');
-
-  // Export mode
   const [exportMode, setExportMode] = useState<ExportMode>('all');
-
-  // Selected fields (for 'selected' mode)
   const [selectedFields, setSelectedFields] = useState<string[]>(DEFAULT_SELECTED_FIELDS);
-
-  // Expanded categories
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
-
-  // Date range
   const [dateRange, setDateRange] = useState<DateRangeValue | undefined>(undefined);
-
-  // Filters
   const [filters, setFilters] = useState<ExportFilters>({});
-  const [showFilters, setShowFilters] = useState(false);
-
-  // Count preview
   const [policyCount, setPolicyCount] = useState<number | null>(null);
   const [licenseCount, setLicenseCount] = useState<number | null>(null);
   const [isLoadingCount, setIsLoadingCount] = useState(false);
-
-  // Export loading
   const [isExporting, setIsExporting] = useState(false);
 
-  // Meta data for filter dropdowns
   const { data: insStatusOptions } = useMetaCategory('ins_status_add');
   const { data: branchOptions } = useMetaCategory('branch');
   const { data: insCompanyOptions } = useMetaCategory('insurance_company');
   const { data: insTypeOptions } = useMetaCategory('ins_type');
   const { data: executiveOptions } = useMetaCategory('exicutive_name');
 
-  // Build date range for API
   const buildDateRange = useCallback((): ExportDateRange | undefined => {
     if (!dateRange?.from) return undefined;
     return {
@@ -94,7 +72,6 @@ export default function ExportsPage() {
     };
   }, [dateRange]);
 
-  // Fetch policy count
   const fetchCount = useCallback(async () => {
     try {
       setIsLoadingCount(true);
@@ -113,29 +90,23 @@ export default function ExportsPage() {
       }
     } catch (error) {
       console.error('Failed to get count:', error);
-      if (exportType === 'policies') {
-        setPolicyCount(null);
-      } else {
-        setLicenseCount(null);
-      }
+      if (exportType === 'policies') setPolicyCount(null);
+      else setLicenseCount(null);
     } finally {
       setIsLoadingCount(false);
     }
   }, [buildDateRange, filters, exportType]);
 
-  // Fetch count on filter/date change
   useEffect(() => {
     const debounce = setTimeout(() => {
       fetchCount();
-    }, 300);
+    }, 250);
     return () => clearTimeout(debounce);
   }, [fetchCount]);
 
-  // Handle export
   const handleExport = async () => {
     try {
       setIsExporting(true);
-
       const params = {
         fields: exportMode === 'all' ? undefined : selectedFields,
         date_range: buildDateRange(),
@@ -144,530 +115,298 @@ export default function ExportsPage() {
 
       if (exportType === 'policies') {
         const blob = await exportPolicies(params);
-        const filename = `policies_export_${format(new Date(), 'yyyy-MM-dd_HHmmss')}.xlsx`;
-        downloadExportFile(blob, filename);
-        toast.success(`Exported ${policyCount || 0} policies successfully!`);
+        downloadExportFile(blob, `policies_export_${format(new Date(), 'yyyy-MM-dd_HHmmss')}.xlsx`);
+        toast.success(`Exported ${policyCount || 0} policies successfully`);
       } else {
         const blob = await exportLicenses(params);
-        const filename = `licenses_export_${format(new Date(), 'yyyy-MM-dd_HHmmss')}.xlsx`;
-        downloadExportFile(blob, filename);
-        toast.success(`Exported ${licenseCount || 0} licenses successfully!`);
+        downloadExportFile(blob, `licenses_export_${format(new Date(), 'yyyy-MM-dd_HHmmss')}.xlsx`);
+        toast.success(`Exported ${licenseCount || 0} licenses successfully`);
       }
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : `Failed to export ${exportType}`;
-      toast.error(errorMessage);
+      const message = error instanceof Error ? error.message : `Failed to export ${exportType}`;
+      toast.error(message);
     } finally {
       setIsExporting(false);
     }
   };
 
-  // Toggle category expansion
   const toggleCategory = (categoryKey: string) => {
     setExpandedCategories((prev) =>
-      prev.includes(categoryKey) ? prev.filter((k) => k !== categoryKey) : [...prev, categoryKey]
+      prev.includes(categoryKey) ? prev.filter((key) => key !== categoryKey) : [...prev, categoryKey]
     );
   };
 
-  // Toggle field selection
   const toggleField = (fieldKey: string) => {
     setSelectedFields((prev) =>
-      prev.includes(fieldKey) ? prev.filter((k) => k !== fieldKey) : [...prev, fieldKey]
+      prev.includes(fieldKey) ? prev.filter((key) => key !== fieldKey) : [...prev, fieldKey]
     );
   };
 
-  // Toggle all fields in a category
   const toggleCategoryFields = (categoryKey: string) => {
-    const category = EXPORT_FIELD_CATEGORIES.find((c) => c.key === categoryKey);
+    const category = EXPORT_FIELD_CATEGORIES.find((current) => current.key === categoryKey);
     if (!category) return;
 
-    const categoryFieldKeys = category.fields.map((f) => f.key);
-    const allSelected = categoryFieldKeys.every((k) => selectedFields.includes(k));
+    const categoryFieldKeys = category.fields.map((field) => field.key);
+    const allSelected = categoryFieldKeys.every((key) => selectedFields.includes(key));
 
     if (allSelected) {
-      setSelectedFields((prev) => prev.filter((k) => !categoryFieldKeys.includes(k)));
+      setSelectedFields((prev) => prev.filter((key) => !categoryFieldKeys.includes(key)));
     } else {
       setSelectedFields((prev) => [...new Set([...prev, ...categoryFieldKeys])]);
     }
   };
 
-  // Select/Deselect all
-  const handleSelectAll = () => {
-    setSelectedFields([...ALL_EXPORT_FIELDS]);
-  };
-
-  const handleDeselectAll = () => {
-    setSelectedFields([]);
-  };
-
-  const handleResetToDefault = () => {
-    setSelectedFields([...DEFAULT_SELECTED_FIELDS]);
-  };
-
-  // Clear filters
   const handleClearFilters = () => {
     setFilters({});
     setDateRange(undefined);
   };
 
-  // Check if category has some/all fields selected
   const getCategorySelectionState = (categoryKey: string): 'none' | 'some' | 'all' => {
-    const category = EXPORT_FIELD_CATEGORIES.find((c) => c.key === categoryKey);
+    const category = EXPORT_FIELD_CATEGORIES.find((current) => current.key === categoryKey);
     if (!category) return 'none';
 
-    const categoryFieldKeys = category.fields.map((f) => f.key);
-    const selectedCount = categoryFieldKeys.filter((k) => selectedFields.includes(k)).length;
-
+    const categoryFieldKeys = category.fields.map((field) => field.key);
+    const selectedCount = categoryFieldKeys.filter((key) => selectedFields.includes(key)).length;
     if (selectedCount === 0) return 'none';
     if (selectedCount === categoryFieldKeys.length) return 'all';
     return 'some';
   };
 
-  const hasActiveFilters = dateRange?.from || Object.values(filters).some((v) => v);
+  const hasActiveFilters = Boolean(dateRange?.from || Object.values(filters).some((value) => value));
+  const exportCount = exportType === 'policies' ? policyCount : licenseCount;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Export Data</h1>
-          <p className="text-gray-600 mt-1">Export policies or licenses to Excel</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" onClick={() => setShowFilters((s) => !s)}>
-            <FunnelIcon className="w-4 h-4 mr-2" />
-            {showFilters ? 'Hide Filters' : 'Show Filters'}
-          </Button>
-        </div>
-      </div>
+    <div className="grid gap-5 xl:grid-cols-[21rem_minmax(0,1fr)]">
+      <aside className="space-y-4 xl:sticky xl:top-4 xl:self-start">
+        <section className="glass-panel-strong rounded-[24px] px-4 py-4">
+          <p className="section-label">Export Studio</p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
+            Data export
+          </h1>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            Build a filtered export, choose the fields you want, then download the final Excel file.
+          </p>
+        </section>
 
-      {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-200">
-        <button
-          onClick={() => setExportType('policies')}
-          className={clsx(
-            'pb-3 px-2 font-medium transition-colors',
-            exportType === 'policies'
-              ? 'border-b-2 border-primary text-primary'
-              : 'text-gray-600 hover:text-gray-900'
-          )}
-        >
-          <DocumentTextIcon className="w-4 h-4 inline mr-2" />
-          Export Policies
-        </button>
-        <button
-          onClick={() => setExportType('licenses')}
-          className={clsx(
-            'pb-3 px-2 font-medium transition-colors',
-            exportType === 'licenses'
-              ? 'border-b-2 border-primary text-primary'
-              : 'text-gray-600 hover:text-gray-900'
-          )}
-        >
-          <DocumentDuplicateIcon className="w-4 h-4 inline mr-2" />
-          Export Licenses
-        </button>
-      </div>
-
-      {/* Filters Panel */}
-      {showFilters && (
-        <Card>
-          <CardHeader>
-            <h3 className="text-lg font-medium">Export Filters</h3>
-          </CardHeader>
-          <CardBody>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Date Range */}
-              <div className="lg:col-span-2">
-                <DateRangePicker
-                  label="Date Range"
-                  value={dateRange}
-                  onChange={setDateRange}
-                  placeholder="Select date range"
-                  showPresets
-                />
-              </div>
-
-              {/* Insurance Status */}
-              {exportType === 'policies' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Insurance Status
-                    </label>
-                    <select
-                      value={filters.ins_status || ''}
-                      onChange={(e) =>
-                        setFilters((prev) => ({ ...prev, ins_status: e.target.value || undefined }))
-                      }
-                      className="input"
-                    >
-                      <option value="">All Statuses</option>
-                      {insStatusOptions.map((opt: MetaOption) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Branch */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
-                    <select
-                      value={filters.branch_id || ''}
-                      onChange={(e) =>
-                        setFilters((prev) => ({ ...prev, branch_id: e.target.value || undefined }))
-                      }
-                      className="input"
-                    >
-                      <option value="">All Branches</option>
-                      {branchOptions.map((opt: MetaOption) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Insurance Company */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Insurance Company
-                    </label>
-                    <select
-                      value={filters.ins_co_id || ''}
-                      onChange={(e) =>
-                        setFilters((prev) => ({ ...prev, ins_co_id: e.target.value || undefined }))
-                      }
-                      className="input"
-                    >
-                      <option value="">All Companies</option>
-                      {insCompanyOptions.map((opt: MetaOption) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Insurance Type */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Insurance Type
-                    </label>
-                    <select
-                      value={filters.ins_type || ''}
-                      onChange={(e) =>
-                        setFilters((prev) => ({ ...prev, ins_type: e.target.value || undefined }))
-                      }
-                      className="input"
-                    >
-                      <option value="">All Types</option>
-                      {insTypeOptions.map((opt: MetaOption) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Executive Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Executive Name
-                    </label>
-                    <select
-                      value={filters.exicutive_name || ''}
-                      onChange={(e) =>
-                        setFilters((prev) => ({
-                          ...prev,
-                          exicutive_name: e.target.value || undefined,
-                        }))
-                      }
-                      className="input"
-                    >
-                      <option value="">All Executives</option>
-                      {executiveOptions.map((opt: MetaOption) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Payment Status */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Payment Status
-                    </label>
-                    <select
-                      value={filters.customer_payment_status || ''}
-                      onChange={(e) =>
-                        setFilters((prev) => ({
-                          ...prev,
-                          customer_payment_status: e.target.value || undefined,
-                        }))
-                      }
-                      className="input"
-                    >
-                      <option value="">All Statuses</option>
-                      <option value="pending">Pending</option>
-                      <option value="done">Done</option>
-                    </select>
-                  </div>
-                </>
+        <section className="glass-panel rounded-[22px] p-3">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setExportType('policies')}
+              className={clsx(
+                'flex items-center gap-2 rounded-[16px] border px-3 py-3 text-left text-sm font-medium transition',
+                exportType === 'policies'
+                  ? 'border-slate-900 bg-slate-900 text-white'
+                  : 'border-slate-200 bg-slate-50/90 text-slate-600 hover:bg-white hover:text-slate-900'
               )}
-            </div>
+            >
+              <DocumentTextIcon className="h-4 w-4" />
+              Policies
+            </button>
+            <button
+              onClick={() => setExportType('licenses')}
+              className={clsx(
+                'flex items-center gap-2 rounded-[16px] border px-3 py-3 text-left text-sm font-medium transition',
+                exportType === 'licenses'
+                  ? 'border-slate-900 bg-slate-900 text-white'
+                  : 'border-slate-200 bg-slate-50/90 text-slate-600 hover:bg-white hover:text-slate-900'
+              )}
+            >
+              <DocumentDuplicateIcon className="h-4 w-4" />
+              Licenses
+            </button>
+          </div>
+        </section>
 
-            {/* Clear Filters */}
-            {hasActiveFilters && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <Button variant="ghost" onClick={handleClearFilters}>
-                  <XMarkIcon className="w-4 h-4 mr-2" />
-                  Clear All Filters
-                </Button>
-              </div>
-            )}
-          </CardBody>
-        </Card>
-      )}
-
-      {/* License-specific filters (expiry year dropdown) */}
-      {showFilters && exportType === 'licenses' && (
-        <Card>
-          <CardHeader>
-            <h3 className="text-lg font-medium">License Filters</h3>
-          </CardHeader>
-          <CardBody>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Expiry Year Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Year</label>
-                <input
-                  type="number"
-                  value={filters.expiry_year || ''}
-                  onChange={(e) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      expiry_year: e.target.value || undefined,
-                    }))
-                  }
-                  placeholder="Enter year (e.g., 2025)"
-                  className="input"
-                  min="1900"
-                  max="2100"
-                />
-              </div>
-            </div>
-
-            {/* Clear Filters */}
-            {(filters.expiry_year || dateRange?.from) && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <Button variant="ghost" onClick={handleClearFilters}>
-                  <XMarkIcon className="w-4 h-4 mr-2" />
-                  Clear All Filters
-                </Button>
-              </div>
-            )}
-          </CardBody>
-        </Card>
-      )}
-
-      {/* Export Mode Selection (only for policies) */}
-      {exportType === 'policies' && (
-        <Card>
-          <CardHeader>
-            <h3 className="text-lg font-medium">Export Options</h3>
-          </CardHeader>
-          <CardBody>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Export All Fields */}
+        {exportType === 'policies' && (
+          <section className="glass-panel rounded-[22px] p-3">
+            <p className="section-label">Field Mode</p>
+            <div className="mt-3 space-y-2">
               <button
                 type="button"
                 onClick={() => setExportMode('all')}
-                className={`
-                p-4 rounded-lg border-2 text-left transition-all
-                ${
+                className={clsx(
+                  'flex w-full items-start gap-3 rounded-[16px] border px-3 py-3 text-left transition',
                   exportMode === 'all'
-                    ? 'border-primary bg-primary/5'
-                    : 'border-gray-200 hover:border-gray-300'
-                }
-              `}
+                    ? 'border-primary/25 bg-primary/8'
+                    : 'border-slate-200 bg-slate-50/90 hover:bg-white'
+                )}
               >
-                <div className="flex items-start gap-3">
-                  <div
-                    className={`
-                    w-10 h-10 rounded-lg flex items-center justify-center
-                    ${exportMode === 'all' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'}
-                  `}
-                  >
-                    <TableCellsIcon className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900">Export All Fields</h4>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Export all {ALL_EXPORT_FIELDS.length} available fields
-                    </p>
-                  </div>
-                  {exportMode === 'all' && <CheckIcon className="w-5 h-5 text-primary" />}
+                <div className={clsx('flex h-8 w-8 items-center justify-center rounded-[12px]', exportMode === 'all' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500')}>
+                  <TableCellsIcon className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-slate-900">All fields</p>
+                  <p className="mt-1 text-xs text-slate-500">Export every available field.</p>
                 </div>
               </button>
 
-              {/* Export Selected Fields */}
               <button
                 type="button"
                 onClick={() => setExportMode('selected')}
-                className={`
-                p-4 rounded-lg border-2 text-left transition-all
-                ${
+                className={clsx(
+                  'flex w-full items-start gap-3 rounded-[16px] border px-3 py-3 text-left transition',
                   exportMode === 'selected'
-                    ? 'border-primary bg-primary/5'
-                    : 'border-gray-200 hover:border-gray-300'
-                }
-              `}
+                    ? 'border-primary/25 bg-primary/8'
+                    : 'border-slate-200 bg-slate-50/90 hover:bg-white'
+                )}
               >
-                <div className="flex items-start gap-3">
-                  <div
-                    className={`
-                    w-10 h-10 rounded-lg flex items-center justify-center
-                    ${
-                      exportMode === 'selected'
-                        ? 'bg-primary text-white'
-                        : 'bg-gray-100 text-gray-600'
-                    }
-                  `}
-                  >
-                    <ListBulletIcon className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900">Export Selected Fields</h4>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Choose specific fields ({selectedFields.length} selected)
-                    </p>
-                  </div>
-                  {exportMode === 'selected' && <CheckIcon className="w-5 h-5 text-primary" />}
+                <div className={clsx('flex h-8 w-8 items-center justify-center rounded-[12px]', exportMode === 'selected' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500')}>
+                  <ListBulletIcon className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-slate-900">Selected fields</p>
+                  <p className="mt-1 text-xs text-slate-500">{selectedFields.length} fields selected.</p>
                 </div>
               </button>
             </div>
-          </CardBody>
-        </Card>
-      )}
+          </section>
+        )}
 
-      {/* Field Selection (only shown when exportMode === 'selected' AND exportType === 'policies') */}
-      {exportMode === 'selected' && exportType === 'policies' && (
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <h3 className="text-lg font-medium">Select Fields</h3>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={handleSelectAll}>
-                  Select All
-                </Button>
-                <Button variant="ghost" size="sm" onClick={handleDeselectAll}>
-                  Deselect All
-                </Button>
-                <Button variant="ghost" size="sm" onClick={handleResetToDefault}>
-                  Reset to Default
-                </Button>
+        <section className="glass-panel rounded-[22px] p-3">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="section-label">Filters</p>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={handleClearFilters}
+                className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500 transition hover:text-slate-900"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <DateRangePicker
+              label="Date Range"
+              value={dateRange}
+              onChange={setDateRange}
+              placeholder="Select date range"
+              showPresets
+            />
+
+            {exportType === 'policies' ? (
+              <>
+                <select
+                  value={filters.ins_status || ''}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, ins_status: e.target.value || undefined }))}
+                  className="input"
+                >
+                  <option value="">All statuses</option>
+                  {insStatusOptions.map((opt: MetaOption) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={filters.branch_id || ''}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, branch_id: e.target.value || undefined }))}
+                  className="input"
+                >
+                  <option value="">All branches</option>
+                  {branchOptions.map((opt: MetaOption) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={filters.ins_co_id || ''}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, ins_co_id: e.target.value || undefined }))}
+                  className="input"
+                >
+                  <option value="">All companies</option>
+                  {insCompanyOptions.map((opt: MetaOption) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={filters.ins_type || ''}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, ins_type: e.target.value || undefined }))}
+                  className="input"
+                >
+                  <option value="">All types</option>
+                  {insTypeOptions.map((opt: MetaOption) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={filters.exicutive_name || ''}
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, exicutive_name: e.target.value || undefined }))
+                  }
+                  className="input"
+                >
+                  <option value="">All executives</option>
+                  {executiveOptions.map((opt: MetaOption) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={filters.customer_payment_status || ''}
+                  onChange={(e) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      customer_payment_status: e.target.value || undefined,
+                    }))
+                  }
+                  className="input"
+                >
+                  <option value="">All payments</option>
+                  <option value="pending">Pending</option>
+                  <option value="done">Done</option>
+                </select>
+              </>
+            ) : (
+              <input
+                type="number"
+                value={filters.expiry_year || ''}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, expiry_year: e.target.value || undefined }))
+                }
+                placeholder="Expiry year"
+                className="input"
+                min="1900"
+                max="2100"
+              />
+            )}
+          </div>
+        </section>
+
+        <section className="glass-panel rounded-[22px] p-3">
+          <p className="section-label">Ready State</p>
+          <div className="mt-3 space-y-2">
+            <div className="rounded-[16px] border border-slate-200 bg-slate-50/90 px-3 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                Records
+              </p>
+              <div className="mt-2 flex items-center gap-2 text-sm text-slate-700">
+                {isLoadingCount ? (
+                  <>
+                    <Spinner size="sm" />
+                    Counting...
+                  </>
+                ) : (
+                  <>
+                    <DocumentArrowDownIcon className="h-4 w-4 text-slate-400" />
+                    <span>{exportCount ?? 0} ready for export</span>
+                  </>
+                )}
               </div>
             </div>
-          </CardHeader>
-          <CardBody className="p-0">
-            <div className="divide-y divide-gray-200">
-              {EXPORT_FIELD_CATEGORIES.map((category) => {
-                const isExpanded = expandedCategories.includes(category.key);
-                const selectionState = getCategorySelectionState(category.key);
 
-                return (
-                  <div key={category.key}>
-                    {/* Category Header */}
-                    <button
-                      type="button"
-                      onClick={() => toggleCategory(category.key)}
-                      className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <Checkbox
-                            checked={selectionState === 'all'}
-                            indeterminate={selectionState === 'some'}
-                            onChange={() => toggleCategoryFields(category.key)}
-                          />
-                        </div>
-                        <span className="font-medium text-gray-900">{category.label}</span>
-                        <span className="text-sm text-gray-500">
-                          ({category.fields.filter((f) => selectedFields.includes(f.key)).length}/
-                          {category.fields.length})
-                        </span>
-                      </div>
-                      {isExpanded ? (
-                        <ChevronUpIcon className="w-5 h-5 text-gray-400" />
-                      ) : (
-                        <ChevronDownIcon className="w-5 h-5 text-gray-400" />
-                      )}
-                    </button>
-
-                    {/* Category Fields */}
-                    {isExpanded && (
-                      <div className="px-6 py-4 bg-gray-50 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                        {category.fields.map((field) => (
-                          <Checkbox
-                            key={field.key}
-                            label={field.label}
-                            checked={selectedFields.includes(field.key)}
-                            onChange={() => toggleField(field.key)}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </CardBody>
-        </Card>
-      )}
-
-      {/* Export Action */}
-      <Card>
-        <CardBody>
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            {/* Count Preview */}
-            <div className="flex items-center gap-3">
-              {isLoadingCount ? (
-                <div className="flex items-center gap-2 text-gray-500">
-                  <Spinner size="sm" />
-                  <span>Counting {exportType}...</span>
-                </div>
-              ) : exportType === 'policies' ? (
-                policyCount !== null ? (
-                  <div className="flex items-center gap-2">
-                    <DocumentArrowDownIcon className="w-5 h-5 text-gray-400" />
-                    <span className="text-gray-700">
-                      This will export{' '}
-                      <span className="font-semibold text-primary">{policyCount}</span>{' '}
-                      {policyCount === 1 ? 'policy' : 'policies'}
-                    </span>
-                  </div>
-                ) : (
-                  <span className="text-gray-500">Unable to count policies</span>
-                )
-              ) : licenseCount !== null ? (
-                <div className="flex items-center gap-2">
-                  <DocumentArrowDownIcon className="w-5 h-5 text-gray-400" />
-                  <span className="text-gray-700">
-                    This will export{' '}
-                    <span className="font-semibold text-primary">{licenseCount}</span>{' '}
-                    {licenseCount === 1 ? 'license' : 'licenses'}
-                  </span>
-                </div>
-              ) : (
-                <span className="text-gray-500">Unable to count licenses</span>
-              )}
-            </div>
-
-            {/* Export Button */}
             <Button
               onClick={handleExport}
               disabled={
@@ -675,23 +414,179 @@ export default function ExportsPage() {
                 (exportType === 'policies' && (policyCount === 0 || policyCount === null)) ||
                 (exportType === 'licenses' && (licenseCount === 0 || licenseCount === null))
               }
-              size="lg"
+              className="w-full justify-center"
             >
               {isExporting ? (
                 <>
-                  <Spinner size="sm" className="mr-2" />
+                  <Spinner size="sm" />
                   Exporting...
                 </>
               ) : (
                 <>
-                  <DocumentArrowDownIcon className="w-5 h-5 mr-2" />
+                  <DocumentArrowDownIcon className="h-4 w-4" />
                   Export to Excel
                 </>
               )}
             </Button>
           </div>
-        </CardBody>
-      </Card>
+        </section>
+      </aside>
+
+      <section className="space-y-4">
+        <div className="glass-panel rounded-[24px] px-4 py-4">
+          <p className="section-label">Export Workspace</p>
+          <h2 className="mt-1 text-xl font-semibold tracking-[-0.03em] text-slate-900">
+            {exportType === 'policies' ? 'Policy export configuration' : 'License export configuration'}
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Review the selected dataset, inspect fields, and export only what matters.
+          </p>
+        </div>
+
+        {exportType === 'policies' && exportMode === 'selected' ? (
+          <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_18rem]">
+            <div className="glass-panel rounded-[24px] overflow-hidden">
+              <div className="border-b border-white/45 px-4 py-4">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p className="section-label">Field Selector</p>
+                    <h3 className="mt-1 text-lg font-semibold tracking-[-0.03em] text-slate-900">
+                      Selected fields
+                    </h3>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedFields([...ALL_EXPORT_FIELDS])}>
+                      Select All
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedFields([])}>
+                      Deselect All
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedFields([...DEFAULT_SELECTED_FIELDS])}>
+                      Default
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="divide-y divide-slate-200/80">
+                {EXPORT_FIELD_CATEGORIES.map((category) => {
+                  const isExpanded = expandedCategories.includes(category.key);
+                  const selectionState = getCategorySelectionState(category.key);
+                  const count = category.fields.filter((field) => selectedFields.includes(field.key)).length;
+
+                  return (
+                    <div key={category.key}>
+                      <button
+                        type="button"
+                        onClick={() => toggleCategory(category.key)}
+                        className="flex w-full items-center justify-between px-4 py-3 text-left transition hover:bg-slate-50/80"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={selectionState === 'all'}
+                              indeterminate={selectionState === 'some'}
+                              onChange={() => toggleCategoryFields(category.key)}
+                            />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-slate-900">{category.label}</p>
+                            <p className="text-xs text-slate-500">
+                              {count}/{category.fields.length} selected
+                            </p>
+                          </div>
+                        </div>
+                        {isExpanded ? (
+                          <ChevronUpIcon className="h-4 w-4 text-slate-400" />
+                        ) : (
+                          <ChevronDownIcon className="h-4 w-4 text-slate-400" />
+                        )}
+                      </button>
+
+                      {isExpanded && (
+                        <div className="grid gap-3 bg-slate-50/70 px-4 py-4 md:grid-cols-2 xl:grid-cols-3">
+                          {category.fields.map((field) => (
+                            <Checkbox
+                              key={field.key}
+                              label={field.label}
+                              checked={selectedFields.includes(field.key)}
+                              onChange={() => toggleField(field.key)}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="glass-panel rounded-[24px] p-4">
+              <p className="section-label">Selection Summary</p>
+              <h3 className="mt-1 text-lg font-semibold tracking-[-0.03em] text-slate-900">
+                {selectedFields.length} fields selected
+              </h3>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {selectedFields.slice(0, 18).map((field) => (
+                  <span
+                    key={field}
+                    className="rounded-full border border-slate-200 bg-slate-50/90 px-2.5 py-1 text-[11px] text-slate-600"
+                  >
+                    {field}
+                  </span>
+                ))}
+                {selectedFields.length > 18 && (
+                  <span className="rounded-full border border-slate-200 bg-slate-50/90 px-2.5 py-1 text-[11px] text-slate-600">
+                    +{selectedFields.length - 18} more
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="glass-panel rounded-[24px] p-5">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <div className="rounded-[18px] border border-slate-200 bg-slate-50/80 p-4">
+                <p className="section-label">Mode</p>
+                <p className="mt-2 text-lg font-semibold tracking-[-0.03em] text-slate-900">
+                  {exportType === 'policies'
+                    ? exportMode === 'all'
+                      ? 'All policy fields'
+                      : 'Selected policy fields'
+                    : 'License export'}
+                </p>
+                <p className="mt-1 text-sm text-slate-500">
+                  {exportType === 'policies'
+                    ? exportMode === 'all'
+                      ? `${ALL_EXPORT_FIELDS.length} fields included by default`
+                      : `${selectedFields.length} chosen fields will be exported`
+                    : 'License export uses the available license export schema'}
+                </p>
+              </div>
+
+              <div className="rounded-[18px] border border-slate-200 bg-slate-50/80 p-4">
+                <p className="section-label">Filters Applied</p>
+                <p className="mt-2 text-lg font-semibold tracking-[-0.03em] text-slate-900">
+                  {hasActiveFilters ? 'Filtered export' : 'Full dataset'}
+                </p>
+                <p className="mt-1 text-sm text-slate-500">
+                  {hasActiveFilters
+                    ? 'Date or field filters are limiting the exported records.'
+                    : 'No active filters are reducing the export set.'}
+                </p>
+              </div>
+
+              <div className="rounded-[18px] border border-slate-200 bg-slate-50/80 p-4">
+                <p className="section-label">Ready Count</p>
+                <p className="mt-2 text-lg font-semibold tracking-[-0.03em] text-slate-900">
+                  {exportCount ?? 0}
+                </p>
+                <p className="mt-1 text-sm text-slate-500">Records currently ready to download.</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

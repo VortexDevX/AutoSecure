@@ -2,30 +2,27 @@ import Image from 'next/image';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-lg mb-4">
-            <Image
-              src="/logo.png"
-              alt="AutoSecure Logo"
-              width={60}
-              height={60}
-              className="rounded-full"
-            />
+    <div className="app-shell flex min-h-screen items-center justify-center px-4 py-8">
+      <div className="mesh-background absolute inset-0 opacity-85" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,248,240,0.42),_transparent_48%)]" />
+
+      <div className="relative z-10 w-full max-w-md">
+        <section className="glass-panel-strong px-6 py-8 sm:px-8">
+          <div className="mb-8 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[20px] bg-slate-900 shadow-[0_16px_28px_rgba(30,41,59,0.18)]">
+              <Image src="/logo.png" alt="AutoSecure Logo" width={32} height={32} />
+            </div>
+            <p className="section-label mt-5">AutoSecure</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-slate-900">
+              Account access
+            </h1>
+            <p className="mt-2 text-sm text-slate-500">
+              Sign in to continue.
+            </p>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">AutoSecure</h1>
-          <p className="text-gray-600 mt-2">Insurance Management System</p>
-        </div>
 
-        {/* Auth Form Card */}
-        <div className="card card-hover">{children}</div>
-
-        {/* Footer */}
-        <p className="text-center text-gray-500 text-sm mt-8">
-          © 2025 AutoSecure. All rights reserved.
-        </p>
+          {children}
+        </section>
       </div>
     </div>
   );

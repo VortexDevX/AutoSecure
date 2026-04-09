@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/api/client';
-import { formatDate, formatRelativeTime } from '@/lib/utils/formatters';
+import { formatRelativeTime } from '@/lib/utils/formatters';
 import { usePrivacy } from '@/lib/context/PrivacyContext';
 import Link from 'next/link';
 
@@ -41,11 +41,11 @@ export function RecentActivity() {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Recent Activity</h3>
+      <div className="p-4">
+        <h3 className="mb-4 text-base font-semibold text-slate-900">Recent Activity</h3>
         <div className="animate-pulse space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-12 bg-gray-100 rounded" />
+            <div key={i} className="h-12 rounded-[14px] bg-slate-100" />
           ))}
         </div>
       </div>
@@ -54,16 +54,16 @@ export function RecentActivity() {
 
   if (!policies.length) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Recent Activity</h3>
-        <p className="text-gray-500 text-center py-8">No policies created yet</p>
+      <div className="p-4">
+        <h3 className="mb-4 text-base font-semibold text-slate-900">Recent Activity</h3>
+        <p className="py-8 text-center text-slate-500">No policies created yet</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+    <div className="overflow-hidden">
+      <div className="flex items-center justify-between border-b border-slate-200/80 p-4">
         <h3 className="text-base font-bold text-slate-900 tracking-tight">Recent Activity</h3>
         <Link href="/policies" className="text-xs font-semibold text-primary uppercase tracking-wider hover:text-primary-600 transition-colors">
           View All

@@ -82,7 +82,7 @@ export function UserTable({ users, currentUser, onUpdate, onDelete }: UserTableP
     const variants = {
       owner: 'bg-red-100 text-red-700 border-red-200',
       admin: 'bg-amber-100 text-amber-700 border-amber-200',
-      user: 'bg-gray-100 text-gray-700 border-gray-200',
+      user: 'bg-slate-100 text-slate-700 border-slate-200',
     };
     return variants[role as keyof typeof variants] || variants.user;
   };
@@ -103,17 +103,17 @@ export function UserTable({ users, currentUser, onUpdate, onDelete }: UserTableP
 
   if (validUsers.length === 0) {
     return (
-      <div className="text-center py-12">
-        <UserIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-500 text-lg">No users found</p>
+      <div className="py-12 text-center">
+        <UserIcon className="mx-auto mb-4 h-16 w-16 text-slate-400" />
+        <p className="text-lg font-medium text-slate-700">No users found</p>
       </div>
     );
   }
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm text-left">
-        <thead className="bg-gray-50 text-xs text-gray-700 uppercase">
+      <table className="w-full border-separate border-spacing-y-3 text-left text-sm">
+        <thead className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
           <tr>
             <th className="px-6 py-3">User</th>
             <th className="px-6 py-3">Role</th>
@@ -125,39 +125,29 @@ export function UserTable({ users, currentUser, onUpdate, onDelete }: UserTableP
         </thead>
         <tbody>
           {validUsers.map((user) => (
-            <tr
-              key={user.id}
-              className={`border-b hover:bg-gray-50 transition-colors ${
-                isCurrentUser(user) ? 'bg-blue-50' : ''
-              }`}
-            >
-              {/* User Info */}
-              <td className="px-6 py-4">
+            <tr key={user.id} className={`group transition-all duration-300 ${isCurrentUser(user) ? 'scale-[1.005]' : ''}`}>
+              <td className="rounded-l-[24px] border-y border-l border-slate-200/70 bg-[rgba(239,245,253,0.84)] px-6 py-4 shadow-[0_14px_30px_rgba(148,163,184,0.09)]">
                 <div>
-                  <p className="font-medium text-gray-900">
+                  <p className="font-medium text-slate-900">
                     {user.full_name || 'No Name'}
                     {isCurrentUser(user) && (
-                      <span className="ml-2 text-xs text-blue-600 font-semibold">(You)</span>
+                      <span className="ml-2 text-xs font-semibold text-primary">(You)</span>
                     )}
                   </p>
-                  <p className="text-xs text-gray-500">{user.email}</p>
+                  <p className="text-xs text-slate-500">{user.email}</p>
                 </div>
               </td>
 
-              {/* ✅ FIXED: Role Dropdown with Portal */}
-              <td className="px-6 py-4">
+              <td className="border-y border-slate-200/70 bg-[rgba(239,245,253,0.84)] px-6 py-4">
                 {isOwner && !isCurrentUser(user) && !isOwnerAccount(user) ? (
                   <Menu as="div" className="relative inline-block">
-                    {/* ✅ Menu Button */}
                     <MenuButton
                       disabled={loadingUserId === user.id}
                       className={`
-                        inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full
-                        border transition-all
+                        inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-all
                         ${getRoleBadgeClass(user.role)}
-                        hover:shadow-md hover:scale-105
-                        disabled:opacity-50 disabled:cursor-not-allowed
-                        focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500
+                        disabled:cursor-not-allowed disabled:opacity-50
+                        focus:outline-none focus:ring-2 focus:ring-primary/30
                       `}
                     >
                       <span>{getRoleIcon(user.role)}</span>
@@ -165,13 +155,11 @@ export function UserTable({ users, currentUser, onUpdate, onDelete }: UserTableP
                       <ChevronDownIcon className="w-3 h-3" />
                     </MenuButton>
 
-                    {/* ✅ FIXED: Menu Items with anchor="bottom start" and portal */}
                     <MenuItems
                       anchor="bottom start"
                       className="
-                        w-40 mt-2 origin-top-left rounded-lg bg-white
-                        shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none
-                        z-[100]
+                        z-[100] mt-2 w-40 origin-top-left rounded-2xl border border-slate-200/70 bg-[rgba(239,245,253,0.96)]
+                        shadow-[0_24px_48px_rgba(74,96,129,0.18)] backdrop-blur-xl focus:outline-none
                         [--anchor-gap:4px]
                       "
                     >
@@ -181,8 +169,8 @@ export function UserTable({ users, currentUser, onUpdate, onDelete }: UserTableP
                             <button
                               onClick={() => handleRoleChange(user.id, 'user')}
                               className={`
-                                ${focus ? 'bg-gray-100' : ''}
-                                group flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700
+                                ${focus ? 'bg-slate-100' : ''}
+                                group flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-700
                                 transition-colors
                               `}
                             >
@@ -196,8 +184,8 @@ export function UserTable({ users, currentUser, onUpdate, onDelete }: UserTableP
                             <button
                               onClick={() => handleRoleChange(user.id, 'admin')}
                               className={`
-                                ${focus ? 'bg-gray-100' : ''}
-                                group flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700
+                                ${focus ? 'bg-slate-100' : ''}
+                                group flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-700
                                 transition-colors
                               `}
                             >
@@ -211,8 +199,8 @@ export function UserTable({ users, currentUser, onUpdate, onDelete }: UserTableP
                             <button
                               onClick={() => handleRoleChange(user.id, 'owner')}
                               className={`
-                                ${focus ? 'bg-gray-100' : ''}
-                                group flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700
+                                ${focus ? 'bg-slate-100' : ''}
+                                group flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-700
                                 transition-colors
                               `}
                             >
@@ -237,8 +225,7 @@ export function UserTable({ users, currentUser, onUpdate, onDelete }: UserTableP
                 )}
               </td>
 
-              {/* Status Toggle */}
-              <td className="px-6 py-4">
+              <td className="border-y border-slate-200/70 bg-[rgba(239,245,253,0.84)] px-6 py-4">
                 <button
                   onClick={() => handleStatusToggle(user.id, user.active)}
                   disabled={
@@ -262,28 +249,25 @@ export function UserTable({ users, currentUser, onUpdate, onDelete }: UserTableP
                 </button>
               </td>
 
-              {/* 2FA Status */}
-              <td className="px-6 py-4">
+              <td className="border-y border-slate-200/70 bg-[rgba(239,245,253,0.84)] px-6 py-4">
                 <Badge variant={user.totp_enabled ? 'success' : 'warning'} size="sm">
                   {user.totp_enabled ? '✓ Enabled' : '✗ Disabled'}
                 </Badge>
               </td>
 
-              {/* Created Date */}
-              <td className="px-6 py-4 text-gray-500">
+              <td className="border-y border-slate-200/70 bg-[rgba(239,245,253,0.84)] px-6 py-4 text-slate-500">
                 {user.created_at ? formatDate(user.created_at) : '-'}
               </td>
 
-              {/* Delete Button */}
-              <td className="px-6 py-4 text-right">
+              <td className="rounded-r-[24px] border-y border-r border-slate-200/70 bg-[rgba(239,245,253,0.84)] px-6 py-4 text-right">
                 {isOwner && !isCurrentUser(user) && !isOwnerAccount(user) && (
                   <button
                     onClick={() => onDelete(user.id)}
                     disabled={loadingUserId === user.id}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                    className="rounded-full border border-rose-200 bg-rose-50/90 p-2 text-rose-600 transition hover:bg-rose-100 disabled:opacity-50"
                     title="Delete User"
                   >
-                    <TrashIcon className="w-4 h-4" />
+                    <TrashIcon className="h-4 w-4" />
                   </button>
                 )}
               </td>

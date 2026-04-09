@@ -58,7 +58,7 @@ export function Step5PaymentDetails() {
     <div className="space-y-6">
       {/* Customer Payment Section */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Customer Payment</h3>
+        <h3 className="mb-4 text-lg font-semibold text-slate-900">Customer Payment</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Input
             label="Customer Premium Amount"
@@ -115,11 +115,11 @@ export function Step5PaymentDetails() {
       </div>
 
       {/* ✅ Auto-Calculated Fields Section */}
-      <div className="border-t border-gray-200 pt-6">
+      <div className="border-t border-slate-200/70 pt-6">
         <div className="flex items-center gap-2 mb-4">
           <CalculatorIcon className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-semibold text-gray-900">Calculated Fields</h3>
-          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+          <h3 className="text-lg font-semibold text-slate-900">Calculated Fields</h3>
+          <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-500">
             Auto-calculated
           </span>
         </div>
@@ -129,17 +129,17 @@ export function Step5PaymentDetails() {
           <div>
             <label className="label">
               Extra Amount
-              <span className="text-xs text-gray-500 ml-2">(Total Premium - Customer Premium)</span>
+              <span className="ml-2 text-xs text-slate-500">(Total Premium - Customer Premium)</span>
             </label>
             <div
               className={`
-              input bg-gray-100 cursor-not-allowed font-medium
-              ${(formData.extra_amount || 0) < 0 ? 'text-red-600' : 'text-gray-900'}
+              input bg-slate-100/80 cursor-not-allowed font-medium
+              ${(formData.extra_amount || 0) < 0 ? 'text-red-600' : 'text-slate-900'}
             `}
             >
               {formatCurrency(formData.extra_amount || 0)}
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="mt-1 text-xs text-slate-500">
               {formData.total_premium_gst || 0} - {formData.premium_amount || 0} ={' '}
               {formData.extra_amount || 0}
             </p>
@@ -149,17 +149,17 @@ export function Step5PaymentDetails() {
           <div>
             <label className="label">
               Profit
-              <span className="text-xs text-gray-500 ml-2">(Agent Commission - Extra Amount)</span>
+              <span className="ml-2 text-xs text-slate-500">(Agent Commission - Extra Amount)</span>
             </label>
             <div
               className={`
-              input bg-gray-100 cursor-not-allowed font-medium
+              input bg-slate-100/80 cursor-not-allowed font-medium
               ${(formData.profit || 0) < 0 ? 'text-red-600' : 'text-green-600'}
             `}
             >
               {formatCurrency(formData.profit || 0)}
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="mt-1 text-xs text-slate-500">
               {formData.agent_commission || 0} - {formData.extra_amount || 0} ={' '}
               {formData.profit || 0}
             </p>
@@ -167,11 +167,11 @@ export function Step5PaymentDetails() {
         </div>
 
         {/* Info Box */}
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
-            <strong>💡 Note:</strong> Extra Amount and Profit are automatically calculated based on:
+        <div className="mt-4 rounded-[18px] border border-sky-200/80 bg-sky-50/70 p-3">
+          <p className="text-sm text-slate-700">
+            <strong>Note:</strong> Extra Amount and Profit are automatically calculated based on:
           </p>
-          <ul className="text-sm text-blue-700 mt-2 ml-4 list-disc">
+          <ul className="mt-2 ml-4 list-disc text-sm text-slate-600">
             <li>
               Total Premium with GST (from Step 4):{' '}
               <strong>{formatCurrency(formData.total_premium_gst || 0)}</strong>
@@ -189,9 +189,9 @@ export function Step5PaymentDetails() {
       </div>
 
       {/* Payment Details Repeating Group */}
-      <div className="border-t border-gray-200 pt-6">
+      <div className="border-t border-slate-200/70 pt-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Payment Details</h3>
+          <h3 className="text-lg font-semibold text-slate-900">Payment Details</h3>
           <Button
             variant="secondary"
             size="sm"
@@ -206,9 +206,9 @@ export function Step5PaymentDetails() {
         {formData.payment_details && formData.payment_details.length > 0 ? (
           <div className="space-y-4">
             {formData.payment_details.map((payment, index) => (
-              <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div key={index} className="rounded-[18px] border border-slate-200/70 bg-slate-50/70 p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-gray-900">Payment #{index + 1}</h4>
+                  <h4 className="font-medium text-slate-900">Payment #{index + 1}</h4>
                   <button
                     type="button"
                     onClick={() => removePaymentDetail(index)}
@@ -268,8 +268,8 @@ export function Step5PaymentDetails() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-            <p className="text-gray-500">No payment details added yet</p>
+          <div className="rounded-[18px] border-2 border-dashed border-slate-300 bg-slate-50/70 py-8 text-center">
+            <p className="text-slate-500">No payment details added yet</p>
             <Button variant="ghost" size="sm" onClick={addPaymentDetail} className="mt-2">
               Add First Payment
             </Button>

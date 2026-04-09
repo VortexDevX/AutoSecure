@@ -40,29 +40,30 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
 
     return (
       <div className={className}>
-        {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
+        {label && <label className="mb-1 block text-sm font-medium text-slate-700">{label}</label>}
         <Listbox value={value || ''} onChange={onChange} disabled={disabled}>
           <div className="relative">
             <Listbox.Button
               ref={ref}
               className={clsx(
-                'relative w-full cursor-pointer rounded-lg bg-white py-2.5 pl-3 pr-10 text-left border text-sm',
-                'focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary',
+                'relative w-full cursor-pointer rounded-[16px] py-2.5 pl-3 pr-10 text-left border text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]',
+                'focus:outline-none focus:ring-2 focus:ring-slate-300/50 focus:border-slate-400/50',
                 'transition-colors duration-150',
-                disabled && 'bg-gray-100 cursor-not-allowed opacity-60',
-                error ? 'border-red-500' : 'border-gray-300 hover:border-gray-400'
+                disabled && 'bg-slate-100 cursor-not-allowed opacity-60',
+                error ? 'border-red-500' : 'border-[var(--input-stroke)] hover:border-slate-300/60'
               )}
+              style={{ background: 'var(--input-fill)' }}
             >
               <span
                 className={clsx(
                   'block truncate',
-                  selectedOption ? 'text-gray-900' : 'text-gray-400'
+                  selectedOption ? 'text-slate-900' : 'text-slate-400'
                 )}
               >
                 {selectedOption?.label || placeholder}
               </span>
               <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                <ChevronUpDownIcon className="h-5 w-5 text-slate-400" aria-hidden="true" />
               </span>
             </Listbox.Button>
 
@@ -74,8 +75,8 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
             >
               <Listbox.Options
                 className={clsx(
-                  'absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white py-1',
-                  'text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none'
+                  'absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-[18px] border py-1 text-sm focus:outline-none',
+                  'border-slate-200/80 bg-[rgba(239,245,253,0.98)] shadow-[0_16px_32px_rgba(74,96,129,0.12)]'
                 )}
               >
                 {options.map((option) => (
@@ -86,8 +87,8 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
                     className={({ active, selected }) =>
                       clsx(
                         'relative cursor-pointer select-none py-2 pl-10 pr-4',
-                        active ? 'bg-primary/10 text-primary' : 'text-gray-900',
-                        selected && 'bg-primary/5',
+                        active ? 'bg-slate-100 text-slate-900' : 'text-slate-900',
+                        selected && 'bg-slate-50',
                         option.disabled && 'opacity-50 cursor-not-allowed'
                       )
                     }
@@ -115,7 +116,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
             </Transition>
           </div>
         </Listbox>
-        {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+        {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
       </div>
     );
   }

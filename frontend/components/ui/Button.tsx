@@ -27,14 +27,20 @@ export function Button({
   };
 
   const sizeClasses = {
-    sm: 'text-sm px-3 py-1.5',
-    md: 'text-base px-4 py-2',
-    lg: 'text-lg px-6 py-3',
+    sm: 'min-h-9 px-3 py-1.5 text-[11px] tracking-[0.12em] uppercase',
+    md: 'min-h-10 px-4 py-2 text-sm',
+    lg: 'min-h-11 px-5 py-2.5 text-sm tracking-[0.06em] uppercase',
   };
 
   return (
     <button
-      className={clsx(baseClasses, variantClasses[variant], sizeClasses[size], className)}
+      className={clsx(
+        baseClasses,
+        variantClasses[variant],
+        sizeClasses[size],
+        'whitespace-nowrap',
+        className
+      )}
       disabled={disabled || isLoading}
       {...props}
     >

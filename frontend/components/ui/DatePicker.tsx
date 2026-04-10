@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useState, useRef, useEffect } from 'react';
+import { forwardRef, useRef, useState } from 'react';
 import ReactDatePicker from 'react-datepicker';
 import {
   format,
@@ -76,6 +76,9 @@ interface SingleDateInputButtonProps {
   value?: string;
   onClick?: () => void;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
+  onFocus?: (event: React.FocusEvent<HTMLInputElement>) => void;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   disabled?: boolean;
   error?: boolean;
   placeholder: string;
@@ -85,7 +88,19 @@ interface SingleDateInputButtonProps {
 
 const SingleDateInputButton = forwardRef<HTMLInputElement, SingleDateInputButtonProps>(
   (
-    { value: displayValue, onClick, onChange, disabled, error, placeholder, isClearable, onClear },
+    {
+      value: displayValue,
+      onClick,
+      onChange,
+      onBlur,
+      onFocus,
+      onKeyDown,
+      disabled,
+      error,
+      placeholder,
+      isClearable,
+      onClear,
+    },
     ref
   ) => (
     <div className="relative w-full">
@@ -96,6 +111,9 @@ const SingleDateInputButton = forwardRef<HTMLInputElement, SingleDateInputButton
         value={displayValue || ''}
         onClick={onClick}
         onChange={onChange}
+        onBlur={onBlur}
+        onFocus={onFocus}
+        onKeyDown={onKeyDown}
         disabled={disabled}
         placeholder={placeholder}
         className={`
@@ -168,10 +186,15 @@ export function SingleDatePicker({
   };
 
   const dateValue = getDateValue();
+  const [inputValue, setInputValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const displayValue = isTyping ? inputValue : dateValue ? format(dateValue, 'dd/MM/yyyy') : '';
 
   // FIX: Handle date selection properly to avoid timezone shift
   const handleDateChange = (date: Date | null) => {
     if (!date) {
+      setIsTyping(false);
+      setInputValue('');
       onChange(null);
       return;
     }
@@ -184,7 +207,27 @@ export function SingleDatePicker({
 
     // Set to noon to avoid any timezone edge cases
     const normalizedDate = new Date(year, month, day, 12, 0, 0, 0);
+    setIsTyping(false);
+    setInputValue(format(normalizedDate, 'dd/MM/yyyy'));
     onChange(normalizedDate);
+  };
+
+  const commitManualInput = () => {
+    const rawValue = inputValue.trim();
+    setIsTyping(false);
+    if (!rawValue) {
+      setInputValue('');
+      onChange(null);
+      return;
+    }
+
+    const parsedDate = parseManualDate(rawValue);
+    if (parsedDate) {
+      handleDateChange(parsedDate);
+      return;
+    }
+
+    setInputValue(dateValue ? format(dateValue, 'dd/MM/yyyy') : '');
   };
 
   return (
@@ -195,13 +238,19 @@ export function SingleDatePicker({
         onChange={handleDateChange}
         customInput={
           <SingleDateInputButton
+            value={displayValue}
             disabled={disabled}
             error={Boolean(error)}
             placeholder={placeholder}
             isClearable={isClearable}
-            onClear={() => onChange(null)}
+            onClear={() => {
+              setIsTyping(false);
+              setInputValue('');
+              onChange(null);
+            }}
           />
         }
+        value={displayValue}
         dateFormat="dd/MM/yyyy"
         minDate={minDate}
         maxDate={maxDate}
@@ -211,17 +260,19 @@ export function SingleDatePicker({
         calendarClassName="date-picker-calendar"
         wrapperClassName="w-full"
         onChangeRaw={(event) => {
+          event.preventDefault();
           const rawValue = (event.target as HTMLInputElement).value;
-          if (!rawValue.trim()) {
-            onChange(null);
-            return;
-          }
-
-          const parsedDate = parseManualDate(rawValue);
-          if (parsedDate) {
-            handleDateChange(parsedDate);
+          setIsTyping(true);
+          setInputValue(rawValue);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            commitManualInput();
           }
         }}
+        onFocus={() => setIsTyping(true)}
+        onBlur={commitManualInput}
         renderCustomHeader={({
           date,
           changeYear,

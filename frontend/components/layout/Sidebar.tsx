@@ -64,7 +64,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const isItemActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard';
     if (href === '/policies') {
-      return pathname === '/policies' || (pathname.startsWith('/policies/') && !pathname.startsWith('/policies/new'));
+      return (
+        pathname === '/policies' ||
+        (pathname.startsWith('/policies/') && !pathname.startsWith('/policies/new'))
+      );
     }
     return pathname === href || pathname.startsWith(`${href}/`);
   };
@@ -117,7 +120,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       href={item.href}
                       onClick={onClose}
                       className={clsx(
-                        'flex h-10 items-center rounded-[14px] text-sm font-medium transition',
+                        'flex h-10 items-center rounded-[14px] text-base font-medium transition',
                         isHovered
                           ? 'gap-3 px-3 justify-start'
                           : 'mx-auto w-10 justify-center px-0 lg:gap-0',
@@ -130,7 +133,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       <span
                         className={clsx(
                           'whitespace-nowrap transition-all duration-200 lg:overflow-hidden',
-                          isHovered ? 'lg:w-auto lg:translate-x-0 lg:opacity-100' : 'lg:w-0 lg:-translate-x-1 lg:opacity-0'
+                          isHovered
+                            ? 'lg:w-auto lg:translate-x-0 lg:opacity-100'
+                            : 'lg:w-0 lg:-translate-x-1 lg:opacity-0'
                         )}
                       >
                         {item.name}

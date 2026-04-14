@@ -4,17 +4,18 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Spinner } from '@/components/ui/Spinner';
+import { STORAGE_KEYS } from '@/lib/utils/constants';
 
 export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
+    const token = sessionStorage.getItem(STORAGE_KEYS.SESSION_ACCESS_TOKEN);
     router.replace(token ? '/dashboard' : '/login');
   }, [router]);
 
   return (
-    <div className="app-shell flex min-h-screen items-center justify-center px-4">
+    <div className="app-shell app-content-scale flex min-h-screen items-center justify-center px-4">
       <div className="mesh-background absolute inset-0 opacity-90" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.52),_transparent_42%)]" />
 

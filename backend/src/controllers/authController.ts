@@ -145,7 +145,6 @@ export const verifyTOTP = asyncHandler(async (req: Request, res: Response) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
   res.json({
@@ -209,7 +208,11 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
   }
 
   // Clear refresh token cookie
-  res.clearCookie('refreshToken');
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+  });
 
   res.json({
     status: 'success',

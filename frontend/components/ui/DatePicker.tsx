@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useRef, useState } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
 import ReactDatePicker from 'react-datepicker';
 import {
   format,
@@ -260,6 +260,7 @@ export function SingleDatePicker({
         calendarClassName="date-picker-calendar"
         wrapperClassName="w-full"
         onChangeRaw={(event) => {
+          if (!event) return;
           event.preventDefault();
           const rawValue = (event.target as HTMLInputElement).value;
           setIsTyping(true);

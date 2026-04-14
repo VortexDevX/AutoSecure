@@ -270,6 +270,56 @@
   }
 }
 
+@layer utilities {
+  .app-content-scale {
+    font-size: 1.04rem;
+  }
+
+  .app-content-scale .text-xs,
+  .app-content-scale .badge,
+  .app-content-scale .section-label,
+  .app-content-scale .label,
+  .app-content-scale .table-header-cell,
+  .app-content-scale [class*='text-[10px]'],
+  .app-content-scale [class*='text-[11px]'] {
+    font-size: 0.84rem;
+  }
+
+  .app-content-scale .text-sm,
+  .app-content-scale .btn,
+  .app-content-scale .input,
+  .app-content-scale .table-cell,
+  .app-content-scale [class*='text-[12px]'],
+  .app-content-scale [class*='text-[13px]'] {
+    font-size: 1.02rem;
+  }
+
+  .app-content-scale .text-base,
+  .app-content-scale [class*='text-[14px]'] {
+    font-size: 1.12rem;
+  }
+
+  .app-content-scale .text-lg {
+    font-size: 1.2rem;
+  }
+
+  .app-content-scale .text-xl {
+    font-size: 1.34rem;
+  }
+
+  .app-content-scale .text-2xl {
+    font-size: 1.62rem;
+  }
+
+  .app-content-scale .text-3xl {
+    font-size: 1.92rem;
+  }
+
+  .app-content-scale .text-4xl {
+    font-size: 2.28rem;
+  }
+}
+
 .table-dropdown-fix tbody {
   position: relative;
 }

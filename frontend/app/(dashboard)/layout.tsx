@@ -66,7 +66,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <LoadingBar />
       <div className="relative z-10 flex min-h-screen w-full">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <div className="flex min-w-0 flex-1 flex-col lg:pl-[5.5rem]">
+        <div className="app-content-scale flex min-w-0 flex-1 flex-col lg:pl-[5.5rem]">
           <SiteStatusBanner />
           <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
           <main className="flex-1 overflow-y-auto px-3 pb-4 pt-2 sm:px-4 lg:px-5 lg:pb-6">

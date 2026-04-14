@@ -20,8 +20,8 @@ export default function VerifyTOTPPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Get email from localStorage
-    const savedEmail = localStorage.getItem(STORAGE_KEYS.TOTP_EMAIL);
+    // Get email from sessionStorage so the auth flow stays tab-scoped
+    const savedEmail = sessionStorage.getItem(STORAGE_KEYS.TOTP_EMAIL);
     if (!savedEmail) {
       // No email saved, redirect to login
       router.push(ROUTES.LOGIN);
@@ -61,7 +61,7 @@ export default function VerifyTOTPPage() {
   };
 
   const handleBack = () => {
-    localStorage.removeItem(STORAGE_KEYS.TOTP_EMAIL);
+    sessionStorage.removeItem(STORAGE_KEYS.TOTP_EMAIL);
     sessionStorage.removeItem('totp_setup');
     router.push(ROUTES.LOGIN);
   };

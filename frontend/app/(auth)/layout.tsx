@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="app-shell flex min-h-screen items-center justify-center px-4 py-8">
+    <div className="app-shell app-content-scale flex min-h-screen items-center justify-center px-4 py-8">
       <div className="mesh-background absolute inset-0 opacity-85" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,248,240,0.42),_transparent_48%)]" />
 

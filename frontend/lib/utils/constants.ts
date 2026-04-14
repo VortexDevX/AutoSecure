@@ -32,6 +32,7 @@ export const STORAGE_KEYS = {
   ACCESS_TOKEN: 'access_token',
   USER: 'user',
   TOTP_EMAIL: 'totp_email',
+  SESSION_ACCESS_TOKEN: '__autosecure_at',
 } as const;
 
 export const FILE_UPLOAD = {

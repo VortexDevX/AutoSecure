@@ -1,22 +1,21 @@
 'use client';
 
+import { STORAGE_KEYS } from './constants';
+
 /**
- * Token store with localStorage persistence.
+ * Token store with sessionStorage persistence.
  *
- * In a web browser we would keep the token in memory only to prevent XSS.
- * In the Electron desktop context there is no third-party code injection
- * risk, and the `app://` protocol cannot send httpOnly cookies to the
- * backend on `localhost`, so we persist the access token in localStorage
- * so it survives client-side navigations and component re-mounts.
+ * The access token is kept for the lifetime of the current browser tab so
+ * refreshes and client navigations preserve auth, but closing the tab clears it.
  */
 
-const TOKEN_KEY = '__autosecure_at';
+const TOKEN_KEY = STORAGE_KEYS.SESSION_ACCESS_TOKEN;
 
 let accessToken: string | null = null;
 
-// Bootstrap from localStorage on first import
+// Bootstrap from sessionStorage on first import
 if (typeof window !== 'undefined') {
-  accessToken = localStorage.getItem(TOKEN_KEY);
+  accessToken = sessionStorage.getItem(TOKEN_KEY);
 }
 
 /**
@@ -27,15 +26,15 @@ export function getToken(): string | null {
 }
 
 /**
- * Set the access token (memory + localStorage)
+ * Set the access token (memory + sessionStorage)
  */
 export function setToken(token: string | null): void {
   accessToken = token;
   if (typeof window !== 'undefined') {
     if (token) {
-      localStorage.setItem(TOKEN_KEY, token);
+      sessionStorage.setItem(TOKEN_KEY, token);
     } else {
-      localStorage.removeItem(TOKEN_KEY);
+      sessionStorage.removeItem(TOKEN_KEY);
     }
   }
 }
@@ -46,7 +45,7 @@ export function setToken(token: string | null): void {
 export function clearToken(): void {
   accessToken = null;
   if (typeof window !== 'undefined') {
-    localStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
   }
 }
 
@@ -56,4 +55,3 @@ export function clearToken(): void {
 export function hasToken(): boolean {
   return accessToken !== null;
 }
-

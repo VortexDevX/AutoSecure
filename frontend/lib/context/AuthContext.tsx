@@ -5,7 +5,7 @@ import { User } from '../types/user';
 import { authApi } from '../api/auth';
 import { useRouter } from 'next/navigation';
 import { ROUTES, STORAGE_KEYS } from '../utils/constants';
-import { setToken, clearToken, hasToken } from '../utils/tokenStore';
+import { setToken, clearToken } from '../utils/tokenStore';
 
 interface AuthContextType {
   user: User | null;
@@ -26,14 +26,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authSessionVersion, setAuthSessionVersion] = useState(0);
   const router = useRouter();
 
-  // Load user on mount — recover auth state from localStorage
+  // Load user on mount — recover auth state from sessionStorage
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const savedUser = localStorage.getItem(STORAGE_KEYS.USER);
-        const savedToken = localStorage.getItem('__autosecure_at');
+        const savedUser = sessionStorage.getItem(STORAGE_KEYS.USER);
+        const savedToken = sessionStorage.getItem(STORAGE_KEYS.SESSION_ACCESS_TOKEN);
 
-        // Ensure the in-memory token store is synced with localStorage
+        // Ensure the in-memory token store is synced with sessionStorage
         if (savedToken) {
           setToken(savedToken);
         }
@@ -51,15 +51,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           try {
             const currentUser = await authApi.getCurrentUser();
             setUser(currentUser);
-            localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
+            sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
             setAuthSessionVersion((prev) => prev + 1);
           } catch (error: any) {
             const status = error?.response?.status;
             if (status === 401 || status === 403) {
               // Token is definitively expired/invalid
               clearToken();
-              localStorage.removeItem(STORAGE_KEYS.USER);
-              localStorage.removeItem('__autosecure_at');
+              sessionStorage.removeItem(STORAGE_KEYS.USER);
               setUser(null);
               setAuthSessionVersion((prev) => prev + 1);
             }
@@ -69,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           // No saved session
           clearToken();
-          localStorage.removeItem(STORAGE_KEYS.USER);
+          sessionStorage.removeItem(STORAGE_KEYS.USER);
           setUser(null);
           setAuthSessionVersion((prev) => prev + 1);
         }
@@ -95,7 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const response = result.data;
 
     // Save email for TOTP step
-    localStorage.setItem(STORAGE_KEYS.TOTP_EMAIL, email);
+    sessionStorage.setItem(STORAGE_KEYS.TOTP_EMAIL, email);
 
     // Check if TOTP setup is needed (first time)
     if (response.totp_setup_required && response.totp_qr_code) {
@@ -140,12 +139,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error('No user data received from server');
     }
 
-    // Save token in memory (not localStorage) for XSS protection
+    // Save token in the in-memory store and session storage for this tab session
     setToken(accessToken);
 
-    // Save user data in localStorage (non-sensitive, for UX)
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
-    localStorage.removeItem(STORAGE_KEYS.TOTP_EMAIL);
+    // Save user data in sessionStorage so auth ends with the tab session
+    sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+    sessionStorage.removeItem(STORAGE_KEYS.TOTP_EMAIL);
 
     setUser(userData);
     setAuthSessionVersion((prev) => prev + 1);
@@ -166,9 +165,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Clear token from memory
       clearToken();
 
-      // Clear localStorage
-      localStorage.removeItem(STORAGE_KEYS.USER);
-      localStorage.removeItem(STORAGE_KEYS.TOTP_EMAIL);
+      // Clear session storage
+      sessionStorage.removeItem(STORAGE_KEYS.USER);
+      sessionStorage.removeItem(STORAGE_KEYS.TOTP_EMAIL);
       sessionStorage.removeItem('totp_setup');
 
       setUser(null);
@@ -183,7 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const currentUser = await authApi.getCurrentUser();
       setUser(currentUser);
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
+      sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
       setAuthSessionVersion((prev) => prev + 1);
     } catch (error) {
       console.error('Failed to refresh user:', error);

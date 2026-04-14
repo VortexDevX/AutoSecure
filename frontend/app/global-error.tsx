@@ -15,7 +15,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
   return (
     <html>
       <body>
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="app-content-scale min-h-screen flex items-center justify-center bg-gray-50 px-4">
           <div className="text-center max-w-md">
             <div className="mx-auto w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-6">
               <svg
